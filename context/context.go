@@ -9,12 +9,16 @@ var (
 )
 
 func init() {
-	
+	LB_Self().Name = "lb"
+	//LB_Self().NetworkName.Full = "free5GC"
 }
 
 type LBContext struct{
+	Name 			string 
+	//NetworkName   factory.NetworkName
+
 	LbRanPool		sync.Map 		// gNBs connected to the LB 
-	LbAmfClients	sync.Map		// clients (each connected to AMF 1:1) connected to LB
+	LbAmfPool		sync.Map		// amfs (each connected to AMF 1:1) connected to LB
 }
 
 func LB_Self() *LBContext {
