@@ -9,3 +9,8 @@ type LbGnb struct{
 	Conn 		*sctp.SCTPConn
 }
 
+func NewLbGnb(id int) (amf *LbAmf){
+	amf.amfID = id
+	amf.Conn = nil 
+	return amf
+}
