@@ -3,6 +3,7 @@ module github.com/LuckyG0ldfish/balancer
 go 1.14
 
 require (
+	git.cs.nctu.edu.tw/calee/sctp v1.1.0
 	github.com/antonfisher/nested-logrus-formatter v1.3.0
 	github.com/calee0219/fatal v0.0.1
 	github.com/free5gc/aper v1.0.1
