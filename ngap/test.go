@@ -29,57 +29,81 @@ func getAmfID(pdu *ngapType.NGAPPDU) (amfID int, amfpoint *int){
 
 func getInitiatingPointer(message *ngapType.InitiatingMessage) (amf, ran *int) {
 	switch message.ProcedureCode.Value {
+		//case ngapType.ProcedureCodeNGReset:
+		//	handler.HandleNGReset(amf, pdu)
+		case ngapType.ProcedureCodeInitialContextSetup:
+			handler.HandleInitialContextSetupRequest(emulatorCtx.MainSCTPConnection, pdu)
+		//case ngapType.ProcedureCodeUEContextModification:
+		//	handler.HandleUEContextModificationRequest(amf, pdu)
+		case ngapType.ProcedureCodeUEContextRelease:
+			handler.HandleUEContextReleaseCommand(emulatorCtx.MainSCTPConnection, pdu)
+		case ngapType.ProcedureCodeDownlinkNASTransport:
+			handler.HandleDownlinkNASTransport(emulatorCtx.MainSCTPConnection, pdu)
+		case ngapType.ProcedureCodePDUSessionResourceSetup:
+			handler.HandlePDUSessionResourceSetupRequest(emulatorCtx.MainSCTPConnection, pdu)
+		// TODO: This will be commented for the time being, after adding other procedures will be uncommented.
+		//case ngapType.ProcedureCodePDUSessionResourceModify:
+		//	handler.HandlePDUSessionResourceModifyRequest(amf, pdu)
+		case ngapType.ProcedureCodePDUSessionResourceRelease:
+			handler.HandlePDUSessionResourceReleaseCommand(emulatorCtx.MainSCTPConnection, pdu)
+		//case ngapType.ProcedureCodeErrorIndication:
+		//	handler.HandleErrorIndication(amf, pdu)
+		//case ngapType.ProcedureCodeUERadioCapabilityCheck:
+		//	handler.HandleUERadioCapabilityCheckRequest(amf, pdu)
+		//case ngapType.ProcedureCodeAMFConfigurationUpdate:
+		//	handler.HandleAMFConfigurationUpdate(amf, pdu)
+		//case ngapType.ProcedureCodeDownlinkRANConfigurationTransfer:
+		//	handler.HandleDownlinkRANConfigurationTransfer(pdu)
+		//case ngapType.ProcedureCodeDownlinkRANStatusTransfer:
+		//	handler.HandleDownlinkRANStatusTransfer(pdu)
+		//case ngapType.ProcedureCodeAMFStatusIndication:
+		//	handler.HandleAMFStatusIndication(pdu)
+		//case ngapType.ProcedureCodeLocationReportingControl:
+		//	handler.HandleLocationReportingControl(pdu)
+		//case ngapType.ProcedureCodeUETNLABindingRelease:
+		//	handler.HandleUETNLAReleaseRequest(pdu)
+		//case ngapType.ProcedureCodeOverloadStart:
+		//	handler.HandleOverloadStart(amf, pdu)
+		//case ngapType.ProcedureCodeOverloadStop:
+		//	handler.HandleOverloadStop(amf, pdu)
+		default:
+			NGAPLog.Warnf("Not implemented NGAP message(initiatingMessage), procedureCode:%d]\n",
+				initiatingMessage.ProcedureCode.Value)
+		}
+
+	return
+}
+
+func getSucessfulPointer(message *ngapType.InitiatingMessage) (amf, ran *int) {
+	switch message.ProcedureCode.Value {
 	case ngapType.ProcedureCodeNGSetup:
-		message.Value.ProcedureCodeNGSetup
-	case ngapType.ProcedureCodeInitialUEMessage:
-		HandleInitialUEMessage(ran, pdu)
-	case ngapType.ProcedureCodeUplinkNASTransport:
-		HandleUplinkNasTransport(ran, pdu)
-	case ngapType.ProcedureCodeNGReset:
-		HandleNGReset(ran, pdu)
-	case ngapType.ProcedureCodeHandoverCancel:
-		HandleHandoverCancel(ran, pdu)
-	case ngapType.ProcedureCodeUEContextReleaseRequest:
-		HandleUEContextReleaseRequest(ran, pdu)
-	case ngapType.ProcedureCodeNASNonDeliveryIndication:
-		HandleNasNonDeliveryIndication(ran, pdu)
-	case ngapType.ProcedureCodeLocationReportingFailureIndication:
-		HandleLocationReportingFailureIndication(ran, pdu)
-	case ngapType.ProcedureCodeErrorIndication:
-		HandleErrorIndication(ran, pdu)
-	case ngapType.ProcedureCodeUERadioCapabilityInfoIndication:
-		HandleUERadioCapabilityInfoIndication(ran, pdu)
-	case ngapType.ProcedureCodeHandoverNotification:
-		HandleHandoverNotify(ran, pdu)
-	case ngapType.ProcedureCodeHandoverPreparation:
-		HandleHandoverRequired(ran, pdu)
-	case ngapType.ProcedureCodeRANConfigurationUpdate:
-		HandleRanConfigurationUpdate(ran, pdu)
-	case ngapType.ProcedureCodeRRCInactiveTransitionReport:
-		HandleRRCInactiveTransitionReport(ran, pdu)
-	case ngapType.ProcedureCodePDUSessionResourceNotify:
-		HandlePDUSessionResourceNotify(ran, pdu)
-	case ngapType.ProcedureCodePathSwitchRequest:
-		HandlePathSwitchRequest(ran, pdu)
-	case ngapType.ProcedureCodeLocationReport:
-		HandleLocationReport(ran, pdu)
-	case ngapType.ProcedureCodeUplinkUEAssociatedNRPPaTransport:
-		HandleUplinkUEAssociatedNRPPATransport(ran, pdu)
-	case ngapType.ProcedureCodeUplinkRANConfigurationTransfer:
-		HandleUplinkRanConfigurationTransfer(ran, pdu)
-	case ngapType.ProcedureCodePDUSessionResourceModifyIndication:
-		HandlePDUSessionResourceModifyIndication(ran, pdu)
-	case ngapType.ProcedureCodeCellTrafficTrace:
-		HandleCellTrafficTrace(ran, pdu)
-	case ngapType.ProcedureCodeUplinkRANStatusTransfer:
-		HandleUplinkRanStatusTransfer(ran, pdu)
-	case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
-		HandleUplinkNonUEAssociatedNRPPATransport(ran, pdu)
+		handler.HandleNGSetupResponse(conn, pdu)
+	//case ngapType.ProcedureCodeNGReset:
+	//	handler.HandleNGResetAcknowledge(amf, pdu)
+	//case ngapType.ProcedureCodePDUSessionResourceModifyIndication:
+	//	handler.HandlePDUSessionResourceModifyConfirm(amf, pdu)
+	//case ngapType.ProcedureCodeRANConfigurationUpdate:
+	//	handler.HandleRANConfigurationUpdateAcknowledge(amf, pdu)
 	default:
-		ran.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, initiatingMessage.ProcedureCode.Value)
+		NGAPLog.Warnf("Not implemented NGAP message(successfulOutcome), procedureCode:%d]\n",
+			successfulOutcome.ProcedureCode.Value)
 	}
 
 	return
+}
+
+func getUnsucessfulPointer(message *ngapType.InitiatingMessage) (amf, ran *int){
+	switch message.ProcedureCode.Value {
+		//case ngapType.ProcedureCodeNGSetup:
+		//	handler.HandleNGSetupFailure(sctpAddr, conn, pdu)
+		//case ngapType.ProcedureCodeRANConfigurationUpdate:
+		//	handler.HandleRANConfigurationUpdateFailure(amf, pdu)
+	default:
+		NGAPLog.Warnf("Not implemented NGAP message(unsuccessfulOutcome), procedureCode:%d]\n",
+			unsuccessfulOutcome.ProcedureCode.Value)
+		
+	}
+	return 
 }
 
 func main() {
