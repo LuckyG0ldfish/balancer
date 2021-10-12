@@ -32,7 +32,8 @@ func getInitiatingPointer(message *ngapType.InitiatingMessage) (amf, ran *int) {
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGReset(amf, pdu)
 		case ngapType.ProcedureCodeInitialContextSetup:
-			handler.HandleInitialContextSetupRequest(emulatorCtx.MainSCTPConnection, pdu)
+			// handler.HandleInitialContextSetupRequest(emulatorCtx.MainSCTPConnection, pdu)
+			
 		//case ngapType.ProcedureCodeUEContextModification:
 		//	handler.HandleUEContextModificationRequest(amf, pdu)
 		case ngapType.ProcedureCodeUEContextRelease:
