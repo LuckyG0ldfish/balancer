@@ -9,13 +9,13 @@ import (
 const lbPPID uint32 = 0x3c000000
 
 type LbAmf struct{
-	amfID 		int 
-	Conn 		*sctp.SCTPConn
+	LbConn 		*LBConn
 }
 
 func NewLbAmf(id int) (amf *LbAmf){
-	amf.amfID = id
-	amf.Conn = nil 
+	amf.LbConn = NewLBConn()
+	amf.LbConn.ID = id
+	amf.LbConn.TypeID = TypeIdentAMFConn
 	return amf
 }
 
@@ -46,6 +46,6 @@ func (amf *LbAmf) ConnectToAmf(lbaddr sctp.SCTPAddr, amfIP string, amfPort int) 
 		return  err
 	}
 	//setting this connection as the amf SCTPConn
-	amf.Conn = conn
+	amf.LbConn.Conn = conn
 	return  nil
 }

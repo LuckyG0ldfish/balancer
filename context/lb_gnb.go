@@ -5,12 +5,12 @@ import (
 )
 
 type LbGnb struct{
-	gnbID 		int 
-	Conn 		*sctp.SCTPConn
+	LbConn 		*LBConn
 }
 
-func NewLbGnb(id int) (amf *LbAmf){
-	amf.amfID = id
-	amf.Conn = nil 
-	return amf
+func NewLbGnb(id int) (gnb *LbGnb){
+	gnb.LbConn = NewLBConn()
+	gnb.LbConn.ID = id
+	gnb.LbConn.TypeID = TypeIdentAMFConn
+	return gnb
 }

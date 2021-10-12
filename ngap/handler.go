@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/LuckyG0ldfish/balancer/context" 
+	"github.com/LuckyG0ldfish/balancer/logger" 
 	"github.com/free5gc/ngap/ngapType"
 
 	// "github.com/free5gc/amf/consumer"
@@ -159,7 +160,7 @@ func HandleUplinkNasTransport(ran *context.AmfRan, message *ngapType.NGAPPDU) {
 	var userLocationInformation *ngapType.UserLocationInformation
 
 	if ran == nil {
-		logger.NgapLog.Error("ran is nil")
+		//logger.NgapLog.Error("ran is nil")
 		return
 	}
 	if message == nil {
