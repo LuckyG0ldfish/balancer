@@ -5,10 +5,10 @@ import (
 )
 
 type LbUe struct{
-	UeID 		int
+	UeID 		int64
 }
 
-func NewUE(id int) (ue *LbUe){
+func NewUE(id int64) (ue *LbUe){
 	ue.UeID = id
 	return 
 }

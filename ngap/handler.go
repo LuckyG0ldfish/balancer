@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	"github.com/LuckyG0ldfish/balancer/context" 
-	"github.com/LuckyG0ldfish/balancer/logger" 
+	"github.com/LuckyG0ldfish/balancer/context"
+	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
-
 	// "github.com/free5gc/amf/consumer"
 	// gmm_common "github.com/free5gc/amf/gmm/common"
 	// gmm_message "github.com/free5gc/amf/gmm/message"
@@ -22,6 +22,7 @@ import (
 	// "github.com/free5gc/openapi/models"
 )
 
+var LBC context.LBContext 
 
 //TODO
 func HandleNGSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -151,7 +152,6 @@ func HandleNGSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		ngap_message.SendNGSetupFailure(ran, cause)
 	}
 }
-
 
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID

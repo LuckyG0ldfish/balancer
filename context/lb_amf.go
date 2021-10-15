@@ -10,12 +10,12 @@ import (
 const lbPPID uint32 = 0x3c000000
 
 type LbAmf struct{
-	AmfID 		int
+	AmfID 		int64
 	LbConn 		*LBConn
 	Ues			sync.Map
 }
 
-func NewLbAmf(id int) (amf *LbAmf){
+func NewLbAmf(id int64) (amf *LbAmf){
 	amf.AmfID = id
 	amf.LbConn = NewLBConn()
 	amf.LbConn.ID = id
@@ -23,11 +23,11 @@ func NewLbAmf(id int) (amf *LbAmf){
 	return amf
 }
 
-func (amf *LbAmf) AddAMFUe(id int) {
+func (amf *LbAmf) AddAMFUe(id int64) {
 	amf.Ues.Store(id, NewUE(id))
 }
 
-func (amf *LbAmf) ContainsUE(id int) (cont bool) {
+func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 	_, cont = amf.Ues.Load(id)
 	return 
 }

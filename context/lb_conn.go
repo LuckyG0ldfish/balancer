@@ -10,7 +10,7 @@ const TypeIdentGNBConn		int = 2
 
 type LBConn struct{
 	TypeID 		int 
-	ID 			int 
+	ID 			int64 
 	Conn 		*sctp.SCTPConn
 }
 
