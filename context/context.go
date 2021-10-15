@@ -100,6 +100,13 @@ func (context *LBContext) LbGnbFindByUeID(UeID int64) *LbGnb {
 	return nil
 }
 
+func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{
+	gnb := NewLbGnb()
+	gnb.LbConn.Conn = conn
+	context.LbRanPool = append(context.LbRanPool, gnb)
+	return gnb
+}
+
 func LB_Self() *LBContext {
 	return &lbContext
 }

@@ -18,18 +18,18 @@ func Dispatch(conn *sctp.SCTPConn, msg []byte) {
 	ran, ok := lbSelf.LbGnbFindByConn(conn)
 	if !ok {
 		logger.NgapLog.Infof("Create a new NG connection for: %s", conn.RemoteAddr().String())
-		ran = lbSelf.NewRan(conn)
+		ran = lbSelf.AddGnbToLB(conn)
 	}
 
 	if len(msg) == 0 {
-		ran.Log.Infof("RAN close the connection.")
-		ran.Remove()
+		// ran.Log.Infof("RAN close the connection.")
+		// ran.Remove()
 		return
 	}
 
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
-		ran.Log.Errorf("NGAP decode error : %+v", err)
+		// ran.Log.Errorf("NGAP decode error : %+v", err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func Dispatch(conn *sctp.SCTPConn, msg []byte) {
 	case ngapType.NGAPPDUPresentInitiatingMessage:
 		initiatingMessage := pdu.InitiatingMessage
 		if initiatingMessage == nil {
-			lbConn.Log.Errorln("Initiating Message is nil")
+			// lbConn.Log.Errorln("Initiating Message is nil")
 			return
 		}
 		switch initiatingMessage.ProcedureCode.Value {
@@ -90,12 +90,12 @@ func Dispatch(conn *sctp.SCTPConn, msg []byte) {
 		case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
 			HandleUplinkNonUEAssociatedNRPPATransport(lbConn, pdu)
 		default:
-			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, initiatingMessage.ProcedureCode.Value)
+			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, initiatingMessage.ProcedureCode.Value)
 		}
 	case ngapType.NGAPPDUPresentSuccessfulOutcome:
 		successfulOutcome := pdu.SuccessfulOutcome
 		if successfulOutcome == nil {
-			lbConn.Log.Errorln("successful Outcome is nil")
+			// lbConn.Log.Errorln("successful Outcome is nil")
 			return
 		}
 		switch successfulOutcome.ProcedureCode.Value {
@@ -120,12 +120,12 @@ func Dispatch(conn *sctp.SCTPConn, msg []byte) {
 		case ngapType.ProcedureCodeHandoverResourceAllocation:
 			HandleHandoverRequestAcknowledge(lbConn, pdu)
 		default:
-			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, successfulOutcome.ProcedureCode.Value)
+			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, successfulOutcome.ProcedureCode.Value)
 		}
 	case ngapType.NGAPPDUPresentUnsuccessfulOutcome:
 		unsuccessfulOutcome := pdu.UnsuccessfulOutcome
 		if unsuccessfulOutcome == nil {
-			lbConn.Log.Errorln("unsuccessful Outcome is nil")
+			// lbConn.Log.Errorln("unsuccessful Outcome is nil")
 			return
 		}
 		switch unsuccessfulOutcome.ProcedureCode.Value {
@@ -138,17 +138,17 @@ func Dispatch(conn *sctp.SCTPConn, msg []byte) {
 		case ngapType.ProcedureCodeHandoverResourceAllocation:
 			HandleHandoverFailure(lbConn, pdu)
 		default:
-			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, unsuccessfulOutcome.ProcedureCode.Value)
+			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, unsuccessfulOutcome.ProcedureCode.Value)
 		}
 	}
 }
 
-func HandleSCTPNotification(conn net.Conn, notification sctp.Notification) {
-	amfSelf := context.LB_Self()
+func HandleSCTPNotification(conn *sctp.SCTPConn, notification sctp.Notification) {
+	lbSelf := context.LB_Self()
 
 	logger.NgapLog.Infof("Handle SCTP Notification[addr: %+v]", conn.RemoteAddr())
 
-	ran, ok := amfSelf.AmfRanFindByConn(conn)
+	_, ok := lbSelf.LbAmfFindByConn(conn)
 	if !ok {
 		logger.NgapLog.Warnf("RAN context has been removed[addr: %+v]", conn.RemoteAddr())
 		return
@@ -156,22 +156,22 @@ func HandleSCTPNotification(conn net.Conn, notification sctp.Notification) {
 
 	switch notification.Type() {
 	case sctp.SCTP_ASSOC_CHANGE:
-		ran.Log.Infof("SCTP_ASSOC_CHANGE notification")
+		// ran.Log.Infof("SCTP_ASSOC_CHANGE notification")
 		event := notification.(*sctp.SCTPAssocChangeEvent)
 		switch event.State() {
 		case sctp.SCTP_COMM_LOST:
-			ran.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
-			ran.Remove()
+			// ran.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
+			// ran.Remove()
 		case sctp.SCTP_SHUTDOWN_COMP:
-			ran.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
-			ran.Remove()
+			// ran.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
+			// ran.Remove()
 		default:
-			ran.Log.Warnf("SCTP state[%+v] is not handled", event.State())
+			// ran.Log.Warnf("SCTP state[%+v] is not handled", event.State())
 		}
 	case sctp.SCTP_SHUTDOWN_EVENT:
-		ran.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
-		ran.Remove()
+		// ran.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
+		// ran.Remove()
 	default:
-		ran.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
+		// ran.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
 	}
 }

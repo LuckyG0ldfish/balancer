@@ -6,17 +6,20 @@ import (
 	//"github.com/ishidawataru/sctp"
 )
 
+var nextGnbID int64 = 1
+
 type LbGnb struct{
 	GnbID 		int64
 	LbConn 		*LBConn
 	Ues 		sync.Map
 }
 
-func NewLbGnb(id int64) (gnb *LbGnb){
-	gnb.GnbID = id
+func NewLbGnb() (gnb *LbGnb){
+	gnb.GnbID = nextGnbID
 	gnb.LbConn = NewLBConn()
-	gnb.LbConn.ID = id
-	gnb.LbConn.TypeID = TypeIdentAMFConn
+	gnb.LbConn.ID = nextGnbID
+	gnb.LbConn.TypeID = TypeIdentGNBConn
+	nextGnbID++
 	return gnb
 }
 
