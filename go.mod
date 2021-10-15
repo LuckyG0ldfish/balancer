@@ -14,5 +14,6 @@ require (
 	github.com/free5gc/openapi v1.0.0
 	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
 	github.com/sirupsen/logrus v1.8.1
+	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44 // indirect
 )

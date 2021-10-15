@@ -2,21 +2,34 @@ package context
 
 import (
 	"time"
+	"sync"
 
-	"github.com/ishidawataru/sctp" 
+	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
 const lbPPID uint32 = 0x3c000000
 
 type LbAmf struct{
+	AmfID 		int
 	LbConn 		*LBConn
+	Ues			sync.Map
 }
 
 func NewLbAmf(id int) (amf *LbAmf){
+	amf.AmfID = id
 	amf.LbConn = NewLBConn()
 	amf.LbConn.ID = id
 	amf.LbConn.TypeID = TypeIdentAMFConn
 	return amf
+}
+
+func (amf *LbAmf) AddAMFUe(id int) {
+	amf.Ues.Store(id, NewUE(id))
+}
+
+func (amf *LbAmf) ContainsUE(id int) (cont bool) {
+	_, cont = amf.Ues.Load(id)
+	return 
 }
 
 func (amf *LbAmf) Start(lbaddr sctp.SCTPAddr, amfIP string, amfPort int) {
