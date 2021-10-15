@@ -2,12 +2,13 @@ package ngap
 
 import (
 	"encoding/hex"
-	"strconv"
+	// "strconv"
 
+	"github.com/free5gc/ngap/ngapType"
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	"github.com/free5gc/ngap"
-	"github.com/free5gc/ngap/ngapType"
+	
+	// "github.com/free5gc/ngap"
 	// "github.com/free5gc/amf/consumer"
 	// gmm_common "github.com/free5gc/amf/gmm/common"
 	// gmm_message "github.com/free5gc/amf/gmm/message"
@@ -25,7 +26,7 @@ import (
 var LB context.LBContext 
 
 //TODO
-func HandleNGSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var globalRANNodeID *ngapType.GlobalRANNodeID
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
@@ -33,71 +34,71 @@ func HandleNGSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	var cause ngapType.Cause
 
-	if ran == nil {
+	if LbConn == nil {
 		logger.NgapLog.Error("ran is nil")
 		return
 	}
 	if message == nil {
-		ran.Log.Error("NGAP Message is nil")
+		LbConn.Log.Error("NGAP Message is nil")
 		return
 	}
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		ran.Log.Error("Initiating Message is nil")
+		LbConn.Log.Error("Initiating Message is nil")
 		return
 	}
 	nGSetupRequest := initiatingMessage.Value.NGSetupRequest
 	if nGSetupRequest == nil {
-		ran.Log.Error("NGSetupRequest is nil")
+		LbConn.Log.Error("NGSetupRequest is nil")
 		return
 	}
-	ran.Log.Info("Handle NG Setup request")
+	LbConn.Log.Info("Handle NG Setup request")
 	for i := 0; i < len(nGSetupRequest.ProtocolIEs.List); i++ {
 		ie := nGSetupRequest.ProtocolIEs.List[i]
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDGlobalRANNodeID:
 			globalRANNodeID = ie.Value.GlobalRANNodeID
-			ran.Log.Trace("Decode IE GlobalRANNodeID")
+			LbConn.Log.Trace("Decode IE GlobalRANNodeID")
 			if globalRANNodeID == nil {
-				ran.Log.Error("GlobalRANNodeID is nil")
+				LbConn.Log.Error("GlobalRANNodeID is nil")
 				return
 			}
 		case ngapType.ProtocolIEIDSupportedTAList:
 			supportedTAList = ie.Value.SupportedTAList
-			ran.Log.Trace("Decode IE SupportedTAList")
+			LbConn.Log.Trace("Decode IE SupportedTAList")
 			if supportedTAList == nil {
-				ran.Log.Error("SupportedTAList is nil")
+				LbConn.Log.Error("SupportedTAList is nil")
 				return
 			}
 		case ngapType.ProtocolIEIDRANNodeName:
 			rANNodeName = ie.Value.RANNodeName
-			ran.Log.Trace("Decode IE RANNodeName")
+			LbConn.Log.Trace("Decode IE RANNodeName")
 			if rANNodeName == nil {
-				ran.Log.Error("RANNodeName is nil")
+				LbConn.Log.Error("RANNodeName is nil")
 				return
 			}
 		case ngapType.ProtocolIEIDDefaultPagingDRX:
 			pagingDRX = ie.Value.DefaultPagingDRX
-			ran.Log.Trace("Decode IE DefaultPagingDRX")
+			LbConn.Log.Trace("Decode IE DefaultPagingDRX")
 			if pagingDRX == nil {
-				ran.Log.Error("DefaultPagingDRX is nil")
+				LbConn.Log.Error("DefaultPagingDRX is nil")
 				return
 			}
 		}
 	}
 
-	ran.SetRanId(globalRANNodeID)
+	LbConn.SetRanId(globalRANNodeID)
 	if rANNodeName != nil {
-		ran.Name = rANNodeName.Value
+		LbConn.Name = rANNodeName.Value
 	}
 	if pagingDRX != nil {
-		ran.Log.Tracef("PagingDRX[%d]", pagingDRX.Value)
+		LbConn.Log.Tracef("PagingDRX[%d]", pagingDRX.Value)
 	}
 
 	for i := 0; i < len(supportedTAList.List); i++ {
 		supportedTAItem := supportedTAList.List[i]
 		tac := hex.EncodeToString(supportedTAItem.TAC.Value)
-		capOfSupportTai := cap(ran.SupportedTAList)
+		capOfSupportTai := cap(LbConn.SupportedTAList)
 		for j := 0; j < len(supportedTAItem.BroadcastPLMNList.List); j++ {
 			supportedTAI := context.NewSupportedTAI()
 			supportedTAI.Tai.Tac = tac
@@ -113,32 +114,32 @@ func HandleNGSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 					break
 				}
 			}
-			ran.Log.Tracef("PLMN_ID[MCC:%s MNC:%s] TAC[%s]", plmnId.Mcc, plmnId.Mnc, tac)
-			if len(ran.SupportedTAList) < capOfSupportTai {
-				ran.SupportedTAList = append(ran.SupportedTAList, supportedTAI)
+			LbConn.Log.Tracef("PLMN_ID[MCC:%s MNC:%s] TAC[%s]", plmnId.Mcc, plmnId.Mnc, tac)
+			if len(LbConn.SupportedTAList) < capOfSupportTai {
+				LbConn.SupportedTAList = append(LbConn.SupportedTAList, supportedTAI)
 			} else {
 				break
 			}
 		}
 	}
 
-	if len(ran.SupportedTAList) == 0 {
-		ran.Log.Warn("NG-Setup failure: No supported TA exist in NG-Setup request")
+	if len(LbConn.SupportedTAList) == 0 {
+		LbConn.Log.Warn("NG-Setup failure: No supported TA exist in NG-Setup request")
 		cause.Present = ngapType.CausePresentMisc
 		cause.Misc = &ngapType.CauseMisc{
 			Value: ngapType.CauseMiscPresentUnspecified,
 		}
 	} else {
 		var found bool
-		for i, tai := range ran.SupportedTAList {
+		for i, tai := range LbConn.SupportedTAList {
 			if context.InTaiList(tai.Tai, context.AMF_Self().SupportTaiLists) {
-				ran.Log.Tracef("SERVED_TAI_INDEX[%d]", i)
+				LbConn.Log.Tracef("SERVED_TAI_INDEX[%d]", i)
 				found = true
 				break
 			}
 		}
 		if !found {
-			ran.Log.Warn("NG-Setup failure: Cannot find Served TAI in AMF")
+			LbConn.Log.Warn("NG-Setup failure: Cannot find Served TAI in AMF")
 			cause.Present = ngapType.CausePresentMisc
 			cause.Misc = &ngapType.CauseMisc{
 				Value: ngapType.CauseMiscPresentUnknownPLMN,
@@ -147,9 +148,9 @@ func HandleNGSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 
 	if cause.Present == ngapType.CausePresentNothing {
-		ngap_message.SendNGSetupResponse(ran)
+		ngap_message.SendNGSetupResponse(LbConn)
 	} else {
-		ngap_message.SendNGSetupFailure(ran, cause)
+		ngap_message.SendNGSetupFailure(LbConn, cause)
 	}
 }
 
@@ -215,11 +216,17 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 		}
 	}
 
+	
+
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -402,10 +409,10 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var userLocationInformation *ngapType.UserLocationInformation
+	// var userLocationInformation *ngapType.UserLocationInformation
 	var infoOnRecommendedCellsAndRANNodesForPaging *ngapType.InfoOnRecommendedCellsAndRANNodesForPaging
-	var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelCpl
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelCpl
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -444,29 +451,33 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 				lbConn.Log.Error("RanUeNgapID is nil")
 				return
 			}
-		case ngapType.ProtocolIEIDUserLocationInformation:
-			userLocationInformation = ie.Value.UserLocationInformation
-			lbConn.Log.Trace("Decode IE UserLocationInformation")
+		// case ngapType.ProtocolIEIDUserLocationInformation:
+		// 	userLocationInformation = ie.Value.UserLocationInformation
+		// 	lbConn.Log.Trace("Decode IE UserLocationInformation")
 		case ngapType.ProtocolIEIDInfoOnRecommendedCellsAndRANNodesForPaging:
 			infoOnRecommendedCellsAndRANNodesForPaging = ie.Value.InfoOnRecommendedCellsAndRANNodesForPaging
 			lbConn.Log.Trace("Decode IE InfoOnRecommendedCellsAndRANNodesForPaging")
 			if infoOnRecommendedCellsAndRANNodesForPaging != nil {
 				lbConn.Log.Warn("IE infoOnRecommendedCellsAndRANNodesForPaging is not support")
 			}
-		case ngapType.ProtocolIEIDPDUSessionResourceListCxtRelCpl:
-			pDUSessionResourceList = ie.Value.PDUSessionResourceListCxtRelCpl
-			lbConn.Log.Trace("Decode IE PDUSessionResourceList")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics:
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDPDUSessionResourceListCxtRelCpl:
+		// 	pDUSessionResourceList = ie.Value.PDUSessionResourceListCxtRelCpl
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceList")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -611,8 +622,8 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var pDUSessionResourceReleasedList *ngapType.PDUSessionResourceReleasedListRelRes
-	var userLocationInformation *ngapType.UserLocationInformation
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var userLocationInformation *ngapType.UserLocationInformation
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -658,20 +669,24 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 				lbConn.Log.Error("PDUSessionResourceReleasedList is nil")
 				return
 			}
-		case ngapType.ProtocolIEIDUserLocationInformation:
-			userLocationInformation = ie.Value.UserLocationInformation
-			lbConn.Log.Trace("Decode IE UserLocationInformation")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics:
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDUserLocationInformation:
+		// 	userLocationInformation = ie.Value.UserLocationInformation
+		// 	lbConn.Log.Trace("Decode IE UserLocationInformation")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -724,8 +739,8 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var iMSVoiceSupportIndicator *ngapType.IMSVoiceSupportIndicator
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
-	var ranUe *context.RanUe
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -772,17 +787,21 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 				lbConn.Log.Error("iMSVoiceSupportIndicator is nil")
 				return
 			}
-		case ngapType.ProtocolIEIDCriticalityDiagnostics:
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -803,7 +822,7 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	var cause *ngapType.Cause
 
@@ -856,10 +875,14 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -874,16 +897,16 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 }
 
 func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	amfSelf := context.AMF_Self()
+	// amfSelf := context.AMF_Self()
 
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var userLocationInformation *ngapType.UserLocationInformation
-	var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
-	var fiveGSTMSI *ngapType.FiveGSTMSI
-	// var aMFSetID *ngapType.AMFSetID
-	var uEContextRequest *ngapType.UEContextRequest
-	// var allowedNSSAI *ngapType.AllowedNSSAI
+	// var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
+	// var fiveGSTMSI *ngapType.FiveGSTMSI
+	// // var aMFSetID *ngapType.AMFSetID
+	// var uEContextRequest *ngapType.UEContextRequest
+	// // var allowedNSSAI *ngapType.AllowedNSSAI
 
 	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
@@ -934,18 +957,18 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 					ngapType.ProtocolIEIDUserLocationInformation, ngapType.TypeOfErrorPresentMissing)
 				iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
 			}
-		case ngapType.ProtocolIEIDRRCEstablishmentCause: // ignore
-			rRCEstablishmentCause = ie.Value.RRCEstablishmentCause
-			lbConn.Log.Trace("Decode IE RRCEstablishmentCause")
-		case ngapType.ProtocolIEIDFiveGSTMSI: // optional, reject
-			fiveGSTMSI = ie.Value.FiveGSTMSI
-			lbConn.Log.Trace("Decode IE 5G-S-TMSI")
-		case ngapType.ProtocolIEIDAMFSetID: // optional, ignore
-			// aMFSetID = ie.Value.AMFSetID
-			lbConn.Log.Trace("Decode IE AmfSetID")
-		case ngapType.ProtocolIEIDUEContextRequest: // optional, ignore
-			uEContextRequest = ie.Value.UEContextRequest
-			lbConn.Log.Trace("Decode IE UEContextRequest")
+		// case ngapType.ProtocolIEIDRRCEstablishmentCause: // ignore
+		// 	rRCEstablishmentCause = ie.Value.RRCEstablishmentCause
+		// 	lbConn.Log.Trace("Decode IE RRCEstablishmentCause")
+		// case ngapType.ProtocolIEIDFiveGSTMSI: // optional, reject
+		// 	fiveGSTMSI = ie.Value.FiveGSTMSI
+		// 	lbConn.Log.Trace("Decode IE 5G-S-TMSI")
+		// case ngapType.ProtocolIEIDAMFSetID: // optional, ignore
+		// 	// aMFSetID = ie.Value.AMFSetID
+		// 	lbConn.Log.Trace("Decode IE AmfSetID")
+		// case ngapType.ProtocolIEIDUEContextRequest: // optional, ignore
+		// 	uEContextRequest = ie.Value.UEContextRequest
+		// 	lbConn.Log.Trace("Decode IE UEContextRequest")
 		case ngapType.ProtocolIEIDAllowedNSSAI: // optional, reject
 			// allowedNSSAI = ie.Value.AllowedNSSAI
 			lbConn.Log.Trace("Decode IE Allowed NSSAI")
@@ -953,8 +976,16 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 
 	// TODO
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+	// if lbConn.TypeID == context.TypeIdentAMFConn {
+	// 	amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+	// 	amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
+	// 	LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+	// 	return 
+	// }
+	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
+		LB.ForwardToNextAmf(lbConn, message)
 		return 
 	}
 
@@ -1054,11 +1085,11 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var pDUSessionResourceSetupResponseList *ngapType.PDUSessionResourceSetupListSURes
-	var pDUSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListSURes
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var pDUSessionResourceSetupResponseList *ngapType.PDUSessionResourceSetupListSURes
+	// var pDUSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListSURes
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -1089,104 +1120,117 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 		case ngapType.ProtocolIEIDRANUENGAPID: // ignore
 			rANUENGAPID = ie.Value.RANUENGAPID
 			lbConn.Log.Trace("Decode IE RanUeNgapID")
-		case ngapType.ProtocolIEIDPDUSessionResourceSetupListSURes: // ignore
-			pDUSessionResourceSetupResponseList = ie.Value.PDUSessionResourceSetupListSURes
-			lbConn.Log.Trace("Decode IE PDUSessionResourceSetupListSURes")
-		case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListSURes: // ignore
-			pDUSessionResourceFailedToSetupList = ie.Value.PDUSessionResourceFailedToSetupListSURes
-			lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToSetupListSURes")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDPDUSessionResourceSetupListSURes: // ignore
+		// 	pDUSessionResourceSetupResponseList = ie.Value.PDUSessionResourceSetupListSURes
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceSetupListSURes")
+		// case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListSURes: // ignore
+		// 	pDUSessionResourceFailedToSetupList = ie.Value.PDUSessionResourceFailedToSetupListSURes
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToSetupListSURes")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
-	if rANUENGAPID != nil {
-		ranUe = lbConn.RanUeFindByRanUeNgapID(rANUENGAPID.Value)
-		if ranUe == nil {
-			lbConn.Log.Warnf("No UE Context[RanUeNgapID: %d]", rANUENGAPID.Value)
-		}
+	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
+		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		return 
+	}
+	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
+		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		return 
 	}
 
-	if aMFUENGAPID != nil {
-		ranUe = context.AMF_Self().RanUeFindByAmfUeNgapID(aMFUENGAPID.Value)
-		if ranUe == nil {
-			lbConn.Log.Warnf("No UE Context[AmfUeNgapID: %d]", aMFUENGAPID.Value)
-			return
-		}
-	}
+	// if rANUENGAPID != nil {
+	// 	ranUe = lbConn.RanUeFindByRanUeNgapID(rANUENGAPID.Value)
+	// 	if ranUe == nil {
+	// 		lbConn.Log.Warnf("No UE Context[RanUeNgapID: %d]", rANUENGAPID.Value)
+	// 	}
+	// }
 
-	if ranUe != nil {
-		ranUe.Log.Tracef("AmfUeNgapID[%d] RanUeNgapID[%d]", ranUe.AmfUeNgapId, ranUe.RanUeNgapId)
-		amfUe := ranUe.AmfUe
-		if amfUe == nil {
-			ranUe.Log.Error("amfUe is nil")
-			return
-		}
+	// if aMFUENGAPID != nil {
+	// 	ranUe = context.AMF_Self().RanUeFindByAmfUeNgapID(aMFUENGAPID.Value)
+	// 	if ranUe == nil {
+	// 		lbConn.Log.Warnf("No UE Context[AmfUeNgapID: %d]", aMFUENGAPID.Value)
+	// 		return
+	// 	}
+	// }
 
-		if pDUSessionResourceSetupResponseList != nil {
-			ranUe.Log.Trace("Send PDUSessionResourceSetupResponseTransfer to SMF")
+	// if ranUe != nil {
+	// 	ranUe.Log.Tracef("AmfUeNgapID[%d] RanUeNgapID[%d]", ranUe.AmfUeNgapId, ranUe.RanUeNgapId)
+	// 	amfUe := ranUe.AmfUe
+	// 	if amfUe == nil {
+	// 		ranUe.Log.Error("amfUe is nil")
+	// 		return
+	// 	}
 
-			for _, item := range pDUSessionResourceSetupResponseList.List {
-				pduSessionID := int32(item.PDUSessionID.Value)
-				transfer := item.PDUSessionResourceSetupResponseTransfer
-				smContext, ok := amfUe.SmContextFindByPDUSessionID(pduSessionID)
-				if !ok {
-					ranUe.Log.Errorf("SmContext[PDU Session ID:%d] not found", pduSessionID)
-				}
-				_, _, _, err := consumer.SendUpdateSmContextN2Info(amfUe, smContext,
-					models.N2SmInfoType_PDU_RES_SETUP_RSP, transfer)
-				if err != nil {
-					ranUe.Log.Errorf("SendUpdateSmContextN2Info[PDUSessionResourceSetupResponseTransfer] Error: %+v", err)
-				}
-				// RAN initiated QoS Flow Mobility in subclause 5.2.2.3.7
-				// if response != nil && response.BinaryDataN2SmInformation != nil {
-				// TODO: n2SmInfo send to RAN
-				// } else if response == nil {
-				// TODO: error handling
-				// }
-			}
-		}
+	// 	if pDUSessionResourceSetupResponseList != nil {
+	// 		ranUe.Log.Trace("Send PDUSessionResourceSetupResponseTransfer to SMF")
 
-		if pDUSessionResourceFailedToSetupList != nil {
-			ranUe.Log.Trace("Send PDUSessionResourceSetupUnsuccessfulTransfer to SMF")
+	// 		for _, item := range pDUSessionResourceSetupResponseList.List {
+	// 			pduSessionID := int32(item.PDUSessionID.Value)
+	// 			transfer := item.PDUSessionResourceSetupResponseTransfer
+	// 			smContext, ok := amfUe.SmContextFindByPDUSessionID(pduSessionID)
+	// 			if !ok {
+	// 				ranUe.Log.Errorf("SmContext[PDU Session ID:%d] not found", pduSessionID)
+	// 			}
+	// 			_, _, _, err := consumer.SendUpdateSmContextN2Info(amfUe, smContext,
+	// 				models.N2SmInfoType_PDU_RES_SETUP_RSP, transfer)
+	// 			if err != nil {
+	// 				ranUe.Log.Errorf("SendUpdateSmContextN2Info[PDUSessionResourceSetupResponseTransfer] Error: %+v", err)
+	// 			}
+	// 			// RAN initiated QoS Flow Mobility in subclause 5.2.2.3.7
+	// 			// if response != nil && response.BinaryDataN2SmInformation != nil {
+	// 			// TODO: n2SmInfo send to RAN
+	// 			// } else if response == nil {
+	// 			// TODO: error handling
+	// 			// }
+	// 		}
+	// 	}
 
-			for _, item := range pDUSessionResourceFailedToSetupList.List {
-				pduSessionID := int32(item.PDUSessionID.Value)
-				transfer := item.PDUSessionResourceSetupUnsuccessfulTransfer
-				smContext, ok := amfUe.SmContextFindByPDUSessionID(pduSessionID)
-				if !ok {
-					ranUe.Log.Errorf("SmContext[PDU Session ID:%d] not found", pduSessionID)
-				}
-				_, _, _, err := consumer.SendUpdateSmContextN2Info(amfUe, smContext,
-					models.N2SmInfoType_PDU_RES_SETUP_FAIL, transfer)
-				if err != nil {
-					ranUe.Log.Errorf("SendUpdateSmContextN2Info[PDUSessionResourceSetupUnsuccessfulTransfer] Error: %+v", err)
-				}
+	// 	if pDUSessionResourceFailedToSetupList != nil {
+	// 		ranUe.Log.Trace("Send PDUSessionResourceSetupUnsuccessfulTransfer to SMF")
 
-				// if response != nil && response.BinaryDataN2SmInformation != nil {
-				// TODO: n2SmInfo send to RAN
-				// } else if response == nil {
-				// TODO: error handling
-				// }
-			}
-		}
-	}
+	// 		for _, item := range pDUSessionResourceFailedToSetupList.List {
+	// 			pduSessionID := int32(item.PDUSessionID.Value)
+	// 			transfer := item.PDUSessionResourceSetupUnsuccessfulTransfer
+	// 			smContext, ok := amfUe.SmContextFindByPDUSessionID(pduSessionID)
+	// 			if !ok {
+	// 				ranUe.Log.Errorf("SmContext[PDU Session ID:%d] not found", pduSessionID)
+	// 			}
+	// 			_, _, _, err := consumer.SendUpdateSmContextN2Info(amfUe, smContext,
+	// 				models.N2SmInfoType_PDU_RES_SETUP_FAIL, transfer)
+	// 			if err != nil {
+	// 				ranUe.Log.Errorf("SendUpdateSmContextN2Info[PDUSessionResourceSetupUnsuccessfulTransfer] Error: %+v", err)
+	// 			}
 
-	if criticalityDiagnostics != nil {
-		printCriticalityDiagnostics(lbConn, criticalityDiagnostics)
-	}
+	// 			// if response != nil && response.BinaryDataN2SmInformation != nil {
+	// 			// TODO: n2SmInfo send to RAN
+	// 			// } else if response == nil {
+	// 			// TODO: error handling
+	// 			// }
+	// 		}
+	// 	}
+	// }
+
+	// if criticalityDiagnostics != nil {
+	// 	printCriticalityDiagnostics(lbConn, criticalityDiagnostics)
+	// }
 }
 
 func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var pduSessionResourceModifyResponseList *ngapType.PDUSessionResourceModifyListModRes
-	var pduSessionResourceFailedToModifyList *ngapType.PDUSessionResourceFailedToModifyListModRes
-	var userLocationInformation *ngapType.UserLocationInformation
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var pduSessionResourceModifyResponseList *ngapType.PDUSessionResourceModifyListModRes
+	// var pduSessionResourceFailedToModifyList *ngapType.PDUSessionResourceFailedToModifyListModRes
+	// var userLocationInformation *ngapType.UserLocationInformation
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -1217,26 +1261,30 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 		case ngapType.ProtocolIEIDRANUENGAPID: // ignore
 			rANUENGAPID = ie.Value.RANUENGAPID
 			lbConn.Log.Trace("Decode IE RanUeNgapID")
-		case ngapType.ProtocolIEIDPDUSessionResourceModifyListModRes: // ignore
-			pduSessionResourceModifyResponseList = ie.Value.PDUSessionResourceModifyListModRes
-			lbConn.Log.Trace("Decode IE PDUSessionResourceModifyListModRes")
-		case ngapType.ProtocolIEIDPDUSessionResourceFailedToModifyListModRes: // ignore
-			pduSessionResourceFailedToModifyList = ie.Value.PDUSessionResourceFailedToModifyListModRes
-			lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToModifyListModRes")
-		case ngapType.ProtocolIEIDUserLocationInformation: // optional, ignore
-			userLocationInformation = ie.Value.UserLocationInformation
-			lbConn.Log.Trace("Decode IE UserLocationInformation")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDPDUSessionResourceModifyListModRes: // ignore
+		// 	pduSessionResourceModifyResponseList = ie.Value.PDUSessionResourceModifyListModRes
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceModifyListModRes")
+		// case ngapType.ProtocolIEIDPDUSessionResourceFailedToModifyListModRes: // ignore
+		// 	pduSessionResourceFailedToModifyList = ie.Value.PDUSessionResourceFailedToModifyListModRes
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToModifyListModRes")
+		// case ngapType.ProtocolIEIDUserLocationInformation: // optional, ignore
+		// 	userLocationInformation = ie.Value.UserLocationInformation
+		// 	lbConn.Log.Trace("Decode IE UserLocationInformation")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -1328,7 +1376,7 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	var pDUSessionResourceReleasedListNot *ngapType.PDUSessionResourceReleasedListNot
 	var userLocationInformation *ngapType.UserLocationInformation
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -1379,10 +1427,14 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -1529,7 +1581,7 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 
 	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -1599,10 +1651,14 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -1735,10 +1791,14 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -1879,10 +1939,14 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -1931,7 +1995,7 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelReq
+	// var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelReq
 	var cause *ngapType.Cause
 
 	if lbConn == nil {
@@ -1971,9 +2035,9 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 				lbConn.Log.Error("RanUeNgapID is nil")
 				return
 			}
-		case ngapType.ProtocolIEIDPDUSessionResourceListCxtRelReq:
-			pDUSessionResourceList = ie.Value.PDUSessionResourceListCxtRelReq
-			lbConn.Log.Trace("Decode IE Pdu Session Resource List")
+		// case ngapType.ProtocolIEIDPDUSessionResourceListCxtRelReq:
+		// 	pDUSessionResourceList = ie.Value.PDUSessionResourceListCxtRelReq
+		// 	lbConn.Log.Trace("Decode IE Pdu Session Resource List")
 		case ngapType.ProtocolIEIDCause:
 			cause = ie.Value.Cause
 			lbConn.Log.Trace("Decode IE Cause")
@@ -1984,10 +2048,14 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -2062,11 +2130,11 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var rRCState *ngapType.RRCState
-	var userLocationInformation *ngapType.UserLocationInformation
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var rRCState *ngapType.RRCState
+	// var userLocationInformation *ngapType.UserLocationInformation
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -2103,23 +2171,27 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 			if rANUENGAPID == nil {
 				lbConn.Log.Warn("RanUeNgapID is nil")
 			}
-		case ngapType.ProtocolIEIDRRCState: // optional, ignore
-			rRCState = ie.Value.RRCState
-			lbConn.Log.Trace("Decode IE RRCState")
-		case ngapType.ProtocolIEIDUserLocationInformation: // optional, ignore
-			userLocationInformation = ie.Value.UserLocationInformation
-			lbConn.Log.Trace("Decode IE UserLocationInformation")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDRRCState: // optional, ignore
+		// 	rRCState = ie.Value.RRCState
+		// 	lbConn.Log.Trace("Decode IE RRCState")
+		// case ngapType.ProtocolIEIDUserLocationInformation: // optional, ignore
+		// 	userLocationInformation = ie.Value.UserLocationInformation
+		// 	lbConn.Log.Trace("Decode IE UserLocationInformation")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -2165,9 +2237,9 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var cause *ngapType.Cause
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -2210,17 +2282,21 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 			if cause == nil {
 				lbConn.Log.Warn("Cause is nil")
 			}
-		case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics: // optional, ignore
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -2315,10 +2391,14 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -2396,10 +2476,14 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -2456,12 +2540,12 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var sourceAMFUENGAPID *ngapType.AMFUENGAPID
-	var userLocationInformation *ngapType.UserLocationInformation
-	var uESecurityCapabilities *ngapType.UESecurityCapabilities
+	// var userLocationInformation *ngapType.UserLocationInformation
+	// var uESecurityCapabilities *ngapType.UESecurityCapabilities
 	var pduSessionResourceToBeSwitchedInDLList *ngapType.PDUSessionResourceToBeSwitchedDLList
-	var pduSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListPSReq
+	// var pduSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListPSReq
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -2500,12 +2584,12 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 				lbConn.Log.Error("SourceAmfUeNgapID is nil")
 				return
 			}
-		case ngapType.ProtocolIEIDUserLocationInformation: // ignore
-			userLocationInformation = ie.Value.UserLocationInformation
-			lbConn.Log.Trace("Decode IE UserLocationInformation")
-		case ngapType.ProtocolIEIDUESecurityCapabilities: // ignore
-			uESecurityCapabilities = ie.Value.UESecurityCapabilities
-			lbConn.Log.Trace("Decode IE UESecurityCapabilities")
+		// case ngapType.ProtocolIEIDUserLocationInformation: // ignore
+		// 	userLocationInformation = ie.Value.UserLocationInformation
+		// 	lbConn.Log.Trace("Decode IE UserLocationInformation")
+		// case ngapType.ProtocolIEIDUESecurityCapabilities: // ignore
+		// 	uESecurityCapabilities = ie.Value.UESecurityCapabilities
+		// 	lbConn.Log.Trace("Decode IE UESecurityCapabilities")
 		case ngapType.ProtocolIEIDPDUSessionResourceToBeSwitchedDLList: // reject
 			pduSessionResourceToBeSwitchedInDLList = ie.Value.PDUSessionResourceToBeSwitchedDLList
 			lbConn.Log.Trace("Decode IE PDUSessionResourceToBeSwitchedDLList")
@@ -2513,16 +2597,24 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 				lbConn.Log.Error("PDUSessionResourceToBeSwitchedDLList is nil")
 				return
 			}
-		case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListPSReq: // ignore
-			pduSessionResourceFailedToSetupList = ie.Value.PDUSessionResourceFailedToSetupListPSReq
-			lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToSetupListPSReq")
+		// case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListPSReq: // ignore
+		// 	pduSessionResourceFailedToSetupList = ie.Value.PDUSessionResourceFailedToSetupListPSReq
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToSetupListPSReq")
 		}
 	}
 
 	//TODO
 
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+	// if lbConn.TypeID == context.TypeIdentAMFConn {
+	// 	amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+	// 	amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
+	// 	LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+	// 	return 
+	// }
+	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
+		LB.ForwardToNextAmf(lbConn, message)
 		return 
 	}
 
@@ -2656,12 +2748,12 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var pDUSessionResourceAdmittedList *ngapType.PDUSessionResourceAdmittedList
-	var pDUSessionResourceFailedToSetupListHOAck *ngapType.PDUSessionResourceFailedToSetupListHOAck
-	var targetToSourceTransparentContainer *ngapType.TargetToSourceTransparentContainer
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var pDUSessionResourceAdmittedList *ngapType.PDUSessionResourceAdmittedList
+	// var pDUSessionResourceFailedToSetupListHOAck *ngapType.PDUSessionResourceFailedToSetupListHOAck
+	// var targetToSourceTransparentContainer *ngapType.TargetToSourceTransparentContainer
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
-	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
+	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -2692,26 +2784,30 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 		case ngapType.ProtocolIEIDRANUENGAPID: // ignore
 			rANUENGAPID = ie.Value.RANUENGAPID
 			lbConn.Log.Trace("Decode IE RanUeNgapID")
-		case ngapType.ProtocolIEIDPDUSessionResourceAdmittedList: // ignore
-			pDUSessionResourceAdmittedList = ie.Value.PDUSessionResourceAdmittedList
-			lbConn.Log.Trace("Decode IE PduSessionResourceAdmittedList")
-		case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListHOAck: // ignore
-			pDUSessionResourceFailedToSetupListHOAck = ie.Value.PDUSessionResourceFailedToSetupListHOAck
-			lbConn.Log.Trace("Decode IE PduSessionResourceFailedToSetupListHOAck")
-		case ngapType.ProtocolIEIDTargetToSourceTransparentContainer: // reject
-			targetToSourceTransparentContainer = ie.Value.TargetToSourceTransparentContainer
-			lbConn.Log.Trace("Decode IE TargetToSourceTransparentContainer")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics: // ignore
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDPDUSessionResourceAdmittedList: // ignore
+		// 	pDUSessionResourceAdmittedList = ie.Value.PDUSessionResourceAdmittedList
+		// 	lbConn.Log.Trace("Decode IE PduSessionResourceAdmittedList")
+		// case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListHOAck: // ignore
+		// 	pDUSessionResourceFailedToSetupListHOAck = ie.Value.PDUSessionResourceFailedToSetupListHOAck
+		// 	lbConn.Log.Trace("Decode IE PduSessionResourceFailedToSetupListHOAck")
+		// case ngapType.ProtocolIEIDTargetToSourceTransparentContainer: // reject
+		// 	targetToSourceTransparentContainer = ie.Value.TargetToSourceTransparentContainer
+		// 	lbConn.Log.Trace("Decode IE TargetToSourceTransparentContainer")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics: // ignore
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -2927,12 +3023,12 @@ func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var handoverType *ngapType.HandoverType
-	var cause *ngapType.Cause
-	var targetID *ngapType.TargetID
-	var pDUSessionResourceListHORqd *ngapType.PDUSessionResourceListHORqd
-	var sourceToTargetTransparentContainer *ngapType.SourceToTargetTransparentContainer
-	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
+	// var handoverType *ngapType.HandoverType
+	// var cause *ngapType.Cause
+	// var targetID *ngapType.TargetID
+	// var pDUSessionResourceListHORqd *ngapType.PDUSessionResourceListHORqd
+	// var sourceToTargetTransparentContainer *ngapType.SourceToTargetTransparentContainer
+	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -2964,29 +3060,33 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
 			rANUENGAPID = ie.Value.RANUENGAPID
 			lbConn.Log.Trace("Decode IE RanUeNgapID")
-		case ngapType.ProtocolIEIDHandoverType: // reject
-			handoverType = ie.Value.HandoverType
-			lbConn.Log.Trace("Decode IE HandoverType")
-		case ngapType.ProtocolIEIDCause: // ignore
-			cause = ie.Value.Cause
-			lbConn.Log.Trace("Decode IE Cause")
-		case ngapType.ProtocolIEIDTargetID: // reject
-			targetID = ie.Value.TargetID
-			lbConn.Log.Trace("Decode IE TargetID")
-		case ngapType.ProtocolIEIDPDUSessionResourceListHORqd: // reject
-			pDUSessionResourceListHORqd = ie.Value.PDUSessionResourceListHORqd
-			lbConn.Log.Trace("Decode IE PDUSessionResourceListHORqd")
-		case ngapType.ProtocolIEIDSourceToTargetTransparentContainer: // reject
-			sourceToTargetTransparentContainer = ie.Value.SourceToTargetTransparentContainer
-			lbConn.Log.Trace("Decode IE SourceToTargetTransparentContainer")
+		// case ngapType.ProtocolIEIDHandoverType: // reject
+		// 	handoverType = ie.Value.HandoverType
+		// 	lbConn.Log.Trace("Decode IE HandoverType")
+		// case ngapType.ProtocolIEIDCause: // ignore
+		// 	cause = ie.Value.Cause
+		// 	lbConn.Log.Trace("Decode IE Cause")
+		// case ngapType.ProtocolIEIDTargetID: // reject
+		// 	targetID = ie.Value.TargetID
+		// 	lbConn.Log.Trace("Decode IE TargetID")
+		// case ngapType.ProtocolIEIDPDUSessionResourceListHORqd: // reject
+		// 	pDUSessionResourceListHORqd = ie.Value.PDUSessionResourceListHORqd
+		// 	lbConn.Log.Trace("Decode IE PDUSessionResourceListHORqd")
+		// case ngapType.ProtocolIEIDSourceToTargetTransparentContainer: // reject
+		// 	sourceToTargetTransparentContainer = ie.Value.SourceToTargetTransparentContainer
+		// 	lbConn.Log.Trace("Decode IE SourceToTargetTransparentContainer")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -3183,10 +3283,14 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -3248,7 +3352,7 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var rANStatusTransferTransparentContainer *ngapType.RANStatusTransferTransparentContainer
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -3295,10 +3399,14 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -3376,10 +3484,14 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -3402,7 +3514,7 @@ func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAP
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
 
-	var cause ngapType.Cause
+	// var cause ngapType.Cause
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -3627,10 +3739,14 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -3763,10 +3879,14 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -3881,10 +4001,14 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -4024,8 +4148,8 @@ func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ng
 func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var cause *ngapType.Cause
-	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	// var cause *ngapType.Cause
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -4060,20 +4184,24 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			if rANUENGAPID == nil {
 				lbConn.Log.Error("RanUeNgapID is nil")
 			}
-		case ngapType.ProtocolIEIDCause:
-			cause = ie.Value.Cause
-			lbConn.Log.Trace("Decode IE Cause")
-		case ngapType.ProtocolIEIDCriticalityDiagnostics:
-			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-			lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
+		// case ngapType.ProtocolIEIDCause:
+		// 	cause = ie.Value.Cause
+		// 	lbConn.Log.Trace("Decode IE Cause")
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
+		// 	criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		// 	lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}
@@ -4097,13 +4225,13 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var nGRANTraceID *ngapType.NGRANTraceID
-	var nGRANCGI *ngapType.NGRANCGI
-	var traceCollectionEntityIPAddress *ngapType.TransportLayerAddress
+	// var nGRANTraceID *ngapType.NGRANTraceID
+	// var nGRANCGI *ngapType.NGRANCGI
+	// var traceCollectionEntityIPAddress *ngapType.TransportLayerAddress
 
-	var ranUe *context.RanUe
+	// var ranUe *context.RanUe
 
-	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
+	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if lbConn == nil {
 		logger.NgapLog.Error("ran is nil")
@@ -4135,23 +4263,27 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			rANUENGAPID = ie.Value.RANUENGAPID
 			lbConn.Log.Trace("Decode IE RanUeNgapID")
 
-		case ngapType.ProtocolIEIDNGRANTraceID: // ignore
-			nGRANTraceID = ie.Value.NGRANTraceID
-			lbConn.Log.Trace("Decode IE NGRANTraceID")
-		case ngapType.ProtocolIEIDNGRANCGI: // ignore
-			nGRANCGI = ie.Value.NGRANCGI
-			lbConn.Log.Trace("Decode IE NGRANCGI")
-		case ngapType.ProtocolIEIDTraceCollectionEntityIPAddress: // ignore
-			traceCollectionEntityIPAddress = ie.Value.TraceCollectionEntityIPAddress
-			lbConn.Log.Trace("Decode IE TraceCollectionEntityIPAddress")
+		// case ngapType.ProtocolIEIDNGRANTraceID: // ignore
+		// 	nGRANTraceID = ie.Value.NGRANTraceID
+		// 	lbConn.Log.Trace("Decode IE NGRANTraceID")
+		// case ngapType.ProtocolIEIDNGRANCGI: // ignore
+		// 	nGRANCGI = ie.Value.NGRANCGI
+		// 	lbConn.Log.Trace("Decode IE NGRANCGI")
+		// case ngapType.ProtocolIEIDTraceCollectionEntityIPAddress: // ignore
+		// 	traceCollectionEntityIPAddress = ie.Value.TraceCollectionEntityIPAddress
+		// 	lbConn.Log.Trace("Decode IE TraceCollectionEntityIPAddress")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
+		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
 		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
 		return 
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
 		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
 		return 
 	}

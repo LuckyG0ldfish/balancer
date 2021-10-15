@@ -22,6 +22,13 @@ type LBContext struct {
 
 	LbRanPool []*LbGnb // gNBs connected to the LB
 	LbAmfPool []*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	Next_Amf *LbAmf
+}
+
+func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU) {
+	if mes, err := ngap.Encoder(*message); err == nil {
+		lb.Next_Amf.LbConn.Conn.Write(mes)
+	}
 }
 
 func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, aMFUENGAPID int64) {
