@@ -4,7 +4,7 @@ import (
 	"time"
 	"sync"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/ishidawataru/sctp"
 )
 
 const lbPPID uint32 = 0x3c000000
