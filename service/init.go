@@ -10,6 +10,7 @@ import (
 	// "syscall"
 
 	// "github.com/gin-contrib/cors"
+	"git.cs.nctu.edu.tw/calee/sctp"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
@@ -41,7 +42,8 @@ import (
 )
 
 type LB struct{
-	LbContext context.LBContext
+	LbContext 	context.LBContext
+	lbAddr 		*sctp.SCTPAddr
 }
 
 type (
@@ -106,9 +108,10 @@ func (lb *LB) Initialize()  { // c *cli.Context) error {
 	// }
 
 	// lb.setLogLevel()
-	lb.LbContext.init()
+	lb.LbContext = *context.NewLBContext()
 	lb.LbContext.LbIP = lbIP
 	lb.LbContext.LbPort = lbPort
+	lb.lbAddr, _ = context.GenSCTPAddr(lbIP, lbPort)
 
 	// if err := factory.CheckConfigVersion(); err != nil {
 	// 	return err
@@ -251,13 +254,18 @@ func (lb *LB) Initialize()  { // c *cli.Context) error {
 func (lb *LB) Start() {
 	// initLog.Infoln("Server started")
 
-	
+	// TODO add func for multiple amfs 
+	amf := context.NewLbAmf()
+	amf.Start(lb.lbAddr, amfIP, amfPort)
+	lb.LbContext.Next_Amf = amf
+	lb.LbContext.AddAmfToLB(amf)
+
+	// Ran Listen init()
 	ngapHandler := ngap_service.NGAPHandler{
 		HandleMessage:      ngap.Dispatch,
 		HandleNotification: ngap.HandleSCTPNotification,
 	}
-	ngap_service.Run(lb.LbContext.LbIP, lb.LbContext.LbPortlb, ngapHandler)
-
+	ngap_service.Run(lb.LbContext.LbIP, lb.LbContext.LbPort, ngapHandler)
 }
 	// router := logger_util.NewGinWithLogrus(logger.GinLog)
 	// router.Use(cors.New(cors.Config{

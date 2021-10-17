@@ -11,10 +11,10 @@ var (
 	lbContext = LBContext{}
 )
 
-func init() {
-	LB_Self().Name = "lb"
-	//LB_Self().NetworkName.Full = "free5GC"
-}
+// func init() {
+// 	LB_Self().Name = "lb"
+// 	//LB_Self().NetworkName.Full = "free5GC"
+// }
 
 type LBContext struct {
 	Name string
@@ -22,9 +22,22 @@ type LBContext struct {
 	LbIP 	string
 	LbPort	int
 
+
 	LbRanPool []*LbGnb // gNBs connected to the LB
 	LbAmfPool []*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	
 	Next_Amf *LbAmf
+	
+}
+
+func NewLBContext() (lbContext *LBContext){
+	lbContext.Name = "lb"
+	lbContext.LbIP = ""
+	lbContext.LbPort = 0
+	lbContext.LbRanPool = nil 
+	lbContext.LbAmfPool = nil 
+	lbContext.Next_Amf = nil 
+	return 
 }
 
 func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU) {
@@ -109,9 +122,7 @@ func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{
 	return gnb
 }
 
-func (context *LBContext) AddAmfToLB(conn *sctp.SCTPConn) *LbAmf{
-	amf := NewLbAmf()
-	amf.LbConn.Conn = conn
+func (context *LBContext) AddAmfToLB(amf *LbAmf) *LbAmf{
 	context.LbAmfPool = append(context.LbAmfPool, amf)
 	return amf
 }

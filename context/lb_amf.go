@@ -35,7 +35,7 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 	return 
 }
 
-func (amf *LbAmf) Start(lbaddr sctp.SCTPAddr, amfIP string, amfPort int) {
+func (amf *LbAmf) Start(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) {
 	for{
 		err := amf.ConnectToAmf(lbaddr, amfIP, amfPort)
 		if err == nil {
@@ -46,9 +46,9 @@ func (amf *LbAmf) Start(lbaddr sctp.SCTPAddr, amfIP string, amfPort int) {
 	}
 }
 
-func (amf *LbAmf) ConnectToAmf(lbaddr sctp.SCTPAddr, amfIP string, amfPort int) error{
+func (amf *LbAmf) ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) error{
 	amfAddr, _ := GenSCTPAddr(amfIP, amfPort)
-	conn, err := sctp.DialSCTP("sctp", &lbaddr, amfAddr)
+	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
 	if err != nil {
 		return  err
 	}
