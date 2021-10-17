@@ -1,7 +1,7 @@
 package context
 
 import(
-	"github.com/ishidawataru/sctp"
+	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
 const TypeIndetNotThere 	int	= 0

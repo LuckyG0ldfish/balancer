@@ -1,9 +1,9 @@
 package ngap
 
 import (
-	"net"
+	// "net"
 
-	"github.com/ishidawataru/sctp"
+	"git.cs.nctu.edu.tw/calee/sctp"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/free5gc/amf/logger"

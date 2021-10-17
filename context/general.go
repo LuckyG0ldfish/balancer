@@ -4,7 +4,7 @@ import (
 	"net"
 	
 
-	"github.com/ishidawataru/sctp"
+	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
 func GenSCTPAddr(ip string, port int) (lbAddr *sctp.SCTPAddr, err error){
