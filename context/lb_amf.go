@@ -9,17 +9,20 @@ import (
 
 const lbPPID uint32 = 0x3c000000
 
+var nextAmfID int64 = 1
+
 type LbAmf struct{
 	AmfID 		int64
 	LbConn 		*LBConn
 	Ues			sync.Map
 }
 
-func NewLbAmf(id int64) (amf *LbAmf){
-	amf.AmfID = id
+func NewLbAmf() (amf *LbAmf){
+	amf.AmfID = nextAmfID
 	amf.LbConn = NewLBConn()
-	amf.LbConn.ID = id
+	amf.LbConn.ID = nextAmfID
 	amf.LbConn.TypeID = TypeIdentAMFConn
+	nextAmfID++
 	return amf
 }
 

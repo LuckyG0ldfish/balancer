@@ -1,46 +1,48 @@
 package service
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"os/exec"
-	"os/signal"
-	"sync"
-	"syscall"
+	// "bufio"
+	// "fmt"
+	// "os"
+	// "os/exec"
+	// "os/signal"
+	// "sync"
+	// "syscall"
 
-	"github.com/gin-contrib/cors"
+	// "github.com/gin-contrib/cors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	// "github.com/free5gc/amf/communication"
 	// "github.com/free5gc/amf/consumer"
-	"github.com/free5gc/amf/context"
+	"github.com/LuckyG0ldfish/balancer/context"
 	// "github.com/free5gc/amf/eventexposure"
 	// "github.com/free5gc/amf/factory"
 	// "github.com/free5gc/amf/httpcallback"
 	// "github.com/free5gc/amf/location"
-	"github.com/free5gc/amf/logger"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	// "github.com/free5gc/amf/mt"
-	"github.com/free5gc/amf/ngap"
+	"github.com/LuckyG0ldfish/balancer/ngap"
 	// ngap_message "github.com/free5gc/amf/ngap/message"
 	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 	// "github.com/free5gc/amf/oam"
 	// "github.com/free5gc/amf/producer/callback"
 	// "github.com/free5gc/amf/util"
-	aperLogger "github.com/free5gc/aper/logger"
-	fsmLogger "github.com/free5gc/fsm/logger"
-	"github.com/free5gc/http2_util"
-	"github.com/free5gc/logger_util"
+	// aperLogger "github.com/free5gc/aper/logger"
+	// fsmLogger "github.com/free5gc/fsm/logger"
+	// "github.com/free5gc/http2_util"
+	// "github.com/free5gc/logger_util"
 	// nasLogger "github.com/free5gc/nas/logger"
 	// ngapLogger "github.com/free5gc/ngap/logger"
 	// openApiLogger "github.com/free5gc/openapi/logger"
 	// "github.com/free5gc/openapi/models"
-	"github.com/free5gc/path_util"
-	pathUtilLogger "github.com/free5gc/path_util/logger"
+	// "github.com/free5gc/path_util"
+	// pathUtilLogger "github.com/free5gc/path_util/logger"
 )
 
-type LB struct{}
+type LB struct{
+	LbContext context.LBContext
+}
 
 type (
 	// Config information.
@@ -48,6 +50,12 @@ type (
 		lbcfg string
 	}
 )
+
+const lbIP string = "127.0.0.1"
+const amfIP string = "127.0.0.1"
+
+const lbPort int = 48484
+const amfPort int = 38412
 
 var config Config
 
@@ -72,29 +80,39 @@ func (*LB) GetCliCmd() (flags []cli.Flag) {
 	return amfCLi
 }
 
-func (lb *LB) Initialize(c *cli.Context) error {
-	config = Config{
-		lbcfg: c.String("lbcfg"),
-	}
+func NewLB() (lb *LB){
+	lb.LbContext = NewLB().LbContext
+	return 
+}
 
-	if config.lbcfg != "" {
-		if err := factory.InitConfigFactory(config.lbcfg); err != nil {
-			return err
-		}
-	} else {
-		DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
-		if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
-			return err
-		}
-	}
+func (lb *LB) Initialize()  { // c *cli.Context) error {
+	// config = Config{
+	// 	lbcfg: c.String("lbcfg"),
+	// }
+
+	Lb := NewLB()
+
+	Lb.Start()
+
+	// if config.lbcfg != "" {
+	// 	if err := factory.InitConfigFactory(config.lbcfg); err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
+	// 	if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	// lb.setLogLevel()
+	lb.LbContext.init()
+	lb.LbContext.LbIP = lbIP
+	lb.LbContext.LbPort = lbPort
 
-	if err := factory.CheckConfigVersion(); err != nil {
-		return err
-	}
-
-	return nil
+	// if err := factory.CheckConfigVersion(); err != nil {
+	// 	return err
+	// }
 }
 
 // func (amf *LB) setLogLevel() {
@@ -230,92 +248,100 @@ func (lb *LB) Initialize(c *cli.Context) error {
 // 	return args
 // }
 
-// func (amf *LB) Start() {
-// 	initLog.Infoln("Server started")
+func (lb *LB) Start() {
+	// initLog.Infoln("Server started")
 
-// 	router := logger_util.NewGinWithLogrus(logger.GinLog)
-// 	router.Use(cors.New(cors.Config{
-// 		AllowMethods: []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
-// 		AllowHeaders: []string{
-// 			"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host",
-// 			"Token", "X-Requested-With",
-// 		},
-// 		ExposeHeaders:    []string{"Content-Length"},
-// 		AllowCredentials: true,
-// 		AllowAllOrigins:  true,
-// 		MaxAge:           86400,
-// 	}))
+	
+	ngapHandler := ngap_service.NGAPHandler{
+		HandleMessage:      ngap.Dispatch,
+		HandleNotification: ngap.HandleSCTPNotification,
+	}
+	ngap_service.Run(lb.LbContext.LbIP, lb.LbContext.LbPortlb, ngapHandler)
 
-// 	httpcallback.AddService(router)
-// 	oam.AddService(router)
-// 	for _, serviceName := range factory.AmfConfig.Configuration.ServiceNameList {
-// 		switch models.ServiceName(serviceName) {
-// 		case models.ServiceName_NAMF_COMM:
-// 			communication.AddService(router)
-// 		case models.ServiceName_NAMF_EVTS:
-// 			eventexposure.AddService(router)
-// 		case models.ServiceName_NAMF_MT:
-// 			mt.AddService(router)
-// 		case models.ServiceName_NAMF_LOC:
-// 			location.AddService(router)
-// 		}
-// 	}
+}
+	// router := logger_util.NewGinWithLogrus(logger.GinLog)
+	// router.Use(cors.New(cors.Config{
+	// 	AllowMethods: []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
+	// 	AllowHeaders: []string{
+	// 		"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host",
+	// 		"Token", "X-Requested-With",
+	// 	},
+	// 	ExposeHeaders:    []string{"Content-Length"},
+	// 	AllowCredentials: true,
+	// 	AllowAllOrigins:  true,
+	// 	MaxAge:           86400,
+	// }))
 
-// 	self := context.AMF_Self()
-// 	util.InitAmfContext(self)
+	// httpcallback.AddService(router)
+	// oam.AddService(router)
+	// for _, serviceName := range factory.AmfConfig.Configuration.ServiceNameList {
+	// 	switch models.ServiceName(serviceName) {
+	// 	case models.ServiceName_NAMF_COMM:
+	// 		communication.AddService(router)
+	// 	case models.ServiceName_NAMF_EVTS:
+	// 		eventexposure.AddService(router)
+	// 	case models.ServiceName_NAMF_MT:
+	// 		mt.AddService(router)
+	// 	case models.ServiceName_NAMF_LOC:
+	// 		location.AddService(router)
+	// 	}
+	// }
 
-// 	addr := fmt.Sprintf("%s:%d", self.BindingIPv4, self.SBIPort)
+	// self := context.AMF_Self()
+	// util.InitAmfContext(self)
 
-// 	ngapHandler := ngap_service.NGAPHandler{
-// 		HandleMessage:      ngap.Dispatch,
-// 		HandleNotification: ngap.HandleSCTPNotification,
-// 	}
-// 	ngap_service.Run(self.NgapIpList, 38412, ngapHandler)
+	// addr := fmt.Sprintf("%s:%d", self.BindingIPv4, self.SBIPort)
 
-// 	// Register to NRF
-// 	var profile models.NfProfile
-// 	if profileTmp, err := consumer.BuildNFInstance(self); err != nil {
-// 		initLog.Error("Build AMF Profile Error")
-// 	} else {
-// 		profile = profileTmp
-// 	}
+	// ngapHandler := ngap_service.NGAPHandler{
+	// 	HandleMessage:      ngap.Dispatch,
+	// 	HandleNotification: ngap.HandleSCTPNotification,
+	// }
+	// ngap_service.Run(self.NgapIpList, 38412, ngapHandler)
 
-// 	if _, nfId, err := consumer.SendRegisterNFInstance(self.NrfUri, self.NfId, profile); err != nil {
-// 		initLog.Warnf("Send Register NF Instance failed: %+v", err)
-// 	} else {
-// 		self.NfId = nfId
-// 	}
+	// // Register to NRF
+	// var profile models.NfProfile
+	// if profileTmp, err := consumer.BuildNFInstance(self); err != nil {
+	// 	initLog.Error("Build AMF Profile Error")
+	// } else {
+	// 	profile = profileTmp
+	// }
 
-// 	signalChannel := make(chan os.Signal, 1)
-// 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-// 	go func() {
-// 		<-signalChannel
-// 		amf.Terminate()
-// 		os.Exit(0)
-// 	}()
+	// if _, nfId, err := consumer.SendRegisterNFInstance(self.NrfUri, self.NfId, profile); err != nil {
+	// 	initLog.Warnf("Send Register NF Instance failed: %+v", err)
+	// } else {
+	// 	self.NfId = nfId
+	// }
 
-// 	server, err := http2_util.NewServer(addr, util.AmfLogPath, router)
+	// signalChannel := make(chan os.Signal, 1)
+	// signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+	// go func() {
+	// 	<-signalChannel
+	// 	lb.Terminate()
+	// 	os.Exit(0)
+	// }()
 
-// 	if server == nil {
-// 		initLog.Errorf("Initialize HTTP server failed: %+v", err)
-// 		return
-// 	}
+	// server, err := http2_util.NewServer(addr, util.AmfLogPath, router)
 
-// 	if err != nil {
-// 		initLog.Warnf("Initialize HTTP server: %+v", err)
-// 	}
+	// if server == nil {
+	// 	initLog.Errorf("Initialize HTTP server failed: %+v", err)
+	// 	return
+	// }
 
-// 	serverScheme := factory.AmfConfig.Configuration.Sbi.Scheme
-// 	if serverScheme == "http" {
-// 		err = server.ListenAndServe()
-// 	} else if serverScheme == "https" {
-// 		err = server.ListenAndServeTLS(util.AmfPemPath, util.AmfKeyPath)
-// 	}
+	// if err != nil {
+	// 	initLog.Warnf("Initialize HTTP server: %+v", err)
+	// }
 
-// 	if err != nil {
-// 		initLog.Fatalf("HTTP server setup failed: %+v", err)
-// 	}
-// }
+	// serverScheme := factory.AmfConfig.Configuration.Sbi.Scheme
+	// if serverScheme == "http" {
+	// 	err = server.ListenAndServe()
+	// } else if serverScheme == "https" {
+	// 	err = server.ListenAndServeTLS(util.AmfPemPath, util.AmfKeyPath)
+	// }
+
+	// if err != nil {
+	// 	initLog.Fatalf("HTTP server setup failed: %+v", err)
+	// }
+//}
 
 // func (amf *LB) Exec(c *cli.Context) error {
 // 	// AMF.Initialize(cfgPath, c)

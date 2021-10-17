@@ -19,6 +19,8 @@ func init() {
 type LBContext struct {
 	Name string
 	//NetworkName   factory.NetworkName
+	LbIP 	string
+	LbPort	int
 
 	LbRanPool []*LbGnb // gNBs connected to the LB
 	LbAmfPool []*LbAmf // amfs (each connected to AMF 1:1) connected to LB
@@ -105,6 +107,13 @@ func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{
 	gnb.LbConn.Conn = conn
 	context.LbRanPool = append(context.LbRanPool, gnb)
 	return gnb
+}
+
+func (context *LBContext) AddAmfToLB(conn *sctp.SCTPConn) *LbAmf{
+	amf := NewLbAmf()
+	amf.LbConn.Conn = conn
+	context.LbAmfPool = append(context.LbAmfPool, amf)
+	return amf
 }
 
 func LB_Self() *LBContext {

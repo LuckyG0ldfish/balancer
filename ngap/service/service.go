@@ -16,8 +16,8 @@ import (
 )
 
 type NGAPHandler struct {
-	HandleMessage      func(conn net.Conn, msg []byte)
-	HandleNotification func(conn net.Conn, notification sctp.Notification)
+	HandleMessage      func(conn sctp.SCTPConn, msg []byte)
+	HandleNotification func(conn sctp.SCTPConn, notification sctp.Notification)
 }
 
 const readBufSize uint32 = 8192
