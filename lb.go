@@ -4,23 +4,28 @@ import (
 	// "fmt"
 	// "os"
 
-	"github.com/sirupsen/logrus"
+	"fmt"
+	"time"
+
+	// "github.com/sirupsen/logrus"
 	// "github.com/urfave/cli"
 
-	"github.com/LuckyG0ldfish/balancer/logger"
+	// "github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/LuckyG0ldfish/balancer/service"
 	// "github.com/free5gc/version"
 )
 
-var LB = &service.LB{}
+var LB = &service.Load{}
 
-var appLog *logrus.Entry
+// var appLog *logrus.Entry
 
 func init() {
-	appLog = logger.AppLog
+	// appLog = logger.AppLog
 }
 
 func main() {
+	// LB.Initialize()
+	fmt.Println("start")
 	LB.Initialize()
 	LB.Start()
 	// app := cli.NewApp()
@@ -34,6 +39,10 @@ func main() {
 	// 	appLog.Errorf("AMF Run error: %v", err)
 	// 	return
 	// }
+	for{
+		fmt.Println("loop")
+		time.Sleep(1 *time.Hour)
+	}
 }
 
 // func action(c *cli.Context) error {

@@ -1,7 +1,8 @@
-package service 
+package service
 
 import (
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/free5gc/amf/logger"
 	"github.com/free5gc/ngap"
-	
+
 	"github.com/LuckyG0ldfish/balancer/context"
 )
 
@@ -50,7 +51,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 	} else {
 		sctpListener = listener
 	}
-
+	fmt.Println("Listening")
 	logger.NgapLog.Infof("Listen on %s", sctpListener.Addr())
 
 	for {

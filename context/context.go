@@ -2,9 +2,10 @@ package context
 
 import (
 	// "sync"
+
+	"git.cs.nctu.edu.tw/calee/sctp"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
-	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
 var (
@@ -30,13 +31,7 @@ type LBContext struct {
 	
 }
 
-func NewLBContext() (lbContext *LBContext){
-	lbContext.Name = "lb"
-	lbContext.LbIP = ""
-	lbContext.LbPort = 0
-	lbContext.LbRanPool = nil 
-	lbContext.LbAmfPool = nil 
-	lbContext.Next_Amf = nil 
+func NewLBContext() (LbContext *LBContext){
 	return 
 }
 

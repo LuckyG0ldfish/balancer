@@ -3,6 +3,7 @@ package context
 import (
 	"time"
 	"sync"
+	"fmt"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 )
@@ -17,13 +18,14 @@ type LbAmf struct{
 	Ues			sync.Map
 }
 
-func NewLbAmf() (amf *LbAmf){
+func NewLbAmf() ( *LbAmf){
+	var amf LbAmf
 	amf.AmfID = nextAmfID
 	amf.LbConn = NewLBConn()
 	amf.LbConn.ID = nextAmfID
 	amf.LbConn.TypeID = TypeIdentAMFConn
 	nextAmfID++
-	return amf
+	return &amf
 }
 
 func (amf *LbAmf) AddAMFUe(id int64) {
@@ -37,6 +39,7 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 
 func (amf *LbAmf) Start(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) {
 	for{
+		fmt.Println("connecting")
 		err := amf.ConnectToAmf(lbaddr, amfIP, amfPort)
 		if err == nil {
 			// amf.up = true
@@ -63,5 +66,6 @@ func (amf *LbAmf) ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int)
 	}
 	//setting this connection as the amf SCTPConn
 	amf.LbConn.Conn = conn
+	fmt.Println("connected")
 	return  nil
 }

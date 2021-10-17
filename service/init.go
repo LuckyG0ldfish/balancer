@@ -10,8 +10,10 @@ import (
 	// "syscall"
 
 	// "github.com/gin-contrib/cors"
+	"fmt"
+
 	"git.cs.nctu.edu.tw/calee/sctp"
-	"github.com/sirupsen/logrus"
+	// "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	// "github.com/free5gc/amf/communication"
@@ -21,7 +23,7 @@ import (
 	// "github.com/free5gc/amf/factory"
 	// "github.com/free5gc/amf/httpcallback"
 	// "github.com/free5gc/amf/location"
-	"github.com/LuckyG0ldfish/balancer/logger"
+	// "github.com/LuckyG0ldfish/balancer/logger"
 	// "github.com/free5gc/amf/mt"
 	"github.com/LuckyG0ldfish/balancer/ngap"
 	// ngap_message "github.com/free5gc/amf/ngap/message"
@@ -41,8 +43,8 @@ import (
 	// pathUtilLogger "github.com/free5gc/path_util/logger"
 )
 
-type LB struct{
-	LbContext 	context.LBContext
+type Load struct{
+	LbContext 	*context.LBContext
 	lbAddr 		*sctp.SCTPAddr
 }
 
@@ -53,15 +55,15 @@ type (
 	}
 )
 
-const lbIP string = "127.0.0.1"
+const LbIP string = "127.0.0.1"
 const amfIP string = "127.0.0.1"
 
-const lbPort int = 48484
+const LbPort int = 48484
 const amfPort int = 38412
 
-var config Config
+// var config Config
 
-var amfCLi = []cli.Flag{
+var lbCLi = []cli.Flag{
 	cli.StringFlag{
 		Name:  "free5gccfg",
 		Usage: "common config file",
@@ -72,30 +74,23 @@ var amfCLi = []cli.Flag{
 	},
 }
 
-var initLog *logrus.Entry
+// var initLog *logrus.Entry
 
 func init() {
-	initLog = logger.InitLog
+	// initLog = logger.InitLog
 }
 
-func (*LB) GetCliCmd() (flags []cli.Flag) {
-	return amfCLi
+func (*Load) GetCliCmd() (flags []cli.Flag) {
+	return lbCLi
 }
 
-func NewLB() (lb *LB){
-	lb.LbContext = NewLB().LbContext
-	return 
-}
-
-func (lb *LB) Initialize()  { // c *cli.Context) error {
+func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	// config = Config{
 	// 	lbcfg: c.String("lbcfg"),
 	// }
 
-	Lb := NewLB()
-
-	Lb.Start()
-
+	//lb = NewLB()
+	fmt.Println("Load Init")
 	// if config.lbcfg != "" {
 	// 	if err := factory.InitConfigFactory(config.lbcfg); err != nil {
 	// 		return err
@@ -108,11 +103,12 @@ func (lb *LB) Initialize()  { // c *cli.Context) error {
 	// }
 
 	// lb.setLogLevel()
-	lb.LbContext = *context.NewLBContext()
-	lb.LbContext.LbIP = lbIP
-	lb.LbContext.LbPort = lbPort
-	lb.lbAddr, _ = context.GenSCTPAddr(lbIP, lbPort)
-
+	Lb.LbContext = context.LB_Self()
+	Lb.LbContext.LbIP = LbIP
+	Lb.LbContext.LbPort = LbPort
+	addr, _ := context.GenSCTPAddr(LbIP, LbPort)
+	Lb.lbAddr = addr
+	fmt.Println("init done")
 	// if err := factory.CheckConfigVersion(); err != nil {
 	// 	return err
 	// }
@@ -251,21 +247,22 @@ func (lb *LB) Initialize()  { // c *cli.Context) error {
 // 	return args
 // }
 
-func (lb *LB) Start() {
+func (Lb *Load) Start() {
 	// initLog.Infoln("Server started")
 
 	// TODO add func for multiple amfs 
 	amf := context.NewLbAmf()
-	amf.Start(lb.lbAddr, amfIP, amfPort)
-	lb.LbContext.Next_Amf = amf
-	lb.LbContext.AddAmfToLB(amf)
+	fmt.Println("amf")
+	Lb.LbContext.Next_Amf = amf
+	Lb.LbContext.AddAmfToLB(amf)
+	amf.Start(Lb.lbAddr, amfIP, amfPort)
 
 	// Ran Listen init()
 	ngapHandler := ngap_service.NGAPHandler{
 		HandleMessage:      ngap.Dispatch,
 		HandleNotification: ngap.HandleSCTPNotification,
 	}
-	ngap_service.Run(lb.LbContext.LbIP, lb.LbContext.LbPort, ngapHandler)
+	go ngap_service.Run(Lb.LbContext.LbIP, Lb.LbContext.LbPort, ngapHandler)
 }
 	// router := logger_util.NewGinWithLogrus(logger.GinLog)
 	// router.Use(cors.New(cors.Config{
