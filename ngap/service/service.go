@@ -11,7 +11,7 @@ import (
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 
-	"github.com/LuckyG0ldfish/balancer/ngap"
+	// "github.com/LuckyG0ldfish/balancer/ngap"
 	"github.com/free5gc/amf/logger"
 
 	"github.com/LuckyG0ldfish/balancer/context"
