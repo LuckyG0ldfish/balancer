@@ -251,18 +251,21 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 func (Lb *Load) Start() {
 	// initLog.Infoln("Server started")
 
-	// TODO add func for multiple amfs 
-	amf := context.NewLbAmf()
-	Lb.LbContext.Next_Amf = amf
-	Lb.LbContext.AddAmfToLB(amf)
-	amf.Start(Lb.lbAddr, amfIP, amfPort)
-	fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
-	
-	// Ran Listen init()
+
 	ngapHandler := ngap_service.NGAPHandler{
 		HandleMessage:      ngap.Dispatch,
 		HandleNotification: ngap.HandleSCTPNotification,
 	}
+
+	// TODO add func for multiple amfs 
+	amf := context.NewLbAmf()
+	Lb.LbContext.Next_Amf = amf
+	Lb.LbContext.AddAmfToLB(amf)
+	ngap_service.StartAmf(amf, Lb.lbAddr, amfIP, amfPort, ngapHandler)
+	fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
+	
+	// Ran Listen init()
+	
 	go ngap_service.Run(Lb.LbContext.LbIP, Lb.LbContext.LbPort, ngapHandler)
 }
 	// router := logger_util.NewGinWithLogrus(logger.GinLog)

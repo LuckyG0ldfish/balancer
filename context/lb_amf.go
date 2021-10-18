@@ -1,11 +1,13 @@
 package context
 
 import (
-	"fmt"
+	// "fmt"
 	"sync"
-	"time"
+	// "time"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	// "git.cs.nctu.edu.tw/calee/sctp"
+
+	
 )
 
 const lbPPID uint32 = 0x3c000000
@@ -37,34 +39,5 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 	return
 }
 
-func (amf *LbAmf) Start(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) {
-	for {
-		fmt.Println("connecting to amf")
-		err := amf.ConnectToAmf(lbaddr, amfIP, amfPort)
-		if err == nil {
-			// amf.up = true
-			break
-		}
-		time.Sleep(2 * time.Second)
-	}
-}
 
-func (amf *LbAmf) ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) error {
-	amfAddr, _ := GenSCTPAddr(amfIP, amfPort)
-	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
-	if err != nil {
-		return err
-	}
-	info, err := conn.GetDefaultSentParam()
-	if err != nil {
-		return err
-	}
-	info.PPID = lbPPID
-	err = conn.SetDefaultSentParam(info)
-	if err != nil {
-		return err
-	}
-	//setting this connection as the amf SCTPConn
-	amf.LbConn.Conn = conn
-	return nil
-}
+

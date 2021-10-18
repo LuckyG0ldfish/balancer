@@ -7,11 +7,12 @@ import (
 	"net"
 	"sync"
 	"syscall"
+	"time"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 
+	"github.com/LuckyG0ldfish/balancer/ngap"
 	"github.com/free5gc/amf/logger"
-	"github.com/free5gc/ngap"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 )
@@ -78,7 +79,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 			logger.NgapLog.Debugf("Get default sent param[value: %+v]", info)
 		}
 
-		info.PPID = ngap.PPID
+		// info.PPID = ngap.PPID
 		if err := newConn.SetDefaultSentParam(info); err != nil {
 			logger.NgapLog.Errorf("Set default sent param error: %+v, accept failed", err)
 			if err = newConn.Close(); err != nil {
@@ -162,7 +163,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 	for {
 		buf := make([]byte, bufsize)
 
-		n, info, notification, err := lbConn.Conn.SCTPRead(buf)
+		n, _, notification, err := lbConn.Conn.SCTPRead(buf) // info -> _ 
 		if err != nil {
 			switch err {
 			case io.EOF, io.ErrUnexpectedEOF:
@@ -186,11 +187,11 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			} else {
 				logger.NgapLog.Warnf("Received sctp notification[type 0x%x] but not handled", notification.Type())
 			}
-		} else {
-			if info == nil || info.PPID != ngap.PPID {
-				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet")
-				continue
-			}
+		// } else {
+		// 	if info == nil || info.PPID != ngap.PPID {
+		// 		logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet")
+		// 		continue
+		// 	}
 
 			logger.NgapLog.Tracef("Read %d bytes", n)
 			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
@@ -199,5 +200,38 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			handler.HandleMessage(lbConn, buf[:n])
 		}
 	}
+}
+
+func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
+	for {
+		fmt.Println("connecting to amf")
+		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
+		if err == nil {
+			// amf.up = true
+			amf.LbConn.Conn = conn
+			handleConnection(amf.LbConn, readBufSize, handler)
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPConn, error) {
+	amfAddr, _ := context.GenSCTPAddr(amfIP, amfPort)
+	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
+	if err != nil {
+		return nil, err
+	}
+	info, err := conn.GetDefaultSentParam()
+	if err != nil {
+		return nil, err
+	}
+	//info.PPID = lbPPID
+	err = conn.SetDefaultSentParam(info)
+	if err != nil {
+		return nil, err
+	}
+	//setting this connection as the amf SCTPConn
+	return conn, nil
 }
 
