@@ -209,7 +209,7 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 		if err == nil {
 			// amf.up = true
 			amf.LbConn.Conn = conn
-			handleConnection(amf.LbConn, readBufSize, handler)
+			go handleConnection(amf.LbConn, readBufSize, handler)
 			break
 		}
 		time.Sleep(2 * time.Second)

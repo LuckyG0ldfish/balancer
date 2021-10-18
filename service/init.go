@@ -265,7 +265,6 @@ func (Lb *Load) Start() {
 	fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 	
 	// Ran Listen init()
-	
 	go ngap_service.Run(Lb.LbContext.LbIP, Lb.LbContext.LbPort, ngapHandler)
 }
 	// router := logger_util.NewGinWithLogrus(logger.GinLog)
