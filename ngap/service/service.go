@@ -11,8 +11,9 @@ import (
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 
-	// "github.com/LuckyG0ldfish/balancer/ngap"
+	//"github.com/LuckyG0ldfish/balancer/ngap"
 	"github.com/free5gc/amf/logger"
+	"github.com/free5gc/ngap"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 )
@@ -79,7 +80,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 			logger.NgapLog.Debugf("Get default sent param[value: %+v]", info)
 		}
 
-		// info.PPID = ngap.PPID
+		info.PPID = ngap.PPID
 		if err := newConn.SetDefaultSentParam(info); err != nil {
 			logger.NgapLog.Errorf("Set default sent param error: %+v, accept failed", err)
 			if err = newConn.Close(); err != nil {
@@ -159,11 +160,11 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 		connections.Delete(lbConn.Conn)
 	}()
-
+	fmt.Println("waiting for message ")
 	for {
 		buf := make([]byte, bufsize)
 
-		n, _, notification, err := lbConn.Conn.SCTPRead(buf) // info -> _ 
+		n, info, notification, err := lbConn.Conn.SCTPRead(buf) 
 		if err != nil {
 			switch err {
 			case io.EOF, io.ErrUnexpectedEOF:
@@ -180,18 +181,19 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				return
 			}
 		}
-
+		fmt.Println(n)
+		// fmt.Println(buf)
 		if notification != nil {
 			if handler.HandleNotification != nil {
 				handler.HandleNotification(lbConn.Conn, notification)
 			} else {
 				logger.NgapLog.Warnf("Received sctp notification[type 0x%x] but not handled", notification.Type())
 			}
-		// } else {
-		// 	if info == nil || info.PPID != ngap.PPID {
-		// 		logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet")
-		// 		continue
-		// 	}
+		} else {
+			if info == nil || info.PPID != ngap.PPID {
+				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet")
+				continue
+			}
 
 			logger.NgapLog.Tracef("Read %d bytes", n)
 			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
@@ -226,7 +228,7 @@ func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPC
 	if err != nil {
 		return nil, err
 	}
-	//info.PPID = lbPPID
+	info.PPID = ngap.PPID
 	err = conn.SetDefaultSentParam(info)
 	if err != nil {
 		return nil, err

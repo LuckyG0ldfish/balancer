@@ -3,9 +3,11 @@ package context
 import (
 	// "sync"
 
+	"fmt"
+
 	"git.cs.nctu.edu.tw/calee/sctp"
-	"github.com/free5gc/ngap"
-	"github.com/free5gc/ngap/ngapType"
+	// "github.com/free5gc/ngap"
+	// "github.com/free5gc/ngap/ngapType"
 )
 
 var (
@@ -35,23 +37,40 @@ func NewLBContext() (LbContext *LBContext){
 	return 
 }
 
-func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU) {
-	if mes, err := ngap.Encoder(*message); err == nil {
-		lb.Next_Amf.LbConn.Conn.Write(mes)
+func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message []byte) {
+	// if mes, err := ngap.Encoder(*message); err == nil {
+		
+	// }
+	fmt.Println("forward to nextAMF")
+	fmt.Println(message)
+	lb.Next_Amf.LbConn.Conn.Write(message)
+}
+
+func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message []byte, aMFUENGAPID int64) {
+	amf, ok := lb.LbAmfFindByUeID(aMFUENGAPID)
+	// if mes, err := ngap.Encoder(*message); err == nil {
+		
+	// }
+	if ok {
+		fmt.Println("forward to AMF:")
+		fmt.Println(message)
+		amf.LbConn.Conn.Write(message)
+	} else {
+		fmt.Println("Amf not found")
 	}
 }
 
-func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, aMFUENGAPID int64) {
-	amf := lb.LbAmfFindByUeID(aMFUENGAPID)
-	if mes, err := ngap.Encoder(*message); err == nil {
-		amf.LbConn.Conn.Write(mes)
-	}
-}
-
-func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, rANUENGAPID int64) {
-	amf := lb.LbAmfFindByUeID(rANUENGAPID)
-	if mes, err := ngap.Encoder(*message); err == nil {
-		amf.LbConn.Conn.Write(mes)
+func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message []byte, rANUENGAPID int64) { //*ngapType.NGAPPDU
+	gnb, ok := lb.LbGnbFindByUeID(rANUENGAPID)
+	// if mes, err := ngap.Encoder(*message); err == nil {
+		
+	// }
+	if ok {
+		fmt.Println("forward to GNB:")
+		fmt.Println(message)
+		gnb.LbConn.Conn.Write(message)
+	} else {
+		fmt.Println("Gnb not found")
 	}
 }
 
@@ -92,22 +111,22 @@ func (context *LBContext) LbAmfFindByID(amfID int64) (*LbAmf, bool) {
 	return nil, false
 }
 
-func (context *LBContext) LbAmfFindByUeID(UeID int64) *LbAmf {
+func (context *LBContext) LbAmfFindByUeID(UeID int64) (*LbAmf, bool) {
 	for _, Amf := range context.LbAmfPool {
 		if check := Amf.ContainsUE(UeID); check {
-			return Amf
+			return Amf, true
 		}
 	}
-	return nil
+	return nil, false
 }
 
-func (context *LBContext) LbGnbFindByUeID(UeID int64) *LbGnb {
+func (context *LBContext) LbGnbFindByUeID(UeID int64) (*LbGnb, bool) {
 	for _, Gnb := range context.LbRanPool {
 		if check := Gnb.ContainsUE(UeID); check {
-			return Gnb
+			return Gnb, true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{

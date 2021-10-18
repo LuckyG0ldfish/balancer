@@ -28,7 +28,7 @@ import (
 var LB context.LBContext 
 
 //TODO
-func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var globalRANNodeID *ngapType.GlobalRANNodeID
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
@@ -157,7 +157,7 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// }
 }
 
-func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
@@ -224,13 +224,13 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -259,7 +259,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	// nas.HandleNAS(ranUe, ngapType.ProcedureCodeUplinkNASTransport, nASPDU.Value)
 }
 
-func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var cause *ngapType.Cause
 	var resetType *ngapType.ResetType
 
@@ -358,7 +358,7 @@ func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
@@ -412,7 +412,7 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	}
 }
 
-func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var userLocationInformation *ngapType.UserLocationInformation
@@ -480,13 +480,13 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -626,7 +626,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	// }
 }
 
-func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var pDUSessionResourceReleasedList *ngapType.PDUSessionResourceReleasedListRelRes
@@ -691,13 +691,13 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -745,7 +745,7 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 	// }
 }
 
-func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var iMSVoiceSupportIndicator *ngapType.IMSVoiceSupportIndicator
@@ -808,13 +808,13 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -831,7 +831,7 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	// }
 }
 
-func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var ranUe *context.RanUe
@@ -891,13 +891,13 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -910,7 +910,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	// }
 }
 
-func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	// amfSelf := context.AMF_Self()
 
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -1006,7 +1006,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			fmt.Println("No GNB")
 		}
 		
-		LB.ForwardToNextAmf(lbConn, message)
+		LB.ForwardToNextAmf(lbConn, m2)
 		return
 	}
 
@@ -1103,7 +1103,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// nas.HandleNAS(ranUe, ngapType.ProcedureCodeInitialUEMessage, nASPDU.Value)
 }
 
-func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var pDUSessionResourceSetupResponseList *ngapType.PDUSessionResourceSetupListSURes
@@ -1158,13 +1158,13 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -1245,7 +1245,7 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 	// }
 }
 
-func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var pduSessionResourceModifyResponseList *ngapType.PDUSessionResourceModifyListModRes
@@ -1304,13 +1304,13 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -1394,7 +1394,7 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 	// }
 }
 
-func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var pDUSessionResourceNotifyList *ngapType.PDUSessionResourceNotifyList
@@ -1456,13 +1456,13 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -1601,7 +1601,7 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	// }
 }
 
-func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var pduSessionResourceModifyIndicationList *ngapType.PDUSessionResourceModifyListModInd
@@ -1682,13 +1682,13 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -1756,7 +1756,7 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 	// 	pduSessionResourceFailedToModifyListModCfm, nil)
 }
 
-func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var pDUSessionResourceSetupResponseList *ngapType.PDUSessionResourceSetupListCxtRes
@@ -1824,13 +1824,13 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -1906,7 +1906,7 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	// }
 }
 
-func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var pDUSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListCxtFail
@@ -1974,13 +1974,13 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2025,7 +2025,7 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 	// }
 }
 
-func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelReq
@@ -2085,13 +2085,13 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2162,7 +2162,7 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 	// ngap_message.SendUEContextReleaseCommand(ranUe, context.UeContextN2NormalRelease, causeGroup, causeValue)
 }
 
-func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var rRCState *ngapType.RRCState
@@ -2223,13 +2223,13 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2270,7 +2270,7 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 	// }
 }
 
-func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var cause *ngapType.Cause
@@ -2328,13 +2328,13 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2365,7 +2365,7 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	// }
 }
 
-func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var rRCState *ngapType.RRCState
@@ -2433,13 +2433,13 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2461,7 +2461,7 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	// }
 }
 
-func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var userLocationInformation *ngapType.UserLocationInformation
@@ -2520,13 +2520,13 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2579,7 +2579,7 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 }
 
 // TS 23.502 4.9.1
-func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var sourceAMFUENGAPID *ngapType.AMFUENGAPID
 	// var userLocationInformation *ngapType.UserLocationInformation
@@ -2658,7 +2658,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToNextAmf(lbConn, message)
+		LB.ForwardToNextAmf(lbConn, m2)
 		return
 	}
 
@@ -2789,7 +2789,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 	// }
 }
 
-func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var pDUSessionResourceAdmittedList *ngapType.PDUSessionResourceAdmittedList
@@ -2848,13 +2848,13 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -2972,7 +2972,7 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 	// }
 }
 
-func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	// var aMFUENGAPID *ngapType.AMFUENGAPID
 	// var cause *ngapType.Cause
 	// // var targetUe *context.RanUe
@@ -3070,7 +3070,7 @@ func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// ngap_message.SendUEContextReleaseCommand(targetUe, context.UeContextReleaseHandover, causePresent, causeValue)
 }
 
-func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var handoverType *ngapType.HandoverType
@@ -3133,13 +3133,13 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -3281,7 +3281,7 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// }
 }
 
-func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var cause *ngapType.Cause
@@ -3339,13 +3339,13 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -3402,7 +3402,7 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// }
 }
 
-func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var rANStatusTransferTransparentContainer *ngapType.RANStatusTransferTransparentContainer
@@ -3457,13 +3457,13 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -3483,7 +3483,7 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 	// // send to T-AMF using N1N2MessageTransfer (R16)
 }
 
-func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
@@ -3544,13 +3544,13 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -3567,7 +3567,7 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 	// nas.HandleNAS(ranUe, ngapType.ProcedureCodeNASNonDeliveryIndication, nASPDU.Value)
 }
 
-func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
@@ -3687,7 +3687,7 @@ func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAP
 	// }
 }
 
-func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var sONConfigurationTransferUL *ngapType.SONConfigurationTransfer
 
 	LB = *context.LB_Self()
@@ -3740,7 +3740,7 @@ func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapT
 	// }
 }
 
-func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var routingID *ngapType.RoutingID
@@ -3805,13 +3805,13 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -3828,7 +3828,7 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 	// // TODO: Forward NRPPaPDU to LMF
 }
 
-func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var routingID *ngapType.RoutingID
 	var nRPPaPDU *ngapType.NRPPaPDU
 
@@ -3882,7 +3882,7 @@ func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *
 	// TODO: Forward NRPPaPDU to LMF
 }
 
-func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var userLocationInformation *ngapType.UserLocationInformation
@@ -3949,13 +3949,13 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -4006,7 +4006,7 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// }
 }
 
-func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -4073,13 +4073,13 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -4114,7 +4114,7 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 	// // send its most up to date UE Radio Capability information to the RAN in the N2 REQUEST message.
 }
 
-func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var cause *ngapType.Cause
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	
@@ -4164,7 +4164,7 @@ func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapTy
 	}
 }
 
-func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFTNLAssociationSetupList *ngapType.AMFTNLAssociationSetupList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	var aMFTNLAssociationFailedToSetupList *ngapType.TNLAssociationList
@@ -4221,7 +4221,7 @@ func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ng
 	}
 }
 
-func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var cause *ngapType.Cause
@@ -4274,13 +4274,13 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
@@ -4300,7 +4300,7 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// // TODO: handle error based on cause/criticalityDiagnostics
 }
 
-func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var nGRANTraceID *ngapType.NGRANTraceID
@@ -4358,13 +4358,13 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-		LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
+		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
-		LB.ForwardToAmf(lbConn, message, aMFUENGAPID.Value)
+		LB.ForwardToAmf(lbConn, m2, aMFUENGAPID.Value)
 		return
 	}
 
