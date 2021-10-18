@@ -8,7 +8,8 @@ type LbUe struct{
 	UeID 		int64
 }
 
-func NewUE(id int64) (ue *LbUe){
+func NewUE(id int64) (*LbUe){
+	var ue LbUe
 	ue.UeID = id
-	return 
+	return &ue
 }

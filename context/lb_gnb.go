@@ -14,13 +14,14 @@ type LbGnb struct{
 	Ues 		sync.Map
 }
 
-func NewLbGnb() (gnb *LbGnb){
+func NewLbGnb() (*LbGnb){
+	var gnb LbGnb
 	gnb.GnbID = nextGnbID
 	gnb.LbConn = NewLBConn()
 	gnb.LbConn.ID = nextGnbID
 	gnb.LbConn.TypeID = TypeIdentGNBConn
 	nextGnbID++
-	return gnb
+	return &gnb
 }
 
 func (gnb *LbGnb) AddAMFUe(id int64) {

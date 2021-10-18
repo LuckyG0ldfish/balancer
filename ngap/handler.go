@@ -5,9 +5,11 @@ import (
 	// "strconv"
 	//"aper"
 
+	"fmt"
+
 	"github.com/LuckyG0ldfish/balancer/context"
-	"github.com/free5gc/ngap/ngapType"
 	"github.com/free5gc/aper"
+	"github.com/free5gc/ngap/ngapType"
 	// "github.com/free5gc/ngap"
 	// "github.com/free5gc/amf/consumer"
 	// gmm_common "github.com/free5gc/amf/gmm/common"
@@ -23,7 +25,7 @@ import (
 	// "github.com/free5gc/openapi/models"
 )
 
-var LB context.LBContext
+var LB context.LBContext 
 
 //TODO
 func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -32,6 +34,7 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
 
+	LB = *context.LB_Self()
 	// var cause ngapType.Cause
 
 	if LbConn == nil {
@@ -160,6 +163,8 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	var nASPDU *ngapType.NASPDU
 	var userLocationInformation *ngapType.UserLocationInformation
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -258,6 +263,8 @@ func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var resetType *ngapType.ResetType
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -355,6 +362,8 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -410,6 +419,8 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	var infoOnRecommendedCellsAndRANNodesForPaging *ngapType.InfoOnRecommendedCellsAndRANNodesForPaging
 	// var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelCpl
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -622,6 +633,8 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 	// var userLocationInformation *ngapType.UserLocationInformation
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -739,6 +752,8 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	// var ranUe *context.RanUe
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -822,6 +837,8 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	// var ranUe *context.RanUe
 
 	var cause *ngapType.Cause
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -907,6 +924,8 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
+	LB = *context.LB_Self()
+
 	if message == nil {
 		// lbConn.Log.Error("NGAP Message is nil")
 		return
@@ -980,8 +999,13 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// 	return
 	// }
 	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
+		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+		if ok {
+			gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
+		} else {
+			fmt.Println("No GNB")
+		}
+		
 		LB.ForwardToNextAmf(lbConn, message)
 		return
 	}
@@ -1085,6 +1109,8 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 	// var pDUSessionResourceSetupResponseList *ngapType.PDUSessionResourceSetupListSURes
 	// var pDUSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListSURes
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+
+	LB = *context.LB_Self()
 
 	// var ranUe *context.RanUe
 
@@ -1226,6 +1252,8 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 	// var pduSessionResourceFailedToModifyList *ngapType.PDUSessionResourceFailedToModifyListModRes
 	// var userLocationInformation *ngapType.UserLocationInformation
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+
+	LB = *context.LB_Self()
 
 	// var ranUe *context.RanUe
 
@@ -1372,6 +1400,8 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	var pDUSessionResourceNotifyList *ngapType.PDUSessionResourceNotifyList
 	var pDUSessionResourceReleasedListNot *ngapType.PDUSessionResourceReleasedListNot
 	var userLocationInformation *ngapType.UserLocationInformation
+
+	LB = *context.LB_Self()
 
 	// var ranUe *context.RanUe
 
@@ -1578,6 +1608,8 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 
 	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
+	LB = *context.LB_Self()
+
 	// var ranUe *context.RanUe
 
 	if lbConn == nil {
@@ -1731,6 +1763,8 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	var pDUSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListCxtRes
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -1879,6 +1913,8 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 	var cause *ngapType.Cause
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -1994,6 +2030,8 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var pDUSessionResourceList *ngapType.PDUSessionResourceListCxtRelReq
 	var cause *ngapType.Cause
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -2131,6 +2169,8 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 	// var userLocationInformation *ngapType.UserLocationInformation
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	// var ranUe *context.RanUe
 
 	if lbConn == nil {
@@ -2235,8 +2275,8 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var cause *ngapType.Cause
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
-
-	// var ranUe *context.RanUe
+	LB = *context.LB_Self()
+		// var ranUe *context.RanUe
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -2331,6 +2371,9 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	var rRCState *ngapType.RRCState
 	var userLocationInformation *ngapType.UserLocationInformation
 
+
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -2422,6 +2465,8 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var userLocationInformation *ngapType.UserLocationInformation
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -2541,6 +2586,8 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 	// var uESecurityCapabilities *ngapType.UESecurityCapabilities
 	var pduSessionResourceToBeSwitchedInDLList *ngapType.PDUSessionResourceToBeSwitchedDLList
 	// var pduSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListPSReq
+
+	LB = *context.LB_Self()
 
 	// var ranUe *context.RanUe
 
@@ -2750,6 +2797,8 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 	// var targetToSourceTransparentContainer *ngapType.TargetToSourceTransparentContainer
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if lbConn == nil {
@@ -2929,6 +2978,8 @@ func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// // var targetUe *context.RanUe
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
+	LB = *context.LB_Self()
+
 	// if lbConn == nil {
 	// 	// logger.NgapLog.Error("ran is nil")
 	// 	return
@@ -3028,6 +3079,8 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// var pDUSessionResourceListHORqd *ngapType.PDUSessionResourceListHORqd
 	// var sourceToTargetTransparentContainer *ngapType.SourceToTargetTransparentContainer
 	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -3233,6 +3286,8 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var cause *ngapType.Cause
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -3353,6 +3408,8 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 	var rANStatusTransferTransparentContainer *ngapType.RANStatusTransferTransparentContainer
 	// var ranUe *context.RanUe
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -3431,6 +3488,8 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var cause *ngapType.Cause
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -3512,6 +3571,8 @@ func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAP
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
+
+	LB = *context.LB_Self()
 
 	// var cause ngapType.Cause
 
@@ -3629,6 +3690,8 @@ func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAP
 func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var sONConfigurationTransferUL *ngapType.SONConfigurationTransfer
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -3682,6 +3745,8 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var routingID *ngapType.RoutingID
 	var nRPPaPDU *ngapType.NRPPaPDU
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -3767,6 +3832,8 @@ func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *
 	var routingID *ngapType.RoutingID
 	var nRPPaPDU *ngapType.NRPPaPDU
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -3821,6 +3888,8 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var userLocationInformation *ngapType.UserLocationInformation
 	var uEPresenceInAreaOfInterestList *ngapType.UEPresenceInAreaOfInterestList
 	var locationReportingRequestType *ngapType.LocationReportingRequestType
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -3944,6 +4013,8 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 	var uERadioCapability *ngapType.UERadioCapability
 	var uERadioCapabilityForPaging *ngapType.UERadioCapabilityForPaging
 
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -4046,6 +4117,9 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	
+	LB = *context.LB_Self()
+	
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -4094,6 +4168,9 @@ func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ng
 	var aMFTNLAssociationSetupList *ngapType.AMFTNLAssociationSetupList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	var aMFTNLAssociationFailedToSetupList *ngapType.TNLAssociationList
+	
+	LB = *context.LB_Self()
+
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
 		return
@@ -4149,6 +4226,8 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var cause *ngapType.Cause
 	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+
+	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -4228,6 +4307,8 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// var nGRANCGI *ngapType.NGRANCGI
 	// var traceCollectionEntityIPAddress *ngapType.TransportLayerAddress
 
+	LB = *context.LB_Self()
+	
 	// var ranUe *context.RanUe
 
 	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
