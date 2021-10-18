@@ -18,6 +18,5 @@ func NewLBConn() (*LBConn){
 	var lbConn LBConn
 	lbConn.TypeID = 0 
 	lbConn.ID = 0 
-	lbConn.Conn = nil 
 	return &lbConn
 }

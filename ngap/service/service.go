@@ -17,7 +17,7 @@ import (
 )
 
 type NGAPHandler struct {
-	HandleMessage      func(conn *sctp.SCTPConn, msg []byte)
+	HandleMessage      func(lbConn *context.LBConn, msg []byte)
 	HandleNotification func(conn *sctp.SCTPConn, notification sctp.Notification)
 }
 
@@ -123,7 +123,11 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		logger.NgapLog.Infof("[LB] SCTP Accept from: %s", newConn.RemoteAddr().String())
 		connections.Store(newConn, newConn)
 		
-		go handleConnection(newConn, readBufSize, handler)
+		// add connection as new GNBConn 
+		lbSelf := context.LB_Self()
+		ran := lbSelf.AddGnbToLB(newConn)
+
+		go handleConnection(ran.LbConn, readBufSize, handler)
 	}
 }
 
@@ -145,19 +149,19 @@ func Stop() {
 	logger.NgapLog.Infof("SCTP server closed")
 }
 
-func handleConnection(conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) {
+func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandler) {// conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) {
 	defer func() {
 		// if AMF call Stop(), then conn.Close() will return EBADF because conn has been closed inside Stop()
-		if err := conn.Close(); err != nil && err != syscall.EBADF {
+		if err := lbConn.Conn.Close(); err != nil && err != syscall.EBADF {
 			logger.NgapLog.Errorf("close connection error: %+v", err)
 		}
-		connections.Delete(conn)
+		connections.Delete(lbConn.Conn)
 	}()
 
 	for {
 		buf := make([]byte, bufsize)
 
-		n, info, notification, err := conn.SCTPRead(buf)
+		n, info, notification, err := lbConn.Conn.SCTPRead(buf)
 		if err != nil {
 			switch err {
 			case io.EOF, io.ErrUnexpectedEOF:
@@ -170,14 +174,14 @@ func handleConnection(conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) 
 				logger.NgapLog.Debugf("SCTPRead: %+v", err)
 				continue
 			default:
-				logger.NgapLog.Errorf("Handle connection[addr: %+v] error: %+v", conn.RemoteAddr(), err)
+				logger.NgapLog.Errorf("Handle connection[addr: %+v] error: %+v", lbConn.Conn.RemoteAddr(), err)
 				return
 			}
 		}
 
 		if notification != nil {
 			if handler.HandleNotification != nil {
-				handler.HandleNotification(conn, notification)
+				handler.HandleNotification(lbConn.Conn, notification)
 			} else {
 				logger.NgapLog.Warnf("Received sctp notification[type 0x%x] but not handled", notification.Type())
 			}
@@ -191,7 +195,7 @@ func handleConnection(conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) 
 			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
 
 			// TODO: concurrent on per-UE message
-			handler.HandleMessage(conn, buf[:n])
+			handler.HandleMessage(lbConn, buf[:n])
 		}
 	}
 }

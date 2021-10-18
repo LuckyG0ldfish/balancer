@@ -11,6 +11,7 @@ import (
 
 	// "github.com/gin-contrib/cors"
 	"fmt"
+	"strconv"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 	// "github.com/sirupsen/logrus"
@@ -58,7 +59,8 @@ type (
 const LbIP string = "127.0.0.1"
 const amfIP string = "127.0.0.1"
 
-const LbPort int = 48484
+const LbGnbPort int = 48484
+const LbAmfPort int = 32323
 const amfPort int = 38412
 
 // var config Config
@@ -90,7 +92,6 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	// }
 
 	//lb = NewLB()
-	fmt.Println("Load Init")
 	// if config.lbcfg != "" {
 	// 	if err := factory.InitConfigFactory(config.lbcfg); err != nil {
 	// 		return err
@@ -105,10 +106,10 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	// lb.setLogLevel()
 	Lb.LbContext = context.LB_Self()
 	Lb.LbContext.LbIP = LbIP
-	Lb.LbContext.LbPort = LbPort
-	addr, _ := context.GenSCTPAddr(LbIP, LbPort)
+	Lb.LbContext.LbPort = LbGnbPort
+	addr, _ := context.GenSCTPAddr(LbIP, LbAmfPort)
 	Lb.lbAddr = addr
-	fmt.Println("init done")
+	fmt.Println("LB init done")
 	// if err := factory.CheckConfigVersion(); err != nil {
 	// 	return err
 	// }
@@ -252,11 +253,11 @@ func (Lb *Load) Start() {
 
 	// TODO add func for multiple amfs 
 	amf := context.NewLbAmf()
-	fmt.Println("amf")
 	Lb.LbContext.Next_Amf = amf
 	Lb.LbContext.AddAmfToLB(amf)
 	amf.Start(Lb.lbAddr, amfIP, amfPort)
-
+	fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
+	
 	// Ran Listen init()
 	ngapHandler := ngap_service.NGAPHandler{
 		HandleMessage:      ngap.Dispatch,

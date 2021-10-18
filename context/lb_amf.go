@@ -1,9 +1,9 @@
 package context
 
 import (
-	"time"
-	"sync"
 	"fmt"
+	"sync"
+	"time"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 )
@@ -12,13 +12,13 @@ const lbPPID uint32 = 0x3c000000
 
 var nextAmfID int64 = 1
 
-type LbAmf struct{
-	AmfID 		int64
-	LbConn 		*LBConn
-	Ues			sync.Map
+type LbAmf struct {
+	AmfID  int64
+	LbConn *LBConn
+	Ues    sync.Map
 }
 
-func NewLbAmf() ( *LbAmf){
+func NewLbAmf() *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID
 	amf.LbConn = NewLBConn()
@@ -34,12 +34,12 @@ func (amf *LbAmf) AddAMFUe(id int64) {
 
 func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 	_, cont = amf.Ues.Load(id)
-	return 
+	return
 }
 
 func (amf *LbAmf) Start(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) {
-	for{
-		fmt.Println("connecting")
+	for {
+		fmt.Println("connecting to amf")
 		err := amf.ConnectToAmf(lbaddr, amfIP, amfPort)
 		if err == nil {
 			// amf.up = true
@@ -49,23 +49,22 @@ func (amf *LbAmf) Start(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) {
 	}
 }
 
-func (amf *LbAmf) ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) error{
+func (amf *LbAmf) ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) error {
 	amfAddr, _ := GenSCTPAddr(amfIP, amfPort)
 	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
 	if err != nil {
-		return  err
+		return err
 	}
 	info, err := conn.GetDefaultSentParam()
 	if err != nil {
-		return  err
+		return err
 	}
 	info.PPID = lbPPID
 	err = conn.SetDefaultSentParam(info)
 	if err != nil {
-		return  err
+		return err
 	}
 	//setting this connection as the amf SCTPConn
 	amf.LbConn.Conn = conn
-	fmt.Println("connected")
-	return  nil
+	return nil
 }

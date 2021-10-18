@@ -11,21 +11,21 @@ import (
 	"github.com/free5gc/ngap/ngapType"
 )
 
-func Dispatch(conn *sctp.SCTPConn, msg []byte) {
-	var lbConn *context.LBConn
-	lbSelf := context.LB_Self()
-
-	ran, ok := lbSelf.LbGnbFindByConn(conn)
-	if !ok {
-		logger.NgapLog.Infof("Create a new NG connection for: %s", conn.RemoteAddr().String())
-		ran = lbSelf.AddGnbToLB(conn)
-	}
+func Dispatch(lbConn *context.LBConn, msg []byte) {
+	// var lbConn *context.LBConn
+	// lbSelf := context.LB_Self()
 
 	if len(msg) == 0 {
 		// ran.Log.Infof("RAN close the connection.")
 		// ran.Remove()
 		return
 	}
+	
+	// ran, ok := lbSelf.LbGnbFindByConn(lbConn.Conn)
+	// if !ok {
+	// 	logger.NgapLog.Infof("Create a new NG connection for: %s", lbConn.Conn.RemoteAddr().String())
+	// 	ran = lbSelf.AddGnbToLB(lbConn.Conn)
+	// }
 
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
@@ -33,7 +33,7 @@ func Dispatch(conn *sctp.SCTPConn, msg []byte) {
 		return
 	}
 
-	lbConn = ran.LbConn
+	// lbConn = ran.LbConn
 
 	switch pdu.Present {
 	case ngapType.NGAPPDUPresentInitiatingMessage:

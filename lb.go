@@ -25,7 +25,7 @@ func init() {
 
 func main() {
 	// LB.Initialize()
-	fmt.Println("start")
+	
 	LB.Initialize()
 	LB.Start()
 	// app := cli.NewApp()
