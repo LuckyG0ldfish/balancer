@@ -24,8 +24,11 @@ func NewLbGnb() (*LbGnb){
 	return &gnb
 }
 
-func (gnb *LbGnb) AddAMFUe(id int64) {
-	gnb.Ues.Store(id, NewUE(id))
+func (gnb *LbGnb) FindUeByUeRanID(id int64) (*LbUe, bool){
+	//var ue LbUe
+	ue, _ := gnb.Ues.Load(id)
+	ue2, ok :=  ue.(*LbUe)
+	return ue2, ok
 }
 
 func (gnb *LbGnb) ContainsUE(id int64) (cont bool) {

@@ -223,7 +223,20 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
+		fmt.Println("AMF Found")
+		ue, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
+		
+		if !ok {
+			fmt.Println("Ue not of type UE/not found -> new created")
+			ue2 := context.NewUE()
+			ue2.UeAmfId = aMFUENGAPID.Value
+			ue2.UeRanID = rANUENGAPID.Value
+			amf.Ues.LoadOrStore(rANUENGAPID.Value, ue2)
+		} else {
+			fmt.Println("UE Found")
+			ue.UeAmfId = aMFUENGAPID.Value
+			fmt.Println("AMF")
+		}
 		LB.ForwardToGnb(lbConn, m2, rANUENGAPID.Value)
 		return
 	}
@@ -1000,13 +1013,15 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 	// }
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+		ue := context.NewUE()
+		ue.UeRanID = rANUENGAPID.Value
+		ue.RanID = gnb.GnbID
 		if ok {
-			gnb.Ues.LoadOrStore(rANUENGAPID.Value, context.NewUE(rANUENGAPID.Value))
+			gnb.Ues.LoadOrStore(rANUENGAPID.Value, ue)
 		} else {
 			fmt.Println("No GNB")
 		}
-		
-		LB.ForwardToNextAmf(lbConn, m2)
+		LB.ForwardToNextAmf(lbConn, m2, ue)
 		return
 	}
 

@@ -5,11 +5,13 @@ import (
 )
 
 type LbUe struct{
-	UeID 		int64
+	UeRanID 		int64
+	UeAmfId 		int64
+	RanID			int64
+	AmfID		 	int64
 }
 
-func NewUE(id int64) (*LbUe){
+func NewUE() (*LbUe){
 	var ue LbUe
-	ue.UeID = id
 	return &ue
 }

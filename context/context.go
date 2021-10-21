@@ -37,12 +37,14 @@ func NewLBContext() (LbContext *LBContext){
 	return 
 }
 
-func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message []byte) {
+func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message []byte, ue *LbUe) {
 	// if mes, err := ngap.Encoder(*message); err == nil {
 		
 	// }
 	fmt.Println("forward to nextAMF")
 	fmt.Println(message)
+	ue.AmfID = lb.Next_Amf.AmfID
+	lb.Next_Amf.Ues.Store(ue.UeRanID, ue)
 	lb.Next_Amf.LbConn.Conn.Write(message)
 }
 

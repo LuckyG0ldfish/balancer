@@ -20,6 +20,13 @@ type LbAmf struct {
 	Ues    sync.Map
 }
 
+func (amf *LbAmf) FindUeByUeRanID(id int64) (*LbUe, bool){
+	//var ue LbUe
+	ue, _ := amf.Ues.Load(id)
+	ue2, ok :=  ue.(*LbUe)
+	return ue2, ok
+}
+
 func NewLbAmf() *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID
@@ -28,10 +35,6 @@ func NewLbAmf() *LbAmf {
 	amf.LbConn.TypeID = TypeIdentAMFConn
 	nextAmfID++
 	return &amf
-}
-
-func (amf *LbAmf) AddAMFUe(id int64) {
-	amf.Ues.Store(id, NewUE(id))
 }
 
 func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
