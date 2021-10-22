@@ -1013,15 +1013,16 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 	// }
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
-		ue := context.NewUE()
-		ue.UeRanID = rANUENGAPID.Value
-		ue.RanID = gnb.GnbID
+		ue := context.NewUE()		
 		if ok {
-			gnb.Ues.LoadOrStore(rANUENGAPID.Value, ue)
+			ue.UeRanID = rANUENGAPID.Value
+			ue.RanID = gnb.GnbID
+			gnb.Ues.Store(rANUENGAPID.Value, ue)
+			LB.ForwardToNextAmf(lbConn, m2, ue)
 		} else {
 			fmt.Println("No GNB")
 		}
-		LB.ForwardToNextAmf(lbConn, m2, ue)
+
 		return
 	}
 
