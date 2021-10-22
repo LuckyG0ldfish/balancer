@@ -24,10 +24,10 @@ func NewLbGnb() (*LbGnb){
 	return &gnb
 }
 
-func (gnb *LbGnb) FindUeByUeRanID(id int64) (*LbUe, bool){
+func (gnb *LbGnb) FindUeByUeRanID(id int64) ([]*LbUe, bool){
 	//var ue LbUe
 	ue, _ := gnb.Ues.Load(id)
-	ue2, ok :=  ue.(*LbUe)
+	ue2, ok :=  ue.([]*LbUe)
 	return ue2, ok
 }
 

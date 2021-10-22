@@ -44,35 +44,46 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message []byte, ue *LbUe) 
 	fmt.Println("forward to nextAMF")
 	fmt.Println(message)
 	ue.AmfID = lb.Next_Amf.AmfID
-	lb.Next_Amf.Ues.Store(ue.UeRanID, ue)
+	temp, ok := lb.Next_Amf.Ues.Load(ue.UeRanID)
+	var ues []*LbUe
+	if !ok {
+		var empty []*LbUe
+		ues = append(empty, ue)
+	} else {
+		UEs, ok :=  temp.([]*LbUe)
+		if !ok {
+			fmt.Println("Type error")
+			return 
+		}
+		ues = UEs
+	} 
+	lb.Next_Amf.Ues.Store(ue.UeRanID, ues)
 	lb.Next_Amf.LbConn.Conn.Write(message)
 }
 
-func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message []byte, aMFUENGAPID int64) {
-	amf, ok := lb.LbAmfFindByUeID(aMFUENGAPID)
-	// if mes, err := ngap.Encoder(*message); err == nil {
-		
+func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message []byte, ue *LbUe) {
+	amf, ok := lb.LbGnbFindByID(ue.AmfID)
+	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
 		fmt.Println("forward to AMF:")
 		fmt.Println(message)
 		amf.LbConn.Conn.Write(message)
 	} else {
-		fmt.Println("Amf not found")
+		fmt.Println("AMF not found")
 	}
 }
 
-func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message []byte, rANUENGAPID int64) { //*ngapType.NGAPPDU
-	gnb, ok := lb.LbGnbFindByUeID(rANUENGAPID)
-	// if mes, err := ngap.Encoder(*message); err == nil {
-		
+func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message []byte, ue *LbUe) { //*ngapType.NGAPPDU
+	gnb, ok := lb.LbGnbFindByID(ue.RanID)
+	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
 		fmt.Println("forward to GNB:")
 		fmt.Println(message)
 		gnb.LbConn.Conn.Write(message)
 	} else {
-		fmt.Println("Gnb not found")
+		fmt.Println("GNB not found")
 	}
 }
 
