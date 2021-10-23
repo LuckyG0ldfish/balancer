@@ -157,7 +157,7 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	} else {
 		ngap_message.SendNGSetupFailure(LbConn, cause)
 	}
-}
+} 
 
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
