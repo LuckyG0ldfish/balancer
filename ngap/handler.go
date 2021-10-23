@@ -34,8 +34,6 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
 
-	fmt.Println("Handling NGSetupRequest")
-
 	LB = *context.LB_Self()
 	var cause ngapType.Cause
 
@@ -162,8 +160,6 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var nASPDU *ngapType.NASPDU
-	var userLocationInformation *ngapType.UserLocationInformation
 
 	LB = *context.LB_Self()
 
@@ -192,35 +188,21 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				return
-			}
-		case ngapType.ProtocolIEIDNASPDU:
-			nASPDU = ie.Value.NASPDU
-			// lbConn.Log.Trace("Decode IE NasPdu")
-			if nASPDU == nil {
-				// lbConn.Log.Error("nASPDU is nil")
-				return
-			}
-		case ngapType.ProtocolIEIDUserLocationInformation:
-			userLocationInformation = ie.Value.UserLocationInformation
-			// lbConn.Log.Trace("Decode IE UserLocationInformation")
-			if userLocationInformation == nil {
-				// lbConn.Log.Error("UserLocationInformation is nil")
-				return
-			}
-		}
 	}
 
 
@@ -465,21 +447,21 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 
 	for _, ie := range uEContextReleaseComplete.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				return
-			}
-		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
@@ -567,21 +549,21 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 
 	for _, ie := range pDUSessionResourceReleaseResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUENgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				return
-			}
-		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
@@ -671,21 +653,21 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	for i := 0; i < len(uERadioCapabilityCheckResponse.ProtocolIEs.List); i++ {
 		ie := uERadioCapabilityCheckResponse.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				return
-			}
-		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
@@ -749,8 +731,6 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var ranUe *context.RanUe
 
-	var cause *ngapType.Cause
-
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -777,28 +757,21 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	for i := 0; i < len(locationReportingFailureIndication.ProtocolIEs.List); i++ {
 		ie := locationReportingFailureIndication.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				return
-			}
-		case ngapType.ProtocolIEIDCause:
-			cause = ie.Value.Cause
-			// lbConn.Log.Trace("Decode IE Cause")
-			if cause == nil {
-				// lbConn.Log.Error("Cause is nil")
-				return
-			}
-		}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
@@ -858,18 +831,8 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 }
 
 func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
-	// amfSelf := context.AMF_Self()
-
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	// var userLocationInformation *ngapType.UserLocationInformation
-	// var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
-	// var fiveGSTMSI *ngapType.FiveGSTMSI
-	// // var aMFSetID *ngapType.AMFSetID
-	// var uEContextRequest *ngapType.UEContextRequest
-	// // var allowedNSSAI *ngapType.AllowedNSSAI
-
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	LB = *context.LB_Self()
 
@@ -1063,13 +1026,21 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 
 	for _, ie := range pDUSessionResourceModifyResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID: // ignore
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-		case ngapType.ProtocolIEIDRANUENGAPID: // ignore
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-		}
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
+			}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
@@ -1172,13 +1143,21 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 
 	for _, ie := range PDUSessionResourceNotify.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID // reject
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID // reject
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-		}
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				}
+			}
 	}
 
 	if lbConn.TypeID == context.TypeIdentAMFConn {
