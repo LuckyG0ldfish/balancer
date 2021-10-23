@@ -6,10 +6,12 @@ import (
 	//"aper"
 
 	"fmt"
+	"strconv"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap/ngapType"
+
 	// "github.com/free5gc/ngap"
 	// "github.com/free5gc/amf/consumer"
 	// gmm_common "github.com/free5gc/amf/gmm/common"
@@ -891,6 +893,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 			ues := append(empty, ue)
 			gnb.Ues.Store(rANUENGAPID.Value, ues)
 			LB.ForwardToNextAmf(lbConn, m2, ue)
+			fmt.Println("UeRanID: " + strconv.FormatInt(rANUENGAPID.Value, 10))
 		} else {
 			fmt.Println("No GNB")
 		}
