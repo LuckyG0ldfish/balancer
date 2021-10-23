@@ -16,7 +16,7 @@ import (
 	// gmm_message "github.com/free5gc/amf/gmm/message"
 	// "github.com/free5gc/amf/logger"
 	// "github.com/free5gc/amf/nas"
-	// ngap_message "github.com/free5gc/amf/ngap/message"
+	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
 	// "github.com/free5gc/aper"
 	// "github.com/free5gc/nas/nasMessage"
 	// libngap "github.com/free5gc/ngap"
@@ -34,8 +34,10 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
 
+	fmt.Println("Handling NGSetupRequest")
+
 	LB = *context.LB_Self()
-	// var cause ngapType.Cause
+	var cause ngapType.Cause
 
 	if LbConn == nil {
 		// logger.NgapLog.Error("ran is nil")
@@ -91,12 +93,12 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	}
 
 	// LbConn.SetRanId(globalRANNodeID)
-	if rANNodeName != nil {
-		// LbConn.Name = rANNodeName.Value
-	}
-	if pagingDRX != nil {
-		// LbConn.Log.Tracef("PagingDRX[%d]", pagingDRX.Value)
-	}
+	// if rANNodeName != nil {
+	// 	// LbConn.Name = rANNodeName.Value
+	// }
+	// if pagingDRX != nil {
+	// 	// LbConn.Log.Tracef("PagingDRX[%d]", pagingDRX.Value)
+	// }
 
 	// for i := 0; i < len(supportedTAList.List); i++ {
 	// 	supportedTAItem := supportedTAList.List[i]
@@ -150,11 +152,11 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	// 	}
 	// }
 
-	// if cause.Present == ngapType.CausePresentNothing {
-	// 	ngap_message.SendNGSetupResponse(LbConn)
-	// } else {
-	// 	ngap_message.SendNGSetupFailure(LbConn, cause)
-	// }
+	if cause.Present == ngapType.CausePresentNothing {
+		ngap_message.SendNGSetupResponse(LbConn)
+	} else {
+		ngap_message.SendNGSetupFailure(LbConn, cause)
+	}
 }
 
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
@@ -267,7 +269,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 				fmt.Println("UE Found")
 				ue = ue2
 			case 2: 
-				fmt.Println("UE Found // this should not happen") // 
+				fmt.Println("UE Found") // 
 				ue = ue2
 			case 3: 
 				fmt.Println("no matching UE Found")

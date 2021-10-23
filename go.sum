@@ -78,6 +78,7 @@ github.com/free5gc/logger_conf v1.0.0 h1:cMqqB8L4HjE57tP36mBmiVUPIcHv8Ayr12jKfei
 github.com/free5gc/logger_conf v1.0.0/go.mod h1:DHecLXVV1qA5Z+lSoUvZdZ6tCtZidTNmtx99jsCfgLE=
 github.com/free5gc/logger_util v1.0.0 h1:hLTCTnKlEqJURrBwooNFQLavWPdJzS0o9KGIYUNKdJI=
 github.com/free5gc/logger_util v1.0.0/go.mod h1:TK/bAJbm/l2TMNmbsKn83+xUmDNqts69IEir/nCa8w0=
+github.com/free5gc/nas v1.0.0 h1:OO4klCGRhflBrOUMyKfFXwxGu5Sz4B8vYrWtIXA1G9Q=
 github.com/free5gc/nas v1.0.0/go.mod h1:aZkA9pzIy6D1I4mTYExoUsr1pBwC81+aLvhs382TlD0=
 github.com/free5gc/ngap v1.0.0/go.mod h1:FIAFElkAuJzusN2kXrCNJlSuCcQid8RZd5qZaf4N7pI=
 github.com/free5gc/ngap v1.0.2 h1:/89OIJVR0AWdMfiUuoe325RnjlF45UvIFdAxWrrbiYU=
@@ -304,6 +305,7 @@ golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2/go.mod h1:qpuaurCH72eLCgpAm/
 golang.org/x/net v0.0.0-20200625001655-4c5254603344/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
 golang.org/x/net v0.0.0-20200707034311-ab3426394381/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
 golang.org/x/net v0.0.0-20200822124328-c89045814202/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
+golang.org/x/net v0.0.0-20201209123823-ac852fbbde11 h1:lwlPPsmjDKK0J6eG6xDWd5XPehI0R024zxjDnw3esPA=
 golang.org/x/net v0.0.0-20201209123823-ac852fbbde11/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=

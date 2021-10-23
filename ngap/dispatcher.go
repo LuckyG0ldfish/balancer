@@ -20,7 +20,9 @@ func Dispatch(lbConn *context.LBConn, msg []byte) {
 		// ran.Remove()
 		return
 	}
-	msgCopy := msg
+	msgCopy := make([]byte, len(msg))
+	copy(msgCopy, msg)
+	
 	// ran, ok := lbSelf.LbGnbFindByConn(lbConn.Conn)
 	// if !ok {
 	// 	logger.NgapLog.Infof("Create a new NG connection for: %s", lbConn.Conn.RemoteAddr().String())

@@ -7,6 +7,10 @@ import (
 	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
+func SendByteToConn(conn *sctp.SCTPConn, message []byte) {
+	conn.Write(message)
+}
+
 func FindUeInSlice(slice []*LbUe, UeAmfID int64) (*LbUe, int){
 	if len(slice) == 0 {
 		return nil, 0

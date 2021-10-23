@@ -91,7 +91,7 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	// 	lbcfg: c.String("lbcfg"),
 	// }
 
-	//lb = NewLB()
+	// lb = NewLB()
 	// if config.lbcfg != "" {
 	// 	if err := factory.InitConfigFactory(config.lbcfg); err != nil {
 	// 		return err
