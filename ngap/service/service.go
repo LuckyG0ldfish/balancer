@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -164,7 +165,8 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 	for {
 		buf := make([]byte, bufsize)
 
-		n, info, notification, err := lbConn.Conn.SCTPRead(buf) 
+		n, info, notification, err := lbConn.Conn.SCTPRead(buf)
+		
 		if err != nil {
 			switch err {
 			case io.EOF, io.ErrUnexpectedEOF:
@@ -181,7 +183,14 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				return
 			}
 		}
-		fmt.Println(n)
+		if lbConn.TypeID == context.TypeIdentAMFConn {
+			fmt.Println("AMF message recieved")
+		} else if lbConn.TypeID == context.TypeIdentGNBConn {
+			fmt.Println("RAN message recieved")
+		} else {
+			fmt.Println("unidientified message recieved")
+		}
+		fmt.Println("length: " + strconv.Itoa(n))
 		// fmt.Println(buf)
 		if notification != nil {
 			if handler.HandleNotification != nil {
