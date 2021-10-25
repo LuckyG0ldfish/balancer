@@ -17,6 +17,7 @@ import (
 	"github.com/free5gc/ngap"
 
 	"github.com/LuckyG0ldfish/balancer/context"
+	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
 )
 
 type NGAPHandler struct {
@@ -220,6 +221,7 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 		if err == nil {
 			// amf.up = true
 			amf.LbConn.Conn = conn
+			ngap_message.SendNGSetupRequest(amf.LbConn)
 			go handleConnection(amf.LbConn, readBufSize, handler)
 			break
 		}

@@ -6,7 +6,29 @@ import (
 	"github.com/LuckyG0ldfish/balancer/context"
 )
 
+func SendNGSetupRequest(conn *context.LBConn) {
 
+	// lbCtx := context.LB_Self()
+
+	// TODO: Raplace ID - is only for testing (use the context ^)
+	lbID := 123456
+
+	hexGNBID := []byte{0x00, 0x02, byte(lbID)}
+	gnbName := fmt.Sprintf("free5gc_%d", lbID)
+
+	sendMsg, err := BuildNGSetupRequest(hexGNBID, 24, gnbName)
+	if err != nil {
+		// NGAPLog.Errorf("Build NGSetup Request failed: [%+v]\n", err)
+		return
+	}
+	context.SendByteToConn(conn.Conn, sendMsg)
+	// n, err := conn.Conn.Write(sendMsg)
+	// if err != nil {
+	// 	// NGAPLog.Errorf("Write to SCTP socket failed: [%+v]", err)
+	// } else {
+	// 	// NGAPLog.Tracef("Wrote %d bytes", n)
+	// }
+}
 
 func SendNGSetupResponse(conn *context.LBConn) {
 	// lb.Log.Info("Send NG-Setup response")
