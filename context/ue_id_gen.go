@@ -13,7 +13,7 @@ type UeIdGen struct{
 func NewUeIdGen() *UeIdGen{
 	var UeIdGen UeIdGen
 	UeIdGen.Recycled = list.New()
-	UeIdGen.RegularID = 1
+	UeIdGen.RegularID = 4
 	return &UeIdGen
 }
 

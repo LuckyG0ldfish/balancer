@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
-	// "github.com/free5gc/ngap"
-	// "github.com/free5gc/ngap/ngapType"
+	"github.com/free5gc/ngap"
+	"github.com/free5gc/ngap/ngapType"
 )
 
 var (
@@ -30,6 +30,8 @@ type LBContext struct {
 	LbAmfPool []*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 	
 	Next_Amf *LbAmf
+
+	IDGen 	*UeIdGen
 	
 }
 
@@ -37,7 +39,7 @@ func NewLBContext() (LbContext *LBContext){
 	return 
 }
 
-func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, mes []byte, ue *LbUe) { //message *ngapType.NGAPPDU
+func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
 	// if mes, err := ngap.Encoder(*message); err == nil {
 		
 	// }
@@ -58,8 +60,8 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, mes []byte, ue *LbUe) { //
 		ues = UEs
 	} 
 	lb.Next_Amf.Ues.Store(ue.UeRanID, ues)
-	// var mes []byte
-	// mes, _  = ngap.Encoder(*message)
+	var mes []byte
+	mes, _  = ngap.Encoder(*message)
 	lb.Next_Amf.LbConn.Conn.Write(mes)
 	fmt.Println(mes)
 }

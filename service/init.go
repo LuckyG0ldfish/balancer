@@ -107,6 +107,7 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	Lb.LbContext = context.LB_Self()
 	Lb.LbContext.LbIP = LbIP
 	Lb.LbContext.LbPort = LbGnbPort
+	Lb.LbContext.IDGen = context.NewUeIdGen()
 	addr, _ := context.GenSCTPAddr(LbIP, LbAmfPort)
 	Lb.lbAddr = addr
 	fmt.Println("LB init done")

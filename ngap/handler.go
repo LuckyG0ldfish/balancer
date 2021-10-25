@@ -856,11 +856,14 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 	}
 
 	// lbConn.Log.Info("Handle Initial UE Message")
+	UeLbID := LB.IDGen.NextID()
+	var rANUENGAPIDInt int64
 
 	for _, ie := range initialUEMessage.ProtocolIEs.List {
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
 			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt = ie.Value.RANUENGAPID.Value
 			// lbConn.Log.Trace("Decode IE RanUeNgapID")
 			if rANUENGAPID == nil {
 				fmt.Println("InitialUEMessage: rANUENGAPID == nil")
@@ -870,6 +873,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 				// 	ngapType.ProtocolIEIDRANUENGAPID, ngapType.TypeOfErrorPresentMissing)
 				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
 			}
+			ie.Value.RANUENGAPID.Value = UeLbID
 		case ngapType.ProtocolIEIDNASPDU: // reject
 			nASPDU = ie.Value.NASPDU
 			// lbConn.Log.Trace("Decode IE NasPdu")
@@ -888,13 +892,14 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
 		ue := context.NewUE()		
 		if ok {
-			ue.UeRanID = rANUENGAPID.Value
+			ue.UeRanID = rANUENGAPIDInt
+			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
 			var empty []*context.LbUe
 			ues := append(empty, ue)
-			gnb.Ues.Store(rANUENGAPID.Value, ues)
-			LB.ForwardToNextAmf(lbConn, m2, ue)
-			fmt.Println("UeRanID: " + strconv.FormatInt(rANUENGAPID.Value, 10))
+			gnb.Ues.Store(rANUENGAPIDInt, ues)
+			LB.ForwardToNextAmf(lbConn, message, ue)
+			fmt.Println("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 		} else {
 			fmt.Println("No GNB")
 		}
@@ -2105,7 +2110,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, 
 	var sourceAMFUENGAPID *ngapType.AMFUENGAPID
 	// var userLocationInformation *ngapType.UserLocationInformation
 	// var uESecurityCapabilities *ngapType.UESecurityCapabilities
-	var pduSessionResourceToBeSwitchedInDLList *ngapType.PDUSessionResourceToBeSwitchedDLList
+	// var pduSessionResourceToBeSwitchedInDLList *ngapType.PDUSessionResourceToBeSwitchedDLList
 	// var pduSessionResourceFailedToSetupList *ngapType.PDUSessionResourceFailedToSetupListPSReq
 
 	LB = *context.LB_Self()
@@ -2130,18 +2135,21 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, 
 		// lbConn.Log.Error("PathSwitchRequest is nil")
 		return
 	}
-
 	// lbConn.Log.Info("Handle Path Switch Request")
+
+	UeLbID := LB.IDGen.NextID()
 
 	for _, ie := range pathSwitchRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
 			rANUENGAPID = ie.Value.RANUENGAPID
 			// lbConn.Log.Trace("Decode IE RanUeNgapID")
+			
 			if rANUENGAPID == nil {
 				// lbConn.Log.Error("RanUeNgapID is nil")
 				return
 			}
+			ie.Value.RANUENGAPID.Value = UeLbID
 		case ngapType.ProtocolIEIDSourceAMFUENGAPID: // reject
 			sourceAMFUENGAPID = ie.Value.SourceAMFUENGAPID
 			// lbConn.Log.Trace("Decode IE SourceAmfUeNgapID")
@@ -2149,43 +2157,23 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, 
 				// lbConn.Log.Error("SourceAmfUeNgapID is nil")
 				return
 			}
-		// case ngapType.ProtocolIEIDUserLocationInformation: // ignore
-		// 	userLocationInformation = ie.Value.UserLocationInformation
-		// 	lbConn.Log.Trace("Decode IE UserLocationInformation")
-		// case ngapType.ProtocolIEIDUESecurityCapabilities: // ignore
-		// 	uESecurityCapabilities = ie.Value.UESecurityCapabilities
-		// 	lbConn.Log.Trace("Decode IE UESecurityCapabilities")
-		case ngapType.ProtocolIEIDPDUSessionResourceToBeSwitchedDLList: // reject
-			pduSessionResourceToBeSwitchedInDLList = ie.Value.PDUSessionResourceToBeSwitchedDLList
-			// lbConn.Log.Trace("Decode IE PDUSessionResourceToBeSwitchedDLList")
-			if pduSessionResourceToBeSwitchedInDLList == nil {
-				// lbConn.Log.Error("PDUSessionResourceToBeSwitchedDLList is nil")
-				return
-			}
-			// case ngapType.ProtocolIEIDPDUSessionResourceFailedToSetupListPSReq: // ignore
-			// 	pduSessionResourceFailedToSetupList = ie.Value.PDUSessionResourceFailedToSetupListPSReq
-			// 	lbConn.Log.Trace("Decode IE PDUSessionResourceFailedToSetupListPSReq")
+	
 		}
 	}
 
 	//TODO
 
-	// if lbConn.TypeID == context.TypeIdentAMFConn {
-	// 	amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-	// 	amf.Ues.LoadOrStore(aMFUENGAPID.Value, context.NewUE(aMFUENGAPID.Value))
-	// 	LB.ForwardToGnb(lbConn, message, rANUENGAPID.Value)
-	// 	return
-	// }
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
 		ue := context.NewUE()		
 		if ok {
 			ue.UeRanID = rANUENGAPID.Value
+			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
 			var empty []*context.LbUe
 			ues := append(empty, ue)
 			gnb.Ues.Store(rANUENGAPID.Value, ues)
-			LB.ForwardToNextAmf(lbConn, m2, ue)
+			LB.ForwardToNextAmf(lbConn, message, ue)
 		} else {
 			fmt.Println("No GNB")
 		}
