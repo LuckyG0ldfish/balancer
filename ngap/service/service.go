@@ -201,8 +201,8 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			}
 		} else {
 			if info == nil || info.PPID != ngap.PPID {
-				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet")
-				continue
+				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet") //TODO
+				// continue
 			}
 
 			logger.NgapLog.Tracef("Read %d bytes", n)

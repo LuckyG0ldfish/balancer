@@ -10,7 +10,7 @@ func SendNGSetupRequest(conn *context.LBConn) {
 
 	// lbCtx := context.LB_Self()
 
-	// TODO: Raplace ID - is only for testing (use the context ^)
+	// TODO: Replace ID - is only for testing (use the context ^)
 	lbID := 123456
 
 	hexGNBID := []byte{0x00, 0x02, byte(lbID)}
