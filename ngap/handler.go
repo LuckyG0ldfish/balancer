@@ -832,6 +832,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	}
 }
 
+//
 func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU

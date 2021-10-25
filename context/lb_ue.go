@@ -6,6 +6,7 @@ import (
 
 type LbUe struct{
 	UeRanID 		int64
+	UeLbID 			int64
 	UeAmfId 		int64
 	RanID			int64
 	AmfID		 	int64

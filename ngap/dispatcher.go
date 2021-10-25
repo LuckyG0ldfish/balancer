@@ -81,7 +81,7 @@ func Dispatch(lbConn *context.LBConn, msg []byte) {
 			fmt.Println("Handling HandoverNotify")
 			HandleHandoverNotify(lbConn, pdu, msgCopy)
 		case ngapType.ProcedureCodeHandoverPreparation:
-			fmt.Println("Handling HandoverRequired")
+			fmt.Println("Handling HandoverRequired") //
 			HandleHandoverRequired(lbConn, pdu, msgCopy)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
 			fmt.Println("Handling RanConfigurationUpdate")

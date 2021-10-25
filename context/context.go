@@ -37,12 +37,12 @@ func NewLBContext() (LbContext *LBContext){
 	return 
 }
 
-func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message []byte, ue *LbUe) {
+func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, mes []byte, ue *LbUe) { //message *ngapType.NGAPPDU
 	// if mes, err := ngap.Encoder(*message); err == nil {
 		
 	// }
 	fmt.Println("forward to nextAMF")
-	fmt.Println(message)
+
 	ue.AmfID = lb.Next_Amf.AmfID
 	temp, ok := lb.Next_Amf.Ues.Load(ue.UeRanID)
 	var ues []*LbUe
@@ -58,7 +58,10 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message []byte, ue *LbUe) 
 		ues = UEs
 	} 
 	lb.Next_Amf.Ues.Store(ue.UeRanID, ues)
-	lb.Next_Amf.LbConn.Conn.Write(message)
+	// var mes []byte
+	// mes, _  = ngap.Encoder(*message)
+	lb.Next_Amf.LbConn.Conn.Write(mes)
+	fmt.Println(mes)
 }
 
 func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message []byte, ue *LbUe) {
