@@ -59,73 +59,73 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 		switch initiatingMessage.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
 			fmt.Println("Handling NGSetupRequest")
-			amf_ngap.HandleNGSetupRequest(lbConn, pdu, msgCopy)
+			amf_ngap.HandleNGSetupRequest(lbConn, pdu)
 		case ngapType.ProcedureCodeInitialUEMessage:
 			fmt.Println("Handling InitialUEMessage")
-			amf_ngap.HandleInitialUEMessage(lbConn, pdu, msgCopy)
+			amf_ngap.HandleInitialUEMessage(lbConn, pdu)
 		case ngapType.ProcedureCodeUplinkNASTransport:
 			fmt.Println("Handling UplinkNasTransport")
-			amf_ngap.HandleUplinkNasTransport(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUplinkNasTransport(lbConn, pdu)
 		case ngapType.ProcedureCodeNGReset:
 			fmt.Println("Handling NGReset")
-			amf_ngap.HandleNGReset(lbConn, pdu, msgCopy)
+			amf_ngap.HandleNGReset(lbConn, pdu)
 		case ngapType.ProcedureCodeHandoverCancel:
 			fmt.Println("Handling HandoverCancel")
-			amf_ngap.HandleHandoverCancel(lbConn, pdu, msgCopy)
+			amf_ngap.HandleHandoverCancel(lbConn, pdu)
 		case ngapType.ProcedureCodeUEContextReleaseRequest:
 			fmt.Println("Handling UEContextReleaseRequest")
-			amf_ngap.HandleUEContextReleaseRequest(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUEContextReleaseRequest(lbConn, pdu)
 		case ngapType.ProcedureCodeNASNonDeliveryIndication:
 			fmt.Println("Handling NasNonDeliveryIndication")
-			amf_ngap.HandleNasNonDeliveryIndication(lbConn, pdu, msgCopy)
+			amf_ngap.HandleNasNonDeliveryIndication(lbConn, pdu)
 		case ngapType.ProcedureCodeLocationReportingFailureIndication:
 			fmt.Println("Handling LocationReportingFailureIndication")
-			amf_ngap.HandleLocationReportingFailureIndication(lbConn, pdu, msgCopy)
+			amf_ngap.HandleLocationReportingFailureIndication(lbConn, pdu)
 		case ngapType.ProcedureCodeErrorIndication:
 			fmt.Println("Handling ErrorIndication")
-			amf_ngap.HandleErrorIndication(lbConn, pdu, msgCopy)
+			amf_ngap.HandleErrorIndication(lbConn, pdu)
 		case ngapType.ProcedureCodeUERadioCapabilityInfoIndication:
 			fmt.Println("Handling UERadioCapabilityInfoIndication")
-			amf_ngap.HandleUERadioCapabilityInfoIndication(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUERadioCapabilityInfoIndication(lbConn, pdu)
 		case ngapType.ProcedureCodeHandoverNotification:
 			fmt.Println("Handling HandoverNotify")
-			amf_ngap.HandleHandoverNotify(lbConn, pdu, msgCopy)
+			amf_ngap.HandleHandoverNotify(lbConn, pdu)
 		case ngapType.ProcedureCodeHandoverPreparation:
 			fmt.Println("Handling HandoverRequired") //
-			amf_ngap.HandleHandoverRequired(lbConn, pdu, msgCopy)
+			amf_ngap.HandleHandoverRequired(lbConn, pdu)
 		case ngapType.ProcedureCodeRANConfigurationUpdate:
 			fmt.Println("Handling RanConfigurationUpdate")
-			amf_ngap.HandleRanConfigurationUpdate(lbConn, pdu, msgCopy)
+			amf_ngap.HandleRanConfigurationUpdate(lbConn, pdu)
 		case ngapType.ProcedureCodeRRCInactiveTransitionReport:
 			fmt.Println("Handling RRCInactiveTransitionReport")
-			amf_ngap.HandleRRCInactiveTransitionReport(lbConn, pdu, msgCopy)
+			amf_ngap.HandleRRCInactiveTransitionReport(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceNotify:
 			fmt.Println("Handling PDUSessionResourceNotify")
-			amf_ngap.HandlePDUSessionResourceNotify(lbConn, pdu, msgCopy)
+			amf_ngap.HandlePDUSessionResourceNotify(lbConn, pdu)
 		case ngapType.ProcedureCodePathSwitchRequest:
 			fmt.Println("Handling PathSwitchRequest")
-			amf_ngap.HandlePathSwitchRequest(lbConn, pdu, msgCopy)
+			amf_ngap.HandlePathSwitchRequest(lbConn, pdu)
 		case ngapType.ProcedureCodeLocationReport:
 			fmt.Println("Handling LocationReport")
-			amf_ngap.HandleLocationReport(lbConn, pdu, msgCopy)
+			amf_ngap.HandleLocationReport(lbConn, pdu)
 		case ngapType.ProcedureCodeUplinkUEAssociatedNRPPaTransport:
 			fmt.Println("Handling UplinkUEAssociatedNRPPATransport")
-			amf_ngap.HandleUplinkUEAssociatedNRPPATransport(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUplinkUEAssociatedNRPPATransport(lbConn, pdu)
 		case ngapType.ProcedureCodeUplinkRANConfigurationTransfer:
 			fmt.Println("Handling UplinkRanConfigurationTransfer")
-			amf_ngap.HandleUplinkRanConfigurationTransfer(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUplinkRanConfigurationTransfer(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceModifyIndication:
 			fmt.Println("Handling PDUSessionResourceModifyIndication")
-			amf_ngap.HandlePDUSessionResourceModifyIndication(lbConn, pdu, msgCopy)
+			amf_ngap.HandlePDUSessionResourceModifyIndication(lbConn, pdu)
 		case ngapType.ProcedureCodeCellTrafficTrace:
 			fmt.Println("Handling CellTrafficTrace")
-			amf_ngap.HandleCellTrafficTrace(lbConn, pdu, msgCopy)
+			amf_ngap.HandleCellTrafficTrace(lbConn, pdu)
 		case ngapType.ProcedureCodeUplinkRANStatusTransfer:
 			fmt.Println("Handling UplinkRanStatusTransfer")
-			amf_ngap.HandleUplinkRanStatusTransfer(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUplinkRanStatusTransfer(lbConn, pdu)
 		case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
 			fmt.Println("Handling UplinkNonUEAssociatedNRPPATransport")
-			amf_ngap.HandleUplinkNonUEAssociatedNRPPATransport(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUplinkNonUEAssociatedNRPPATransport(lbConn, pdu)
 		default:
 			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, initiatingMessage.ProcedureCode.Value)
 		}
@@ -138,34 +138,34 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGReset:
 			fmt.Println("Handling NGResetAcknowledge")
-			amf_ngap.HandleNGResetAcknowledge(lbConn, pdu, msgCopy)
+			amf_ngap.HandleNGResetAcknowledge(lbConn, pdu)
 		case ngapType.ProcedureCodeUEContextRelease:
 			fmt.Println("Handling UEContextReleaseComplete")
-			amf_ngap.HandleUEContextReleaseComplete(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUEContextReleaseComplete(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceRelease:
 			fmt.Println("Handling PDUSessionResourceReleaseResponse")
-			amf_ngap.HandlePDUSessionResourceReleaseResponse(lbConn, pdu, msgCopy)
+			amf_ngap.HandlePDUSessionResourceReleaseResponse(lbConn, pdu)
 		case ngapType.ProcedureCodeUERadioCapabilityCheck:
 			fmt.Println("Handling UERadioCapabilityCheckResponse")
-			amf_ngap.HandleUERadioCapabilityCheckResponse(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUERadioCapabilityCheckResponse(lbConn, pdu)
 		case ngapType.ProcedureCodeAMFConfigurationUpdate:
 			fmt.Println("Handling AMFconfigurationUpdateAcknowledge")
-			amf_ngap.HandleAMFconfigurationUpdateAcknowledge(lbConn, pdu, msgCopy)
+			amf_ngap.HandleAMFconfigurationUpdateAcknowledge(lbConn, pdu)
 		case ngapType.ProcedureCodeInitialContextSetup:
 			fmt.Println("Handling InitialContextSetupResponse")
-			amf_ngap.HandleInitialContextSetupResponse(lbConn, pdu, msgCopy)
+			amf_ngap.HandleInitialContextSetupResponse(lbConn, pdu)
 		case ngapType.ProcedureCodeUEContextModification:
 			fmt.Println("Handling UEContextModificationResponse")
-			amf_ngap.HandleUEContextModificationResponse(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUEContextModificationResponse(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceSetup:
 			fmt.Println("Handling PDUSessionResourceSetupResponse")
-			amf_ngap.HandlePDUSessionResourceSetupResponse(lbConn, pdu, msgCopy)
+			amf_ngap.HandlePDUSessionResourceSetupResponse(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceModify:
 			fmt.Println("Handling PDUSessionResourceModifyResponse")
-			amf_ngap.HandlePDUSessionResourceModifyResponse(lbConn, pdu, msgCopy)
+			amf_ngap.HandlePDUSessionResourceModifyResponse(lbConn, pdu)
 		case ngapType.ProcedureCodeHandoverResourceAllocation:
 			fmt.Println("Handling HandoverRequestAcknowledge")
-			amf_ngap.HandleHandoverRequestAcknowledge(lbConn, pdu, msgCopy)
+			amf_ngap.HandleHandoverRequestAcknowledge(lbConn, pdu)
 		default:
 			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, successfulOutcome.ProcedureCode.Value)
 		}
@@ -178,16 +178,16 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 		switch unsuccessfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeAMFConfigurationUpdate:
 			fmt.Println("Handling AMFconfigurationUpdateFailure")
-			amf_ngap.HandleAMFconfigurationUpdateFailure(lbConn, pdu, msgCopy)
+			amf_ngap.HandleAMFconfigurationUpdateFailure(lbConn, pdu)
 		case ngapType.ProcedureCodeInitialContextSetup:
 			fmt.Println("Handling InitialContextSetupFailure")
-			amf_ngap.HandleInitialContextSetupFailure(lbConn, pdu, msgCopy)
+			amf_ngap.HandleInitialContextSetupFailure(lbConn, pdu)
 		case ngapType.ProcedureCodeUEContextModification:
 			fmt.Println("Handling UEContextModificationFailure")
-			amf_ngap.HandleUEContextModificationFailure(lbConn, pdu, msgCopy)
+			amf_ngap.HandleUEContextModificationFailure(lbConn, pdu)
 		case ngapType.ProcedureCodeHandoverResourceAllocation:
 			fmt.Println("Handling HandoverFailure")
-			amf_ngap.HandleHandoverFailure(lbConn, pdu, msgCopy)
+			amf_ngap.HandleHandoverFailure(lbConn, pdu)
 		default:
 			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, unsuccessfulOutcome.ProcedureCode.Value)
 		}

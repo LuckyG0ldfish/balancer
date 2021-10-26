@@ -1,7 +1,6 @@
 package amf_ngap
 
 import (
-
 	// "strconv"
 	//"aper"
 
@@ -30,7 +29,7 @@ import (
 var LB context.LBContext 
 
 //TODO
-func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var globalRANNodeID *ngapType.GlobalRANNodeID
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
@@ -159,7 +158,7 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	}
 } 
 
-func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -266,7 +265,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 }
 
 // TODO
-func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var resetType *ngapType.ResetType
 
@@ -366,7 +365,7 @@ func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte)
 }
 
 // TODO
-func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
@@ -420,7 +419,7 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	}
 }
 
-func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -522,7 +521,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	}
 }
 
-func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -624,7 +623,7 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 	}
 }
 
-func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -728,7 +727,7 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	}
 }
 
-func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	// var ranUe *context.RanUe
@@ -833,7 +832,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 }
 
 //
-func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 
@@ -908,7 +907,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 	}
 }
 
-func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1004,7 +1003,7 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 	}
 }
 
-func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1123,7 +1122,7 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 	// }
 }
 
-func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1225,7 +1224,7 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	}
 }
 
-func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1343,7 +1342,7 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 	}
 }
 
-func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1445,7 +1444,7 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	}
 }
 
-func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -1547,7 +1546,7 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 	}
 }
 
-func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1651,7 +1650,7 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 	}
 }
 
-func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1772,7 +1771,7 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 	// }
 }
 
-func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -1891,7 +1890,7 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	// }
 }
 
-func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -1997,7 +1996,7 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	}
 }
 
-func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -2105,7 +2104,7 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 
 // TODO
 // TS 23.502 4.9.1
-func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var sourceAMFUENGAPID *ngapType.AMFUENGAPID
 	// var userLocationInformation *ngapType.UserLocationInformation
@@ -2193,7 +2192,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, 
 	// }
 }
 
-func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -2300,7 +2299,7 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 }
 
 //TODO
-func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// var aMFUENGAPID *ngapType.AMFUENGAPID
 	// var cause *ngapType.Cause
 	// // var targetUe *context.RanUe
@@ -2399,7 +2398,7 @@ func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2
 }
 
 //TODO
-func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -2647,7 +2646,7 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, m
 }
 
 //TODO
-func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var cause *ngapType.Cause
@@ -2810,7 +2809,7 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	// }
 }
 
-func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -2916,7 +2915,7 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 	}
 }
 
-func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -3021,7 +3020,7 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 }
 
 //Todo
-func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
@@ -3142,7 +3141,7 @@ func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAP
 }
 
 //TODO
-func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var sONConfigurationTransferUL *ngapType.SONConfigurationTransfer
 
 	LB = *context.LB_Self()
@@ -3195,7 +3194,7 @@ func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapT
 	// }
 }
 
-func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -3300,7 +3299,7 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 }
 
 // TODO
-func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var routingID *ngapType.RoutingID
 	var nRPPaPDU *ngapType.NRPPaPDU
 
@@ -3354,7 +3353,7 @@ func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *
 	// TODO: Forward NRPPaPDU to LMF
 }
 
-func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -3457,7 +3456,7 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 
 	}
 }
 
-func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -3563,7 +3562,7 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 }
 
 //TODO
-func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	
@@ -3614,7 +3613,7 @@ func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapTy
 }
 
 //TODO
-func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFTNLAssociationSetupList *ngapType.AMFTNLAssociationSetupList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	var aMFTNLAssociationFailedToSetupList *ngapType.TNLAssociationList
@@ -3671,7 +3670,7 @@ func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ng
 	}
 }
 
-func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -3773,7 +3772,7 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2
 	}
 }
 
-func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, m2 []byte) {
+func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 

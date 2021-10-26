@@ -41,7 +41,6 @@ func NewLBContext() (LbContext *LBContext){
 
 func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
 	// if mes, err := ngap.Encoder(*message); err == nil {
-		
 	// }
 	fmt.Println("forward to nextAMF")
 

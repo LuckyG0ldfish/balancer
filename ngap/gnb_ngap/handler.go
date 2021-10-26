@@ -4,14 +4,14 @@ import (
 	//"fmt"
 	// "context"
 
-	"github.com/free5gc/aper"
+	// "github.com/free5gc/aper"
 	// "github.com/free5gc/fsm"
-	"github.com/free5gc/ngap/ngapType"
+	"fmt"
 
 	"github.com/LuckyG0ldfish/balancer/context"
-
-	// "github.com/ishidawataru/sctp"
+	"github.com/free5gc/ngap/ngapType"
 	"github.com/sirupsen/logrus"
+	// "github.com/ishidawataru/sctp"
 	// "gitlab.lrz.de/lkn_free5gc/gnbsim/context"
 	// "gitlab.lrz.de/lkn_free5gc/gnbsim/gmm"
 	// "gitlab.lrz.de/lkn_free5gc/gnbsim/logger"
@@ -112,15 +112,16 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 }
 
+// TODO 
 func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
-
+	LB := context.LB_Self()
 	// TODO: add NAS Registration Complete Message (or this maybe will be done by the nas_handler).
 
 	NGAPLog.Infoln("[gNB] Handle Initial Context Setup Request")
 
-	var amfUeNgapID *ngapType.AMFUENGAPID
-	var ranUeNgapID *ngapType.RANUENGAPID
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
 	// var ueSecurityCapabilities *ngapType.UESecurityCapabilities
 	// var securityKey *ngapType.SecurityKey
 	// var traceActivation *ngapType.TraceActivation
@@ -152,8 +153,8 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDAMFUENGAPID:
 			NGAPLog.Traceln("[NGAP] Decode IE AMFUENGAPID")
-			amfUeNgapID = ie.Value.AMFUENGAPID
-			if amfUeNgapID == nil {
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			if aMFUENGAPID == nil {
 				NGAPLog.Errorf("AMFUENGAPID is nil")
 				// item := buildCriticalityDiagnosticsIEItem(
 				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
@@ -161,8 +162,8 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 			}
 		case ngapType.ProtocolIEIDRANUENGAPID:
 			NGAPLog.Traceln("[NGAP] Decode IE RANUENGAPID")
-			ranUeNgapID = ie.Value.RANUENGAPID
-			if ranUeNgapID == nil {
+			rANUENGAPID = ie.Value.RANUENGAPID
+			if rANUENGAPID == nil {
 				NGAPLog.Errorf("RANUENGAPID is nil")
 				// item := buildCriticalityDiagnosticsIEItem(
 				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
@@ -204,6 +205,32 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 		}
 	}
 
+	if lbConn.TypeID == context.TypeIdentGNBConn {
+		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
+		var ue *context.LbUe
+		if !ok {
+			fmt.Println("Ue not of type UE/not found")
+		} else {
+			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
+			switch empty{
+			case 0: 
+				fmt.Println("no UE Found")
+				return
+			case 1: 
+				fmt.Println("UE Found")
+				ue = ue2
+			case 2: 
+				fmt.Println("UE Found") // 
+				ue = ue2
+			case 3: 
+				fmt.Println("no matching UE Found")
+				return 
+			}
+		}
+		LB.ForwardToAmf(lbConn, m2, ue)
+		return
+	}
 	// if (amfUeNgapID != nil) && (ranUeNgapID != nil) {
 	// 	// Find UE context
 	// 	var ok bool
@@ -319,6 +346,7 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 	// }
 }
 
+// TODO 
 func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	NGAPLog.Infoln("[gNB] Handle Downlink NAS Transport")
 
@@ -408,6 +436,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	// }
 }
 
+// TODO 
 func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	NGAPLog.Infoln("[gNB] Handle PDU Session Resource Setup Request")
 
@@ -515,6 +544,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 	// }
 }
 
+// TODO
 func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	NGAPLog.Infoln("[gNB] Handle PDU Session Resource Release Command")
 	var amfUeNgapID *ngapType.AMFUENGAPID
@@ -634,101 +664,101 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 	// ngap_message.SendPDUSessionResourceReleaseResponse(lbConn, ueCtx.AmfUeNgapId, ueCtx.RanUeNgapId, ueCtx.PduSessionID)
 }
 
-func buildCriticalityDiagnosticsIEItem(ieCriticality aper.Enumerated, ieID int64, typeOfErr aper.Enumerated) (
-	item ngapType.CriticalityDiagnosticsIEItem) {
+// func buildCriticalityDiagnosticsIEItem(ieCriticality aper.Enumerated, ieID int64, typeOfErr aper.Enumerated) (
+// 	item ngapType.CriticalityDiagnosticsIEItem) {
 
-	item = ngapType.CriticalityDiagnosticsIEItem{
-		IECriticality: ngapType.Criticality{
-			Value: ieCriticality,
-		},
-		IEID: ngapType.ProtocolIEID{
-			Value: ieID,
-		},
-		TypeOfError: ngapType.TypeOfError{
-			Value: typeOfErr,
-		},
-	}
+// 	item = ngapType.CriticalityDiagnosticsIEItem{
+// 		IECriticality: ngapType.Criticality{
+// 			Value: ieCriticality,
+// 		},
+// 		IEID: ngapType.ProtocolIEID{
+// 			Value: ieID,
+// 		},
+// 		TypeOfError: ngapType.TypeOfError{
+// 			Value: typeOfErr,
+// 		},
+// 	}
 
-	return item
-}
+// 	return item
+// }
 
-func buildCause(present int, value aper.Enumerated) (cause *ngapType.Cause) {
-	cause = new(ngapType.Cause)
-	cause.Present = present
+// func buildCause(present int, value aper.Enumerated) (cause *ngapType.Cause) {
+// 	cause = new(ngapType.Cause)
+// 	cause.Present = present
 
-	switch present {
-	case ngapType.CausePresentRadioNetwork:
-		cause.RadioNetwork = new(ngapType.CauseRadioNetwork)
-		cause.RadioNetwork.Value = value
-	case ngapType.CausePresentTransport:
-		cause.Transport = new(ngapType.CauseTransport)
-		cause.Transport.Value = value
-	case ngapType.CausePresentNas:
-		cause.Nas = new(ngapType.CauseNas)
-		cause.Nas.Value = value
-	case ngapType.CausePresentProtocol:
-		cause.Protocol = new(ngapType.CauseProtocol)
-		cause.Protocol.Value = value
-	case ngapType.CausePresentMisc:
-		cause.Misc = new(ngapType.CauseMisc)
-		cause.Misc.Value = value
-	case ngapType.CausePresentNothing:
-	}
+// 	switch present {
+// 	case ngapType.CausePresentRadioNetwork:
+// 		cause.RadioNetwork = new(ngapType.CauseRadioNetwork)
+// 		cause.RadioNetwork.Value = value
+// 	case ngapType.CausePresentTransport:
+// 		cause.Transport = new(ngapType.CauseTransport)
+// 		cause.Transport.Value = value
+// 	case ngapType.CausePresentNas:
+// 		cause.Nas = new(ngapType.CauseNas)
+// 		cause.Nas.Value = value
+// 	case ngapType.CausePresentProtocol:
+// 		cause.Protocol = new(ngapType.CauseProtocol)
+// 		cause.Protocol.Value = value
+// 	case ngapType.CausePresentMisc:
+// 		cause.Misc = new(ngapType.CauseMisc)
+// 		cause.Misc.Value = value
+// 	case ngapType.CausePresentNothing:
+// 	}
 
-	return
-}
+// 	return
+// }
 
-func buildCriticalityDiagnostics(
-	procedureCode *int64,
-	triggeringMessage *aper.Enumerated,
-	procedureCriticality *aper.Enumerated,
-	iesCriticalityDiagnostics *ngapType.CriticalityDiagnosticsIEList) (
-	criticalityDiagnostics ngapType.CriticalityDiagnostics) {
+// func buildCriticalityDiagnostics(
+// 	procedureCode *int64,
+// 	triggeringMessage *aper.Enumerated,
+// 	procedureCriticality *aper.Enumerated,
+// 	iesCriticalityDiagnostics *ngapType.CriticalityDiagnosticsIEList) (
+// 	criticalityDiagnostics ngapType.CriticalityDiagnostics) {
 
-	if procedureCode != nil {
-		criticalityDiagnostics.ProcedureCode = new(ngapType.ProcedureCode)
-		criticalityDiagnostics.ProcedureCode.Value = *procedureCode
-	}
+// 	if procedureCode != nil {
+// 		criticalityDiagnostics.ProcedureCode = new(ngapType.ProcedureCode)
+// 		criticalityDiagnostics.ProcedureCode.Value = *procedureCode
+// 	}
 
-	if triggeringMessage != nil {
-		criticalityDiagnostics.TriggeringMessage = new(ngapType.TriggeringMessage)
-		criticalityDiagnostics.TriggeringMessage.Value = *triggeringMessage
-	}
+// 	if triggeringMessage != nil {
+// 		criticalityDiagnostics.TriggeringMessage = new(ngapType.TriggeringMessage)
+// 		criticalityDiagnostics.TriggeringMessage.Value = *triggeringMessage
+// 	}
 
-	if procedureCriticality != nil {
-		criticalityDiagnostics.ProcedureCriticality = new(ngapType.Criticality)
-		criticalityDiagnostics.ProcedureCriticality.Value = *procedureCriticality
-	}
+// 	if procedureCriticality != nil {
+// 		criticalityDiagnostics.ProcedureCriticality = new(ngapType.Criticality)
+// 		criticalityDiagnostics.ProcedureCriticality.Value = *procedureCriticality
+// 	}
 
-	if iesCriticalityDiagnostics != nil {
-		criticalityDiagnostics.IEsCriticalityDiagnostics = iesCriticalityDiagnostics
-	}
+// 	if iesCriticalityDiagnostics != nil {
+// 		criticalityDiagnostics.IEsCriticalityDiagnostics = iesCriticalityDiagnostics
+// 	}
 
-	return criticalityDiagnostics
-}
+// 	return criticalityDiagnostics
+// }
 
 
-func printAndGetCause(cause *ngapType.Cause) (present int, value aper.Enumerated) {
+// func printAndGetCause(cause *ngapType.Cause) (present int, value aper.Enumerated) {
 
-	present = cause.Present
-	switch cause.Present {
-	case ngapType.CausePresentRadioNetwork:
-		NGAPLog.Warnf("Cause RadioNetwork[%d]", cause.RadioNetwork.Value)
-		value = cause.RadioNetwork.Value
-	case ngapType.CausePresentTransport:
-		NGAPLog.Warnf("Cause Transport[%d]", cause.Transport.Value)
-		value = cause.Transport.Value
-	case ngapType.CausePresentProtocol:
-		NGAPLog.Warnf("Cause Protocol[%d]", cause.Protocol.Value)
-		value = cause.Protocol.Value
-	case ngapType.CausePresentNas:
-		NGAPLog.Warnf("Cause Nas[%d]", cause.Nas.Value)
-		value = cause.Nas.Value
-	case ngapType.CausePresentMisc:
-		NGAPLog.Warnf("Cause Misc[%d]", cause.Misc.Value)
-		value = cause.Misc.Value
-	default:
-		NGAPLog.Errorf("Invalid Cause group[%d]", cause.Present)
-	}
-	return
-}
+// 	present = cause.Present
+// 	switch cause.Present {
+// 	case ngapType.CausePresentRadioNetwork:
+// 		NGAPLog.Warnf("Cause RadioNetwork[%d]", cause.RadioNetwork.Value)
+// 		value = cause.RadioNetwork.Value
+// 	case ngapType.CausePresentTransport:
+// 		NGAPLog.Warnf("Cause Transport[%d]", cause.Transport.Value)
+// 		value = cause.Transport.Value
+// 	case ngapType.CausePresentProtocol:
+// 		NGAPLog.Warnf("Cause Protocol[%d]", cause.Protocol.Value)
+// 		value = cause.Protocol.Value
+// 	case ngapType.CausePresentNas:
+// 		NGAPLog.Warnf("Cause Nas[%d]", cause.Nas.Value)
+// 		value = cause.Nas.Value
+// 	case ngapType.CausePresentMisc:
+// 		NGAPLog.Warnf("Cause Misc[%d]", cause.Misc.Value)
+// 		value = cause.Misc.Value
+// 	default:
+// 		NGAPLog.Errorf("Invalid Cause group[%d]", cause.Present)
+// 	}
+// 	return
+// }
