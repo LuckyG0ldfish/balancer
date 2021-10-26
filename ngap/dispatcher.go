@@ -9,12 +9,21 @@ import (
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	amf_ngap "github.com/LuckyG0ldfish/balancer/ngap/amf_ngap"
+	gnb_ngap "github.com/LuckyG0ldfish/balancer/ngap/gnb_ngap"
 	"github.com/free5gc/amf/logger"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
 )
 
 func Dispatch(lbConn *context.LBConn, msg []byte) {
+	if lbConn.TypeID == context.TypeIdentGNBConn {
+		DispatchForMessageToAmf(lbConn, msg)
+	} else {
+		DispatchForMessageToGnb(lbConn, msg)
+	}
+}
+
+func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 	// var lbConn *context.LBConn
 	// lbSelf := context.LB_Self()
 
@@ -181,6 +190,108 @@ func Dispatch(lbConn *context.LBConn, msg []byte) {
 			amf_ngap.HandleHandoverFailure(lbConn, pdu, msgCopy)
 		default:
 			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, unsuccessfulOutcome.ProcedureCode.Value)
+		}
+	}
+}
+
+func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
+	// AMF SCTP address
+	// AMF context
+	// lbConn := context.LB_Self()
+	// Decode
+	pdu, err := ngap.Decoder(msg)
+	if err != nil {
+		// NGAPLog.Errorf("NGAP decode error: %+v\n", err)
+		return
+	}
+
+	switch pdu.Present {
+	case ngapType.NGAPPDUPresentInitiatingMessage:
+		initiatingMessage := pdu.InitiatingMessage
+		if initiatingMessage == nil {
+			// NGAPLog.Errorln("Initiating Message is nil")
+			return
+		}
+
+		switch initiatingMessage.ProcedureCode.Value {
+		//case ngapType.ProcedureCodeNGReset:
+		//	handler.HandleNGReset(amf, pdu)
+		case ngapType.ProcedureCodeInitialContextSetup:
+			gnb_ngap.HandleInitialContextSetupRequest(lbConn, pdu)
+		//case ngapType.ProcedureCodeUEContextModification:
+		//	handler.HandleUEContextModificationRequest(amf, pdu)
+		case ngapType.ProcedureCodeUEContextRelease:
+			gnb_ngap.HandleUEContextReleaseCommand(lbConn.Conn, pdu)
+		case ngapType.ProcedureCodeDownlinkNASTransport:
+			gnb_ngap.HandleDownlinkNASTransport(lbConn.Conn, pdu)
+		case ngapType.ProcedureCodePDUSessionResourceSetup:
+			gnb_ngap.HandlePDUSessionResourceSetupRequest(lbConn.Conn, pdu)
+		// TODO: This will be commented for the time being, after adding other procedures will be uncommented.
+		//case ngapType.ProcedureCodePDUSessionResourceModify:
+		//	handler.HandlePDUSessionResourceModifyRequest(amf, pdu)
+		case ngapType.ProcedureCodePDUSessionResourceRelease:
+			gnb_ngap.HandlePDUSessionResourceReleaseCommand(lbConn.Conn, pdu)
+		//case ngapType.ProcedureCodeErrorIndication:
+		//	handler.HandleErrorIndication(amf, pdu)
+		//case ngapType.ProcedureCodeUERadioCapabilityCheck:
+		//	handler.HandleUERadioCapabilityCheckRequest(amf, pdu)
+		//case ngapType.ProcedureCodeAMFConfigurationUpdate:
+		//	handler.HandleAMFConfigurationUpdate(amf, pdu)
+		//case ngapType.ProcedureCodeDownlinkRANConfigurationTransfer:
+		//	handler.HandleDownlinkRANConfigurationTransfer(pdu)
+		//case ngapType.ProcedureCodeDownlinkRANStatusTransfer:
+		//	handler.HandleDownlinkRANStatusTransfer(pdu)
+		//case ngapType.ProcedureCodeAMFStatusIndication:
+		//	handler.HandleAMFStatusIndication(pdu)
+		//case ngapType.ProcedureCodeLocationReportingControl:
+		//	handler.HandleLocationReportingControl(pdu)
+		//case ngapType.ProcedureCodeUETNLABindingRelease:
+		//	handler.HandleUETNLAReleaseRequest(pdu)
+		//case ngapType.ProcedureCodeOverloadStart:
+		//	handler.HandleOverloadStart(amf, pdu)
+		//case ngapType.ProcedureCodeOverloadStop:
+		//	handler.HandleOverloadStop(amf, pdu)
+		default:
+			// NGAPLog.Warnf("Not implemented NGAP message(initiatingMessage), procedureCode:%d]\n",
+				// initiatingMessage.ProcedureCode.Value)
+			fmt.Println("Not implemented NGAP message(initiatingMessage), procedureCode:%d]\n", initiatingMessage.ProcedureCode.Value)
+		}
+	case ngapType.NGAPPDUPresentSuccessfulOutcome:
+		successfulOutcome := pdu.SuccessfulOutcome
+		if successfulOutcome == nil {
+			// NGAPLog.Errorln("Successful Outcome is nil")
+			fmt.Println("Successful Outcome is nil")
+			return
+		}
+
+		switch successfulOutcome.ProcedureCode.Value {
+		case ngapType.ProcedureCodeNGSetup:
+			gnb_ngap.HandleNGSetupResponse(lbConn.Conn, pdu)
+		//case ngapType.ProcedureCodeNGReset:
+		//	handler.HandleNGResetAcknowledge(amf, pdu)
+		//case ngapType.ProcedureCodePDUSessionResourceModifyIndication:
+		//	handler.HandlePDUSessionResourceModifyConfirm(amf, pdu)
+		//case ngapType.ProcedureCodeRANConfigurationUpdate:
+		//	handler.HandleRANConfigurationUpdateAcknowledge(amf, pdu)
+		default:
+			// NGAPLog.Warnf("Not implemented NGAP message(successfulOutcome), procedureCode:%d]\n",
+				// successfulOutcome.ProcedureCode.Value)
+		}
+	case ngapType.NGAPPDUPresentUnsuccessfulOutcome:
+		unsuccessfulOutcome := pdu.UnsuccessfulOutcome
+		if unsuccessfulOutcome == nil {
+			// NGAPLog.Errorln("Unsuccessful Outcome is nil")
+			return
+		}
+
+		switch unsuccessfulOutcome.ProcedureCode.Value {
+		//case ngapType.ProcedureCodeNGSetup:
+		//	handler.HandleNGSetupFailure(sctpAddr, conn, pdu)
+		//case ngapType.ProcedureCodeRANConfigurationUpdate:
+		//	handler.HandleRANConfigurationUpdateFailure(amf, pdu)
+		default:
+			// NGAPLog.Warnf("Not implemented NGAP message(unsuccessfulOutcome), procedureCode:%d]\n",
+				// unsuccessfulOutcome.ProcedureCode.Value)
 		}
 	}
 }
