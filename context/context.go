@@ -66,27 +66,31 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU,
 	fmt.Println(mes)
 }
 
-func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message []byte, ue *LbUe) {
+func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	amf, ok := lb.LbGnbFindByID(ue.AmfID)
 	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
 		fmt.Println("forward to AMF:")
+		var mes []byte
+		mes, _  = ngap.Encoder(*message)
+		amf.LbConn.Conn.Write(mes)
 		fmt.Println(message)
-		amf.LbConn.Conn.Write(message)
 	} else {
 		fmt.Println("AMF not found")
 	}
 }
 
-func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message []byte, ue *LbUe) { //*ngapType.NGAPPDU
+func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { //*ngapType.NGAPPDU
 	gnb, ok := lb.LbGnbFindByID(ue.RanID)
 	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
 		fmt.Println("forward to GNB:")
+		var mes []byte
+		mes, _  = ngap.Encoder(*message)
+		gnb.LbConn.Conn.Write(mes)
 		fmt.Println(message)
-		gnb.LbConn.Conn.Write(message)
 	} else {
 		fmt.Println("GNB not found")
 	}

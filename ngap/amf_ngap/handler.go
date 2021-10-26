@@ -1,4 +1,4 @@
-package ngap
+package amf_ngap
 
 import (
 
