@@ -45,20 +45,12 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU,
 	fmt.Println("forward to nextAMF")
 
 	ue.AmfID = lb.Next_Amf.AmfID
-	temp, ok := lb.Next_Amf.Ues.Load(ue.UeRanID)
-	var ues []*LbUe
-	if !ok {
-		var empty []*LbUe
-		ues = append(empty, ue)
-	} else {
-		UEs, ok :=  temp.([]*LbUe)
-		if !ok {
-			fmt.Println("Type error")
-			return 
-		}
-		ues = UEs
+	_, ok := lb.Next_Amf.Ues.Load(ue.UeLbID)
+	if ok {
+		fmt.Println("UE already exists")
+		return 
 	} 
-	lb.Next_Amf.Ues.Store(ue.UeRanID, ues)
+	lb.Next_Amf.Ues.Store(ue.UeLbID, ue)
 	var mes []byte
 	mes, _  = ngap.Encoder(*message)
 	lb.Next_Amf.LbConn.Conn.Write(mes)

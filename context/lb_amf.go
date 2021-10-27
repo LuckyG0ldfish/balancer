@@ -20,10 +20,10 @@ type LbAmf struct {
 	Ues    sync.Map
 }
 
-func (amf *LbAmf) FindUeByUeRanID(id int64) ([]*LbUe, bool){
+func (amf *LbAmf) FindUeByUeRanID(id int64) (*LbUe, bool){
 	//var ue LbUe
 	ue, _ := amf.Ues.Load(id)
-	ue2, ok :=  ue.([]*LbUe)
+	ue2, ok :=  ue.(*LbUe)
 	return ue2, ok
 }
 

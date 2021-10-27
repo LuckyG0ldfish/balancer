@@ -10,7 +10,7 @@ import (
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/free5gc/ngap/ngapType"
-	"github.com/sirupsen/logrus"
+	// "github.com/sirupsen/logrus"
 	// "github.com/ishidawataru/sctp"
 	// "gitlab.lrz.de/lkn_free5gc/gnbsim/context"
 	// "gitlab.lrz.de/lkn_free5gc/gnbsim/gmm"
@@ -21,7 +21,7 @@ import (
 	// "time"
 )
 
-var NGAPLog *logrus.Entry
+// var NGAPLog *logrus.Entry
 
 // func init() {
 // 	NGAPLog = logger.NGAPLog
@@ -118,7 +118,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 	LB := context.LB_Self()
 	// TODO: add NAS Registration Complete Message (or this maybe will be done by the nas_handler).
 
-	NGAPLog.Infoln("[gNB] Handle Initial Context Setup Request")
+	// NGAPLog.Infoln("[gNB] Handle Initial Context Setup Request")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -133,19 +133,19 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 	// var emulatorCtx = context.EmulatorSelf()
 
 	if message == nil {
-		NGAPLog.Error("NGAP Message is nil")
+		// NGAPLog.Error("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		NGAPLog.Error("Initiating Message is nil")
+		// NGAPLog.Error("Initiating Message is nil")
 		return
 	}
 
 	initialContextSetupRequest := initiatingMessage.Value.InitialContextSetupRequest
 	if initialContextSetupRequest == nil {
-		NGAPLog.Error("InitialContextSetupRequest is nil")
+		// NGAPLog.Error("InitialContextSetupRequest is nil")
 		return
 	}
 
@@ -172,9 +172,9 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
 					if !ok {
-						fmt.Print("GNB not registered")
+						fmt.Print("AMF not registered")
 						return 
 					}
 					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
@@ -370,7 +370,7 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 
 // TODO 
 func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	NGAPLog.Infoln("[gNB] Handle Downlink NAS Transport")
+	// NGAPLog.Infoln("[gNB] Handle Downlink NAS Transport")
 
 	LB := context.LB_Self()
 
@@ -383,19 +383,19 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	// var emulatorCtx = context.EmulatorSelf()
 
 	if message == nil {
-		NGAPLog.Error("NGAP Message is nil")
+		// NGAPLog.Error("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		NGAPLog.Error("Initiating Message is nil")
+		// NGAPLog.Error("Initiating Message is nil")
 		return
 	}
 
 	downlinkNASTransport := initiatingMessage.Value.DownlinkNASTransport
 	if downlinkNASTransport == nil {
-		NGAPLog.Error("DownlinkNASTransport is nil")
+		// NGAPLog.Error("DownlinkNASTransport is nil")
 		return
 	}
 
@@ -422,9 +422,9 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
 					if !ok {
-						fmt.Print("GNB not registered")
+						fmt.Print("Amf not registered")
 						return 
 					}
 					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
@@ -485,7 +485,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 // TODO 
 func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	NGAPLog.Infoln("[gNB] Handle PDU Session Resource Setup Request")
+	// NGAPLog.Infoln("[gNB] Handle PDU Session Resource Setup Request")
 
 	LB := context.LB_Self()
 
@@ -499,19 +499,19 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 	// var emulatorCtx = context.EmulatorSelf()
 
 	if message == nil {
-		NGAPLog.Error("NGAP Message is nil")
+		// NGAPLog.Error("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		NGAPLog.Error("Initiating Message is nil")
+		// NGAPLog.Error("Initiating Message is nil")
 		return
 	}
 
 	pduSessionResourceSetupRequest := initiatingMessage.Value.PDUSessionResourceSetupRequest
 	if pduSessionResourceSetupRequest == nil {
-		NGAPLog.Error("PDUSessionResourceSetupRequest is nil")
+		// NGAPLog.Error("PDUSessionResourceSetupRequest is nil")
 		return
 	}
 
@@ -538,9 +538,9 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
 					if !ok {
-						fmt.Print("GNB not registered")
+						fmt.Print("AMF not registered")
 						return 
 					}
 					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
@@ -596,7 +596,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 
 // TODO
 func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	NGAPLog.Infoln("[gNB] Handle PDU Session Resource Release Command")
+	// NGAPLog.Infoln("[gNB] Handle PDU Session Resource Release Command")
 	
 	LB := context.LB_Self()
 	
@@ -610,19 +610,19 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 	// var emulatorCtx = context.EmulatorSelf()
 
 	if message == nil {
-		NGAPLog.Error("NGAP Message is nil")
+		// NGAPLog.Error("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		NGAPLog.Error("Initiating Message is nil")
+		// NGAPLog.Error("Initiating Message is nil")
 		return
 	}
 
 	pDUSessionResourceReleaseCommand := initiatingMessage.Value.PDUSessionResourceReleaseCommand
 	if pDUSessionResourceReleaseCommand == nil {
-		NGAPLog.Error("pDUSessionResourceReleaseCommand is nil")
+		// NGAPLog.Error("pDUSessionResourceReleaseCommand is nil")
 		return
 	}
 
@@ -649,9 +649,9 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
 					if !ok {
-						fmt.Print("GNB not registered")
+						fmt.Print("Amf not registered")
 						return 
 					}
 					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)

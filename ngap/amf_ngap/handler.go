@@ -776,9 +776,9 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			ue.UeRanID = rANUENGAPIDInt
 			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
-			var empty []*context.LbUe
-			ues := append(empty, ue)
-			gnb.Ues.Store(rANUENGAPIDInt, ues)
+			// var empty *context.LbUe
+			// ues := append(empty, ue)
+			gnb.Ues.Store(rANUENGAPIDInt, ue)
 			LB.ForwardToNextAmf(lbConn, message, ue)
 			fmt.Println("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 		} else {
@@ -1598,9 +1598,9 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 			ue.UeRanID = rANUENGAPID.Value
 			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
-			var empty []*context.LbUe
-			ues := append(empty, ue)
-			gnb.Ues.Store(rANUENGAPID.Value, ues)
+			// var empty []*context.LbUe
+			// ues := append(empty, ue)
+			gnb.Ues.Store(rANUENGAPID.Value, ue)
 			LB.ForwardToNextAmf(lbConn, message, ue)
 		} else {
 			fmt.Println("No GNB")
@@ -2058,29 +2058,29 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdentAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, message, ue)
+		UE, _ := amf.FindUeByUeRanID(rANUENGAPID.Value)
+		// var ue *context.LbUe
+		// if !ok {
+		// 	fmt.Println("Ue not of type UE/not found")
+		// } else {
+		// 	ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
+		// 	switch empty{
+		// 	case 0: 
+		// 		fmt.Println("no UE Found")
+		// 		return
+		// 	case 1: 
+		// 		fmt.Println("UE Found")
+		// 		ue = ue2
+		// 	case 2: 
+		// 		fmt.Println("UE Found + adding aMFUENGAPID")
+		// 		ue.UeAmfId = aMFUENGAPID.Value
+		// 		ue = ue2
+		// 	case 3: 
+		// 		fmt.Println("no matching UE Found")
+		// 		return 
+		// 	}
+		// }
+		LB.ForwardToGnb(lbConn, message, UE)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {

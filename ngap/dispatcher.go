@@ -217,19 +217,24 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGReset(amf, pdu)
 		case ngapType.ProcedureCodeInitialContextSetup:
+			fmt.Println("Handling InitialContextSetupRequest")
 			gnb_ngap.HandleInitialContextSetupRequest(lbConn, pdu)
 		//case ngapType.ProcedureCodeUEContextModification:
 		//	handler.HandleUEContextModificationRequest(amf, pdu)
 		case ngapType.ProcedureCodeUEContextRelease:
+			fmt.Println("Handling UEContextReleaseCommand")
 			gnb_ngap.HandleUEContextReleaseCommand(lbConn, pdu)
 		case ngapType.ProcedureCodeDownlinkNASTransport:
+			fmt.Println("Handling DownlinkNASTransport")
 			gnb_ngap.HandleDownlinkNASTransport(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceSetup:
+			fmt.Println("Handling PDUSessionResourceSetupRequest")
 			gnb_ngap.HandlePDUSessionResourceSetupRequest(lbConn, pdu)
 		// TODO: This will be commented for the time being, after adding other procedures will be uncommented.
 		//case ngapType.ProcedureCodePDUSessionResourceModify:
 		//	handler.HandlePDUSessionResourceModifyRequest(amf, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceRelease:
+			fmt.Println("Handling PDUSessionResourceReleaseCommand")
 			gnb_ngap.HandlePDUSessionResourceReleaseCommand(lbConn, pdu)
 		//case ngapType.ProcedureCodeErrorIndication:
 		//	handler.HandleErrorIndication(amf, pdu)
@@ -266,6 +271,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
+			fmt.Println("Handling NGSetupResponse")
 			gnb_ngap.HandleNGSetupResponse(lbConn, pdu)
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGResetAcknowledge(amf, pdu)
