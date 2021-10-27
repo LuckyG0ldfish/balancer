@@ -1,7 +1,7 @@
 package service
 
 import (
-	"encoding/hex"
+	// "encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -185,9 +185,9 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			}
 		}
 		if lbConn.TypeID == context.TypeIdentAMFConn {
-			fmt.Println("AMF message recieved")
+			fmt.Println("\n \nAMF message recieved")
 		} else if lbConn.TypeID == context.TypeIdentGNBConn {
-			fmt.Println("RAN message recieved")
+			fmt.Println("\n \nRAN message recieved")
 		} else {
 			fmt.Println("unidientified message recieved")
 		}
@@ -200,13 +200,15 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				logger.NgapLog.Warnf("Received sctp notification[type 0x%x] but not handled", notification.Type())
 			}
 		} else {
+			// TODO no info recieved 
 			if info == nil || info.PPID != ngap.PPID {
-				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet") //TODO
+				// logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet") 
+				// fmt.Println(info.PPID)
 				// continue
 			}
 
-			logger.NgapLog.Tracef("Read %d bytes", n)
-			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
+			// logger.NgapLog.Tracef("Read %d bytes", n)
+			// logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
 
 			// TODO: concurrent on per-UE message
 			handler.HandleMessage(lbConn, buf[:n])

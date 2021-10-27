@@ -66,7 +66,7 @@ func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 		var mes []byte
 		mes, _  = ngap.Encoder(*message)
 		amf.LbConn.Conn.Write(mes)
-		fmt.Println(message)
+		fmt.Println(mes)
 	} else {
 		fmt.Println("AMF not found")
 	}
@@ -81,7 +81,7 @@ func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 		var mes []byte
 		mes, _  = ngap.Encoder(*message)
 		gnb.LbConn.Conn.Write(mes)
-		fmt.Println(message)
+		fmt.Println(mes)
 	} else {
 		fmt.Println("GNB not found")
 	}
