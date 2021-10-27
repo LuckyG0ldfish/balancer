@@ -141,13 +141,17 @@ func (context *LBContext) LbAmfFindByUeID(UeID int64) (*LbAmf, bool) {
 	return nil, false
 }
 
-func (context *LBContext) LbGnbFindByUeID(UeID int64) (*LbGnb, bool) {
+func (context *LBContext) LbGnbFindByUeID(UeID int64) (*LbGnb, *LbUe, bool) {
 	for _, Gnb := range context.LbRanPool {
-		if check := Gnb.ContainsUE(UeID); check {
-			return Gnb, true
+		if ue, check := Gnb.Ues.Load(UeID); check {
+			UE, ok := ue.(*LbUe)
+			if !ok {
+				return nil, nil, false
+			}
+			return Gnb, UE, true
 		}
 	}
-	return nil, false
+	return nil, nil, false
 }
 
 func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{

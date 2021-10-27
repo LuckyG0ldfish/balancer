@@ -221,16 +221,16 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 		//case ngapType.ProcedureCodeUEContextModification:
 		//	handler.HandleUEContextModificationRequest(amf, pdu)
 		case ngapType.ProcedureCodeUEContextRelease:
-			gnb_ngap.HandleUEContextReleaseCommand(lbConn.Conn, pdu)
+			gnb_ngap.HandleUEContextReleaseCommand(lbConn, pdu)
 		case ngapType.ProcedureCodeDownlinkNASTransport:
-			gnb_ngap.HandleDownlinkNASTransport(lbConn.Conn, pdu)
+			gnb_ngap.HandleDownlinkNASTransport(lbConn, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceSetup:
-			gnb_ngap.HandlePDUSessionResourceSetupRequest(lbConn.Conn, pdu)
+			gnb_ngap.HandlePDUSessionResourceSetupRequest(lbConn, pdu)
 		// TODO: This will be commented for the time being, after adding other procedures will be uncommented.
 		//case ngapType.ProcedureCodePDUSessionResourceModify:
 		//	handler.HandlePDUSessionResourceModifyRequest(amf, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceRelease:
-			gnb_ngap.HandlePDUSessionResourceReleaseCommand(lbConn.Conn, pdu)
+			gnb_ngap.HandlePDUSessionResourceReleaseCommand(lbConn, pdu)
 		//case ngapType.ProcedureCodeErrorIndication:
 		//	handler.HandleErrorIndication(amf, pdu)
 		//case ngapType.ProcedureCodeUERadioCapabilityCheck:
@@ -266,7 +266,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
-			gnb_ngap.HandleNGSetupResponse(lbConn.Conn, pdu)
+			gnb_ngap.HandleNGSetupResponse(lbConn, pdu)
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGResetAcknowledge(amf, pdu)
 		//case ngapType.ProcedureCodePDUSessionResourceModifyIndication:

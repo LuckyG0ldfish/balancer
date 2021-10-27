@@ -186,6 +186,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	}
 	// lbConn.Log.Info("Handle Uplink Nas Transport")
 
+	
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
@@ -198,70 +199,60 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
 	}
+	
 
+	// UeLbID := LB.IDGen.NextID()
+	// var rANUENGAPIDInt int64
+	// rANUENGAPIDInt = ie.Value.RANUENGAPID.Value
 
-	// TODO
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
-	}
+	// // TODO
+	// if lbConn.TypeID == context.TypeIdentGNBConn {
+	// 	gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+	// 	UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
+	// 	var ue *context.LbUe
+	// 	if !ok {
+	// 		fmt.Println("Ue not of type UE/not found")
+	// 	} else {
+	// 		ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
+	// 		switch empty{
+	// 		case 0: 
+	// 			fmt.Println("no UE Found")
+	// 			return
+	// 		case 1: 
+	// 			fmt.Println("UE Found")
+	// 			ue = ue2
+	// 		case 2: 
+	// 			fmt.Println("UE Found") // 
+	// 			ue = ue2
+	// 		case 3: 
+	// 			fmt.Println("no matching UE Found")
+	// 			return 
+	// 		}
+	// 	}
+	// 	LB.ForwardToAmf(lbConn, m2, ue)
+	// 	return
+	// }
 }
 
 // TODO
@@ -457,68 +448,82 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
 	}
 
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found // this should not happen") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
-	}
+	// if lbConn.TypeID == context.TypeIdentAMFConn {
+	// 	amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+	// 	fmt.Println("AMF Found")
+	// 	UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
+	// 	var ue *context.LbUe
+	// 	if !ok {
+	// 		fmt.Println("Ue not of type UE/not found")
+	// 	} else {
+	// 		ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
+	// 		switch empty{
+	// 		case 0: 
+	// 			fmt.Println("no UE Found")
+	// 			return
+	// 		case 1: 
+	// 			fmt.Println("UE Found")
+	// 			ue = ue2
+	// 		case 2: 
+	// 			fmt.Println("UE Found + adding aMFUENGAPID")
+	// 			ue.UeAmfId = aMFUENGAPID.Value
+	// 			ue = ue2
+	// 		case 3: 
+	// 			fmt.Println("no matching UE Found")
+	// 			return 
+	// 		}
+	// 	}
+	// 	LB.ForwardToGnb(lbConn, m2, ue)
+	// 	return
+	// }
+	// if lbConn.TypeID == context.TypeIdentGNBConn {
+	// 	gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+	// 	UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
+	// 	var ue *context.LbUe
+	// 	if !ok {
+	// 		fmt.Println("Ue not of type UE/not found")
+	// 	} else {
+	// 		ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
+	// 		switch empty{
+	// 		case 0: 
+	// 			fmt.Println("no UE Found")
+	// 			return
+	// 		case 1: 
+	// 			fmt.Println("UE Found")
+	// 			ue = ue2
+	// 		case 2: 
+	// 			fmt.Println("UE Found // this should not happen") // 
+	// 			ue = ue2
+	// 		case 3: 
+	// 			fmt.Println("no matching UE Found")
+	// 			return 
+	// 		}
+	// 	}
+	// 	LB.ForwardToAmf(lbConn, m2, ue)
+	// 	return
+	// }
 }
 
 func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -559,67 +564,26 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found // this should not happen") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -663,67 +627,26 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found // this should not happen") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -767,67 +690,26 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found // this should not happen") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -938,68 +820,35 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 
 	for _, ie := range pDUSessionResourceSetupResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID: // ignore
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-		case ngapType.ProtocolIEIDRANUENGAPID: // ignore
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found // this should not happen") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -1043,67 +892,26 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 
 	// if rANUENGAPID != nil {
@@ -1160,68 +968,27 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					// lbConn.Log.Error("RanUeNgapID is nil")
 					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
 		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
-	}
 }
 
 func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -1269,76 +1036,35 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 
 	for _, ie := range pDUSessionResourceModifyIndication.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID: // reject
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -1371,76 +1097,35 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 
 	for _, ie := range initialContextSetupResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Warn("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Warn("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -1473,76 +1158,35 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 
 	for _, ie := range initialContextSetupFailure.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Warn("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Warn("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -1575,79 +1219,36 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 
 	for _, ie := range uEContextReleaseRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
-			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
 		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
-	}
 }
 
 func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -1681,78 +1282,35 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 
 	for _, ie := range uEContextModificationResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 
 	// if rANUENGAPID != nil {
@@ -1801,78 +1359,35 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 
 	for _, ie := range uEContextModificationFailure.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 
 	// if rANUENGAPID != nil {
@@ -1921,78 +1436,35 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	for i := 0; i < len(rRCInactiveTransitionReport.ProtocolIEs.List); i++ {
 		ie := rRCInactiveTransitionReport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -2027,78 +1499,35 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	for i := 0; i < len(HandoverNotify.ProtocolIEs.List); i++ {
 		ie := HandoverNotify.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -2223,78 +1652,35 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 
 	for _, ie := range handoverRequestAcknowledge.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -2428,11 +1814,35 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	for i := 0; i < len(HandoverRequired.ProtocolIEs.List); i++ {
 		ie := HandoverRequired.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID // reject
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-		case ngapType.ProtocolIEIDRANUENGAPID: // reject
-			rANUENGAPID = ie.Value.RANUENGAPID
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
+			}
 			// lbConn.Log.Trace("Decode IE RanUeNgapID")
 			// case ngapType.ProtocolIEIDHandoverType: // reject
 			// 	handoverType = ie.Value.HandoverType
@@ -2449,62 +1859,6 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			// case ngapType.ProtocolIEIDSourceToTargetTransparentContainer: // reject
 			// 	sourceToTargetTransparentContainer = ie.Value.SourceToTargetTransparentContainer
 			// 	lbConn.Log.Trace("Decode IE SourceToTargetTransparentContainer")
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 
 	// if aMFUENGAPID == nil {
@@ -2726,33 +2080,17 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 				return 
 			}
 		}
-		LB.ForwardToGnb(lbConn, m2, ue)
+		LB.ForwardToGnb(lbConn, message, ue)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdentGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
+		UE, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
 		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
+			fmt.Println("UE not found")
+			return 
 		}
-		LB.ForwardToAmf(lbConn, m2, ue)
+		LB.ForwardToAmf(lbConn, message, UE)
 		return
 	}
 
@@ -2840,78 +2178,35 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 
 	for _, ie := range uplinkRanStatusTransfer.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -2944,79 +2239,36 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 
 	for _, ie := range nASNonDeliveryIndication.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
-			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
 		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
-	}
 }
 
 //Todo
@@ -3223,78 +2475,35 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 
 	for _, ie := range uplinkUEAssociatedNRPPaTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -3381,78 +2590,35 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// lbConn.Log.Info("Handle Location Report")
 	for _, ie := range locationReport.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -3486,78 +2652,35 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 	for i := 0; i < len(uERadioCapabilityInfoIndication.ProtocolIEs.List); i++ {
 		ie := uERadioCapabilityInfoIndication.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -3697,78 +2820,35 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	for _, ie := range errorIndication.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 }
 
@@ -3805,78 +2885,35 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	for _, ie := range cellTrafficTrace.ProtocolIEs.List {
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID:
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AmfUeNgapID is nil")
-				fmt.Println("AmfUeNgapID is nil")
-				return
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					// lbConn.Log.Error("AmfUeNgapID is nil")
+					fmt.Println("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					// lbConn.Log.Error("RanUeNgapID is nil")
+					fmt.Println("RanUeNgapID is nil")
+				} else {
+					gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
+					if !ok {
+						fmt.Print("GNB not registered")
+						return 
+					}
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						fmt.Print("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					LB.ForwardToAmf(lbConn, message, ue)
+				}
 			}
-		case ngapType.ProtocolIEIDRANUENGAPID:
-			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
-			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RanUeNgapID is nil")
-				fmt.Println("RanUeNgapID is nil")
-				return
-			}
-		}
-	}
-
-	if lbConn.TypeID == context.TypeIdentAMFConn {
-		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
-		fmt.Println("AMF Found")
-		UEs, ok := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found + adding aMFUENGAPID")
-				ue.UeAmfId = aMFUENGAPID.Value
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToGnb(lbConn, m2, ue)
-		return
-	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
-		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-		UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-		var ue *context.LbUe
-		if !ok {
-			fmt.Println("Ue not of type UE/not found")
-		} else {
-			ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-			switch empty{
-			case 0: 
-				fmt.Println("no UE Found")
-				return
-			case 1: 
-				fmt.Println("UE Found")
-				ue = ue2
-			case 2: 
-				fmt.Println("UE Found") // 
-				ue = ue2
-			case 3: 
-				fmt.Println("no matching UE Found")
-				return 
-			}
-		}
-		LB.ForwardToAmf(lbConn, m2, ue)
-		return
 	}
 
 	// if aMFUENGAPID == nil {
