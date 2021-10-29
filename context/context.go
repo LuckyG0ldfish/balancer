@@ -4,11 +4,12 @@ import (
 	// "sync"
 
 	"fmt"
+	"strconv"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/free5gc/amf/factory" // TODO
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
-	"github.com/free5gc/amf/factory" // TODO
 	"github.com/free5gc/openapi/models"
 )
 
@@ -60,6 +61,8 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU,
 	mes, _  = ngap.Encoder(*message)
 	lb.Next_Amf.LbConn.Conn.Write(mes)
 	fmt.Println(mes)
+	fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
+	fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 }
 
 func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
@@ -72,7 +75,8 @@ func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 		mes, _  = ngap.Encoder(*message)
 		amf.LbConn.Conn.Write(mes)
 		fmt.Println(mes)
-		fmt.Println(ue.UeLbID)
+		fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
+		fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))	
 	} else {
 		fmt.Println("AMF not found")
 	}
@@ -88,7 +92,8 @@ func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 		mes, _  = ngap.Encoder(*message)
 		gnb.LbConn.Conn.Write(mes)
 		fmt.Println(mes)
-		fmt.Println(ue.UeLbID)
+		fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
+		fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 	} else {
 		fmt.Println("GNB not found")
 	}
