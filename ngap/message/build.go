@@ -5,6 +5,7 @@ import(
 	"github.com/free5gc/ngap"
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/free5gc/aper"
+	"github.com/free5gc/ngap/ngapConvert"
 )
 
 func BuildNGSetupRequest(gnbId []byte, bitlength uint64, name string) ([]byte, error) {
@@ -151,16 +152,16 @@ func BuildNGSetupResponse() ([]byte, error) {
 	ie.Value.Present = ngapType.NGSetupResponseIEsPresentServedGUAMIList
 	ie.Value.ServedGUAMIList = new(ngapType.ServedGUAMIList)
 
-	// servedGUAMIList := ie.Value.ServedGUAMIList
-	// for _, guami := range lbSelf.ServedGuamiList {
-	// 	servedGUAMIItem := ngapType.ServedGUAMIItem{}
-	// 	servedGUAMIItem.GUAMI.PLMNIdentity = ngapConvert.PlmnIdToNgap(*guami.PlmnId)
-	// 	regionId, setId, prtId := ngapConvert.AmfIdToNgap(guami.AmfId)
-	// 	servedGUAMIItem.GUAMI.AMFRegionID.Value = regionId
-	// 	servedGUAMIItem.GUAMI.AMFSetID.Value = setId
-	// 	servedGUAMIItem.GUAMI.AMFPointer.Value = prtId
-	// 	servedGUAMIList.List = append(servedGUAMIList.List, servedGUAMIItem)
-	// }
+	servedGUAMIList := ie.Value.ServedGUAMIList
+	for _, guami := range lbSelf.ServedGuamiList {
+	 	servedGUAMIItem := ngapType.ServedGUAMIItem{}
+	 	servedGUAMIItem.GUAMI.PLMNIdentity = ngapConvert.PlmnIdToNgap(*guami.PlmnId)
+	 	regionId, setId, prtId := ngapConvert.AmfIdToNgap(guami.AmfId)
+	 	servedGUAMIItem.GUAMI.AMFRegionID.Value = regionId
+	 	servedGUAMIItem.GUAMI.AMFSetID.Value = setId
+	 	servedGUAMIItem.GUAMI.AMFPointer.Value = prtId
+		servedGUAMIList.List = append(servedGUAMIList.List, servedGUAMIItem)
+	}
 
 	nGSetupResponseIEs.List = append(nGSetupResponseIEs.List, ie)
 
@@ -170,8 +171,8 @@ func BuildNGSetupResponse() ([]byte, error) {
 	ie.Criticality.Value = ngapType.CriticalityPresentIgnore
 	ie.Value.Present = ngapType.NGSetupResponseIEsPresentRelativeAMFCapacity
 	ie.Value.RelativeAMFCapacity = new(ngapType.RelativeAMFCapacity)
-	// relativeAMFCapacity := ie.Value.RelativeAMFCapacity
-	// relativeAMFCapacity.Value = lbSelf.RelativeCapacity
+	relativeAMFCapacity := ie.Value.RelativeAMFCapacity
+	relativeAMFCapacity.Value = lbSelf.RelativeCapacity
 
 	nGSetupResponseIEs.List = append(nGSetupResponseIEs.List, ie)
 
@@ -182,17 +183,17 @@ func BuildNGSetupResponse() ([]byte, error) {
 	ie.Value.Present = ngapType.NGSetupResponseIEsPresentPLMNSupportList
 	ie.Value.PLMNSupportList = new(ngapType.PLMNSupportList)
 
-	// pLMNSupportList := ie.Value.PLMNSupportList
-	// for _, plmnItem := range lbSelf.PlmnSupportList {
-	// 	pLMNSupportItem := ngapType.PLMNSupportItem{}
-	// 	pLMNSupportItem.PLMNIdentity = ngapConvert.PlmnIdToNgap(plmnItem.PlmnId)
-	// 	for _, snssai := range plmnItem.SNssaiList {
-	// 		sliceSupportItem := ngapType.SliceSupportItem{}
-	// 		sliceSupportItem.SNSSAI = ngapConvert.SNssaiToNgap(snssai)
-	// 		pLMNSupportItem.SliceSupportList.List = append(pLMNSupportItem.SliceSupportList.List, sliceSupportItem)
-	// 	}
-	// 	pLMNSupportList.List = append(pLMNSupportList.List, pLMNSupportItem)
-	// }
+	pLMNSupportList := ie.Value.PLMNSupportList
+	for _, plmnItem := range lbSelf.PlmnSupportList {
+	 	pLMNSupportItem := ngapType.PLMNSupportItem{}
+	 	pLMNSupportItem.PLMNIdentity = ngapConvert.PlmnIdToNgap(plmnItem.PlmnId)
+	 	for _, snssai := range plmnItem.SNssaiList {
+	 		sliceSupportItem := ngapType.SliceSupportItem{}
+	 		sliceSupportItem.SNSSAI = ngapConvert.SNssaiToNgap(snssai)
+	 		pLMNSupportItem.SliceSupportList.List = append(pLMNSupportItem.SliceSupportList.List, sliceSupportItem)
+	 	}
+		pLMNSupportList.List = append(pLMNSupportList.List, pLMNSupportItem)
+	}
 
 	nGSetupResponseIEs.List = append(nGSetupResponseIEs.List, ie)
 

@@ -37,6 +37,7 @@ func SendNGSetupResponse(conn *context.LBConn) {
 	pkt, err := BuildNGSetupResponse()
 	if err != nil {
 		// lb.Log.Errorf("Build NGSetupResponse failed : %s", err.Error())
+		fmt.Println("BuildNGSetupResponse failed")
 		return
 	}
 	context.SendByteToConn(conn.Conn, pkt)

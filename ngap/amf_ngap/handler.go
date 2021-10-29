@@ -216,6 +216,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					fmt.Println()
 					LB.ForwardToAmf(lbConn, message, ue)
 				}
 			}

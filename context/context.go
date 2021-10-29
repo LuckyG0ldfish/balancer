@@ -8,6 +8,8 @@ import (
 	"git.cs.nctu.edu.tw/calee/sctp"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
+	"github.com/free5gc/amf/factory" // TODO
+	"github.com/free5gc/openapi/models"
 )
 
 var (
@@ -33,6 +35,9 @@ type LBContext struct {
 
 	IDGen 	*UeIdGen
 	
+	RelativeCapacity 	int64 // To build setup response
+	PlmnSupportList 	[]factory.PlmnSupportItem
+	ServedGuamiList 	[]models.Guami
 }
 
 func NewLBContext() (LbContext *LBContext){
