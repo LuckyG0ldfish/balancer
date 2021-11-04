@@ -272,7 +272,10 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
 			fmt.Println("Handling NGSetupResponse")
+			LB := context.LB_Self() 
+			LB.NGSetupRes = pdu
 			gnb_ngap.HandleNGSetupResponse(lbConn, pdu)
+
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGResetAcknowledge(amf, pdu)
 		//case ngapType.ProcedureCodePDUSessionResourceModifyIndication:

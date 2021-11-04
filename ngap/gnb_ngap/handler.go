@@ -30,69 +30,75 @@ import (
 func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// NGAPLog.Infoln("[gNB] Handle NG Setup Response")
 
+	LB := context.LB_Self()
+
 	// var amfName *ngapType.AMFName
-	// var servedGUAMIList *ngapType.ServedGUAMIList
-	// var plmnSupportList *ngapType.PLMNSupportList
+	var servedGUAMIList *ngapType.ServedGUAMIList
+	var plmnSupportList *ngapType.PLMNSupportList
 
 	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
-	// if message == nil {
-	// 	NGAPLog.Error("NGAP Message is nil")
-	// 	return
-	// }
+	if message == nil {
+		// NGAPLog.Error("NGAP Message is nil")
+		return
+	}
 
-	// successfulOutcome := message.SuccessfulOutcome
-	// if successfulOutcome == nil {
-	// 	NGAPLog.Error("Successful Outcome is nil")
-	// 	return
-	// }
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		// NGAPLog.Error("Successful Outcome is nil")
+		return
+	}
 
-	// ngSetupResponse := successfulOutcome.Value.NGSetupResponse
-	// if ngSetupResponse == nil {
-	// 	NGAPLog.Error("ngSetupResponse is nil")
-	// 	return
-	// }
+	ngSetupResponse := successfulOutcome.Value.NGSetupResponse
+	if ngSetupResponse == nil {
+		// NGAPLog.Error("ngSetupResponse is nil")
+		return
+	}
 
-	// for _, ie := range ngSetupResponse.ProtocolIEs.List {
-	// 	switch ie.Id.Value {
-	// 	case ngapType.ProtocolIEIDAMFName:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE AMFName")
-	// 		amfName = ie.Value.AMFName
-	// 		if amfName == nil {
-	// 			NGAPLog.Errorf("AMFName is nil")
-	// 			item := buildCriticalityDiagnosticsIEItem(
-	// 				ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-	// 			iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-	// 		}
-	// 	case ngapType.ProtocolIEIDServedGUAMIList:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE ServedGUAMIList")
-	// 		servedGUAMIList = ie.Value.ServedGUAMIList
-	// 		if servedGUAMIList == nil {
-	// 			NGAPLog.Errorf("ServedGUAMIList is nil")
-	// 			item := buildCriticalityDiagnosticsIEItem(
-	// 				ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-	// 			iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-	// 		}
-	// 	case ngapType.ProtocolIEIDRelativeAMFCapacity:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
-	// 		//relativeAMFCapacity = ie.Value.RelativeAMFCapacity
-	// 	case ngapType.ProtocolIEIDPLMNSupportList:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE PLMNSupportList")
-	// 		plmnSupportList = ie.Value.PLMNSupportList
-	// 		if plmnSupportList == nil {
-	// 			NGAPLog.Errorf("PLMNSupportList is nil")
-	// 			item := buildCriticalityDiagnosticsIEItem(
-	// 				ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-	// 			iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-	// 		}
-	// 	case ngapType.ProtocolIEIDCriticalityDiagnostics:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
-	// 		//criticalityDiagnostics = ie.Value.CriticalityDiagnostics
-	// 	}
-	// }
+	for _, ie := range ngSetupResponse.ProtocolIEs.List {
+		switch ie.Id.Value {
+		// case ngapType.ProtocolIEIDAMFName:
+			// NGAPLog.Traceln("[NGAP] Decode IE AMFName")
+			// amfName = ie.Value.AMFName
+			// if amfName == nil {
+			// 	// NGAPLog.Errorf("AMFName is nil")
+			// 	item := buildCriticalityDiagnosticsIEItem(
+			// 		ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
+			// 	iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
+			// }
+		case ngapType.ProtocolIEIDServedGUAMIList:
+			// NGAPLog.Traceln("[NGAP] Decode IE ServedGUAMIList")
+			servedGUAMIList = ie.Value.ServedGUAMIList
+			if servedGUAMIList == nil {
+				// NGAPLog.Errorf("ServedGUAMIList is nil")
+				// item := buildCriticalityDiagnosticsIEItem(
+				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
+				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
+				fmt.Println("plmnSupportList == nil")
+			}
+			LB.ServedGuamiList = servedGUAMIList
+		case ngapType.ProtocolIEIDRelativeAMFCapacity:
+			// NGAPLog.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
+			//relativeAMFCapacity = ie.Value.RelativeAMFCapacity
+		case ngapType.ProtocolIEIDPLMNSupportList:
+			// NGAPLog.Traceln("[NGAP] Decode IE PLMNSupportList")
+			plmnSupportList = ie.Value.PLMNSupportList
+			if plmnSupportList == nil {
+				// NGAPLog.Errorf("PLMNSupportList is nil")
+				// item := buildCriticalityDiagnosticsIEItem(
+				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
+				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
+				fmt.Println("plmnSupportList == nil")
+			}
+			LB.PlmnSupportList = plmnSupportList
+		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
+			// NGAPLog.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
+			//criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		}
+	}
 
 	// if len(iesCriticalityDiagnostics.List) != 0 {
-	// 	NGAPLog.Traceln("[NGAP] Sending error indication to AMF, because some mandatory IEs were not included")
+	// 	// NGAPLog.Traceln("[NGAP] Sending error indication to AMF, because some mandatory IEs were not included")
 
 	// 	cause := buildCause(ngapType.CausePresentProtocol, ngapType.CauseProtocolPresentAbstractSyntaxErrorReject)
 
@@ -108,7 +114,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// 	return
 	// }
 
-	// // amfInfo := n3iwfSelf.NewN3iwfAmf(sctpAddr, conn)
+	// amfInfo := n3iwfSelf.NewN3iwfAmf(sctpAddr, conn)
 
 }
 
