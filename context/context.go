@@ -68,7 +68,7 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU,
 }
 
 func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
-	amf, ok := lb.LbGnbFindByID(ue.AmfID)
+	amf, ok := lb.LbAmfFindByID(ue.AmfID)
 	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
