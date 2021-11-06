@@ -3,11 +3,12 @@ package service
 import (
 	// "bufio"
 	// "fmt"
-	// "os"
+	"os"
+	"strconv"
 	// "os/exec"
-	// "os/signal"
+	"os/signal"
 	// "sync"
-	// "syscall"
+	"syscall"
 
 	// "github.com/gin-contrib/cors"
 	"fmt"
@@ -17,21 +18,21 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	// "github.com/free5gc/amf/communication"
-	// "github.com/free5gc/amf/consumer"
+	// "github.com/LuckyG0ldfish/balancer/communication"
+	// "github.com/LuckyG0ldfish/balancer/consumer"
 	"github.com/LuckyG0ldfish/balancer/context"
-	// "github.com/free5gc/amf/eventexposure"
+	// "github.com/LuckyG0ldfish/balancer/eventexposure"
 	"github.com/LuckyG0ldfish/balancer/factory"
-	// "github.com/free5gc/amf/httpcallback"
-	// "github.com/free5gc/amf/location"
+	// "github.com/LuckyG0ldfish/balancer/httpcallback"
+	// "github.com/LuckyG0ldfish/balancer/location"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	// "github.com/free5gc/amf/mt"
+	// "github.com/LuckyG0ldfish/balancer/mt"
 	"github.com/LuckyG0ldfish/balancer/ngap"
 	// ngap_message "github.com/free5gc/amf/ngap/message"
 	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
-	// "github.com/free5gc/amf/oam"
-	// "github.com/free5gc/amf/producer/callback"
-	// "github.com/free5gc/amf/util"
+	// "github.com/LuckyG0ldfish/balancer/oam"
+	// "github.com/LuckyG0ldfish/balancer/producer/callback"
+	"github.com/LuckyG0ldfish/balancer/util"
 	// aperLogger "github.com/free5gc/aper/logger"
 	// fsmLogger "github.com/free5gc/fsm/logger"
 	// "github.com/free5gc/http2_util"
@@ -241,18 +242,18 @@ func (amf *Load) setLogLevel() {
 	}
 }
 
-// func (amf *LB) FilterCli(c *cli.Context) (args []string) {
-// 	for _, flag := range amf.GetCliCmd() {
-// 		name := flag.GetName()
-// 		value := fmt.Sprint(c.Generic(name))
-// 		if value == "" {
-// 			continue
-// 		}
+func (amf *Load) FilterCli(c *cli.Context) (args []string) {
+	for _, flag := range amf.GetCliCmd() {
+		name := flag.GetName()
+		value := fmt.Sprint(c.Generic(name))
+		if value == "" {
+			continue
+		}
 
-// 		args = append(args, "--"+name, value)
-// 	}
-// 	return args
-// }
+		args = append(args, "--"+name, value)
+	}
+	return args
+}
 
 func (Lb *Load) Start() {
 	initLog.Infoln("Server started")
@@ -307,64 +308,48 @@ func (Lb *Load) Start() {
 	self := context.LB_Self()
 	util.InitLbContext(self)
 
-	addr := fmt.Sprintf("%s:%d", self.BindingIPv4, self.SBIPort)
+	// addr := fmt.Sprintf("%s:%d", self.BindingIPv4, self.SBIPort)
 
 	ngapHandler := ngap_service.NGAPHandler{
 		HandleMessage:      ngap.Dispatch,
 		HandleNotification: ngap.HandleSCTPNotification,
 	}
-	ngap_service.Run(self.NgapIpList, 38412, ngapHandler)
 
-	// Register to NRF
-	var profile models.NfProfile
-	if profileTmp, err := consumer.BuildNFInstance(self); err != nil {
-		initLog.Error("Build AMF Profile Error")
-	} else {
-		profile = profileTmp
-	}
+	go Lb.InitAmfs(ngapHandler)
 
-	if _, nfId, err := consumer.SendRegisterNFInstance(self.NrfUri, self.NfId, profile); err != nil {
-		initLog.Warnf("Send Register NF Instance failed: %+v", err)
-	} else {
-		self.NfId = nfId
-	}
+	go ngap_service.Run(self.LbIP, self.LbPort, ngapHandler)
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-signalChannel
-		lb.Terminate()
+		Lb.Terminate()
 		os.Exit(0)
 	}()
+}
 
-	server, err := http2_util.NewServer(addr, util.AmfLogPath, router)
-
-	if server == nil {
-		initLog.Errorf("Initialize HTTP server failed: %+v", err)
-		return
-	}
-
-	if err != nil {
-		initLog.Warnf("Initialize HTTP server: %+v", err)
-	}
-
-	serverScheme := factory.AmfConfig.Configuration.Sbi.Scheme
-	if serverScheme == "http" {
-		err = server.ListenAndServe()
-	} else if serverScheme == "https" {
-		err = server.ListenAndServeTLS(util.AmfPemPath, util.AmfKeyPath)
-	}
-
-	if err != nil {
-		initLog.Fatalf("HTTP server setup failed: %+v", err)
+func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
+	self := context.LB_Self()
+	for {
+		if !self.Running { return }
+		if self.NewAmf {
+			amf := context.NewLbAmf()
+			self.Next_Amf = amf
+			self.AddAmfToLB(amf)
+			ngap_service.StartAmf(amf, Lb.lbAddr, self.NewAmfIp, self.NewAmfPort, ngapHandler)
+			fmt.Println("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
+			initLog.Infoln("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
+			self.NewAmf = false
+		}
 	}
 }
 
-func (amf *LB) Exec(c *cli.Context) error {
+
+func (Lb *Load) Exec(c *cli.Context) error {
 	// AMF.Initialize(cfgPath, c)
 
 	initLog.Traceln("args:", c.String("amfcfg"))
-	args := amf.FilterCli(c)
+	args := Lb.FilterCli(c)
 	initLog.Traceln("filter: ", args)
 	command := exec.Command("./amf", args...)
 
@@ -396,7 +381,7 @@ func (amf *LB) Exec(c *cli.Context) error {
 
 	go func() {
 		if err = command.Start(); err != nil {
-			initLog.Errorf("AMF Start error: %+v", err)
+			initLog.Errorf("LB Start error: %+v", err)
 		}
 		wg.Done()
 	}()
@@ -407,33 +392,32 @@ func (amf *LB) Exec(c *cli.Context) error {
 }
 
 // Used in AMF planned removal procedure
-func (amf *LB) Terminate() {
+func (Lb *Load) Terminate() {
 	logger.InitLog.Infof("Terminating AMF...")
-	amfSelf := context.AMF_Self()
+	lbSelf := context.LB_Self()
 
 	// TODO: forward registered UE contexts to target AMF in the same AMF set if there is one
 
-	// deregister with NRF
-	problemDetails, err := consumer.SendDeregisterNFInstance()
-	if problemDetails != nil {
-		logger.InitLog.Errorf("Deregister NF instance Failed Problem[%+v]", problemDetails)
-	} else if err != nil {
-		logger.InitLog.Errorf("Deregister NF instance Error[%+v]", err)
-	} else {
-		logger.InitLog.Infof("[AMF] Deregister from NRF successfully")
-	}
+	// // deregister with NRF
+	// problemDetails, err := consumer.SendDeregisterNFInstance()
+	// if problemDetails != nil {
+	// 	logger.InitLog.Errorf("Deregister NF instance Failed Problem[%+v]", problemDetails)
+	// } else if err != nil {
+	// 	logger.InitLog.Errorf("Deregister NF instance Error[%+v]", err)
+	// } else {
+	// 	logger.InitLog.Infof("[AMF] Deregister from NRF successfully")
+	// }
 
 	// send AMF status indication to ran to notify ran that this AMF will be unavailable
-	logger.InitLog.Infof("Send AMF Status Indication to Notify RANs due to AMF terminating")
-	unavailableGuamiList := ngap_message.BuildUnavailableGUAMIList(amfSelf.ServedGuamiList)
-	amfSelf.AmfRanPool.Range(func(key, value interface{}) bool {
-		ran := value.(*context.AmfRan)
+	logger.InitLog.Infof("Send LB Status Indication to Notify RANs due to LB terminating")
+	unavailableGuamiList := ngap_message.BuildUnavailableGUAMIList(lbSelf.ServedGuamiList)
+	for _, ran := range lbSelf.LbRanPool {
 		ngap_message.SendAMFStatusIndication(ran, unavailableGuamiList)
-		return true
-	})
+	}
 
+	lbSelf.Running = false 
 	ngap_service.Stop()
 
-	callback.SendAmfStatusChangeNotify((string)(models.StatusChange_UNAVAILABLE), amfSelf.ServedGuamiList)
-	logger.InitLog.Infof("AMF terminated")
+	// callback.SendAmfStatusChangeNotify((string)(models.StatusChange_UNAVAILABLE), lbSelf.ServedGuamiList)
+	// logger.InitLog.Infof("LB terminated")
 }

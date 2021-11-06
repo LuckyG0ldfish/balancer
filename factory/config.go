@@ -37,6 +37,8 @@
 	 LbName                          string                    `yaml:"lbName,omitempty"`
 	 NgapIp                      	 string                  		`yaml:"ngapIp,omitempty"`
 	 NgapPort						 int
+	 AmfNgapIp						 string
+	 AmfNgapPort 					 int
 	//  Sbi                             *Sbi                      `yaml:"sbi,omitempty"`
 	//  NetworkFeatureSupport5GS        *NetworkFeatureSupport5GS `yaml:"networkFeatureSupport5GS,omitempty"`
 	//  ServiceNameList                 []string                  `yaml:"serviceNameList,omitempty"`
@@ -58,61 +60,61 @@
 	//  Locality                        string                    `yaml:"locality,omitempty"`
  }
  
- func (c *Configuration) Get5gsNwFeatSuppEnable() bool {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.Enable
-	 }
-	 return true
- }
+//  func (c *Configuration) Get5gsNwFeatSuppEnable() bool {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.Enable
+// 	 }
+// 	 return true
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppImsVoPS() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.ImsVoPS
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppImsVoPS() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.ImsVoPS
+// 	 }
+// 	 return 0
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppEmc() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.Emc
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppEmc() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.Emc
+// 	 }
+// 	 return 0
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppEmf() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.Emf
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppEmf() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.Emf
+// 	 }
+// 	 return 0
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppIwkN26() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.IwkN26
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppIwkN26() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.IwkN26
+// 	 }
+// 	 return 0
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppMpsi() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.Mpsi
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppMpsi() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.Mpsi
+// 	 }
+// 	 return 0
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppEmcN3() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.EmcN3
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppEmcN3() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.EmcN3
+// 	 }
+// 	 return 0
+//  }
  
- func (c *Configuration) Get5gsNwFeatSuppMcsi() uint8 {
-	 if c.NetworkFeatureSupport5GS != nil {
-		 return c.NetworkFeatureSupport5GS.Mcsi
-	 }
-	 return 0
- }
+//  func (c *Configuration) Get5gsNwFeatSuppMcsi() uint8 {
+// 	 if c.NetworkFeatureSupport5GS != nil {
+// 		 return c.NetworkFeatureSupport5GS.Mcsi
+// 	 }
+// 	 return 0
+//  }
  
  type NetworkFeatureSupport5GS struct {
 	 Enable  bool  `yaml:"enable"`

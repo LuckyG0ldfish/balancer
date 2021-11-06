@@ -31,10 +31,15 @@ type LBContext struct {
 	LbIP 				string
 	LbPort				int
 
+	Running 			bool
 
+	NewAmf				bool
+	NewAmfIp 			string 
+	NewAmfPort 			int 
+	
 	LbRanPool 			[]*LbGnb // gNBs connected to the LB
 	LbAmfPool 			[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
-	
+
 	Next_Amf 			*LbAmf
 
 	IDGen 				*UeIdGen

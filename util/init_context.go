@@ -25,6 +25,26 @@ func InitLbContext(context *context.LBContext) {
 	} else {
 		context.LbIP = "127.0.0.1" // default localhost
 	}
+	if configuration.NgapPort != 0 {
+		context.LbPort = configuration.NgapPort
+	} else {
+		context.LbPort = 48484 // default Port
+	}
+
+	// adding AMFs 
+	if configuration.AmfNgapIp != "" {
+		context.NewAmfIp = configuration.AmfNgapIp
+	} else {
+		context.NewAmfIp = "127.0.0.1" // default localhost
+	}
+	if configuration.AmfNgapPort != 0 {
+		context.NewAmfPort = configuration.AmfNgapPort
+	} else {
+		context.NewAmfPort = 38412 // default Port for AMF
+	}
+	context.NewAmf = true 
+
+	context.Running = true 
 	// if 
 	// sbi := configuration.Sbi
 	// if sbi.Scheme != "" {
