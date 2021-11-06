@@ -326,6 +326,7 @@ func (Lb *Load) Start() {
 		Lb.Terminate()
 		os.Exit(0)
 	}()
+	for {}
 }
 
 func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
@@ -345,51 +346,51 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 }
 
 
-func (Lb *Load) Exec(c *cli.Context) error {
-	// AMF.Initialize(cfgPath, c)
+// func (Lb *Load) Exec(c *cli.Context) error {
+// 	// AMF.Initialize(cfgPath, c)
 
-	initLog.Traceln("args:", c.String("amfcfg"))
-	args := Lb.FilterCli(c)
-	initLog.Traceln("filter: ", args)
-	command := exec.Command("./amf", args...)
+// 	initLog.Traceln("args:", c.String("amfcfg"))
+// 	args := Lb.FilterCli(c)
+// 	initLog.Traceln("filter: ", args)
+// 	command := exec.Command("./amf", args...)
 
-	stdout, err := command.StdoutPipe()
-	if err != nil {
-		initLog.Fatalln(err)
-	}
-	wg := sync.WaitGroup{}
-	wg.Add(3)
-	go func() {
-		in := bufio.NewScanner(stdout)
-		for in.Scan() {
-			fmt.Println(in.Text())
-		}
-		wg.Done()
-	}()
+// 	stdout, err := command.StdoutPipe()
+// 	if err != nil {
+// 		initLog.Fatalln(err)
+// 	}
+// 	wg := sync.WaitGroup{}
+// 	wg.Add(3)
+// 	go func() {
+// 		in := bufio.NewScanner(stdout)
+// 		for in.Scan() {
+// 			fmt.Println(in.Text())
+// 		}
+// 		wg.Done()
+// 	}()
 
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		initLog.Fatalln(err)
-	}
-	go func() {
-		in := bufio.NewScanner(stderr)
-		for in.Scan() {
-			fmt.Println(in.Text())
-		}
-		wg.Done()
-	}()
+// 	stderr, err := command.StderrPipe()
+// 	if err != nil {
+// 		initLog.Fatalln(err)
+// 	}
+// 	go func() {
+// 		in := bufio.NewScanner(stderr)
+// 		for in.Scan() {
+// 			fmt.Println(in.Text())
+// 		}
+// 		wg.Done()
+// 	}()
 
-	go func() {
-		if err = command.Start(); err != nil {
-			initLog.Errorf("LB Start error: %+v", err)
-		}
-		wg.Done()
-	}()
+// 	go func() {
+// 		if err = command.Start(); err != nil {
+// 			initLog.Errorf("LB Start error: %+v", err)
+// 		}
+// 		wg.Done()
+// 	}()
 
-	wg.Wait()
+// 	wg.Wait()
 
-	return err
-}
+// 	return err
+// }
 
 // Used in AMF planned removal procedure
 func (Lb *Load) Terminate() {
@@ -409,11 +410,11 @@ func (Lb *Load) Terminate() {
 	// }
 
 	// send AMF status indication to ran to notify ran that this AMF will be unavailable
-	logger.InitLog.Infof("Send LB Status Indication to Notify RANs due to LB terminating")
-	unavailableGuamiList := ngap_message.BuildUnavailableGUAMIList(lbSelf.ServedGuamiList)
-	for _, ran := range lbSelf.LbRanPool {
-		ngap_message.SendAMFStatusIndication(ran, unavailableGuamiList)
-	}
+	// logger.InitLog.Infof("Send LB Status Indication to Notify RANs due to LB terminating")
+	// unavailableGuamiList := ngap_message.BuildUnavailableGUAMIList(lbSelf.ServedGuamiList)
+	// for _, ran := range lbSelf.LbRanPool {
+	// 	ngap_message.SendAMFStatusIndication(ran, unavailableGuamiList)
+	// } TODO
 
 	lbSelf.Running = false 
 	ngap_service.Stop()
