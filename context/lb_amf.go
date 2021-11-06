@@ -7,7 +7,7 @@ import (
 
 	// "git.cs.nctu.edu.tw/calee/sctp"
 
-	
+	"github.com/sirupsen/logrus"
 )
 
 // const lbPPID uint32 = 0x3c000000
@@ -18,6 +18,9 @@ type LbAmf struct {
 	AmfID  int64
 	LbConn *LBConn
 	Ues    sync.Map
+
+	/* logger */
+	Log 	*logrus.Entry
 }
 
 func (amf *LbAmf) FindUeByUeRanID(id int64) (*LbUe, bool){

@@ -112,6 +112,7 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	addr, _ := context.GenSCTPAddr(LbIP, LbAmfPort)
 	Lb.lbAddr = addr
 	fmt.Println("LB init done")
+	Lb.LbContext.Log.Error("test")
 	// if err := factory.CheckConfigVersion(); err != nil {
 	// 	return err
 	// }

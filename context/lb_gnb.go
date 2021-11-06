@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	//"github.com/ishidawataru/sctp"
+	"github.com/sirupsen/logrus"
 )
 
 var nextGnbID int64 = 1
@@ -12,6 +13,9 @@ type LbGnb struct{
 	GnbID 		int64
 	LbConn 		*LBConn
 	Ues 		sync.Map
+
+	/* logger */
+	Log 		*logrus.Entry
 }
 
 func NewLbGnb() (*LbGnb){

@@ -11,6 +11,7 @@ import (
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
 	// "github.com/free5gc/openapi/models"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -37,10 +38,14 @@ type LBContext struct {
 	IDGen 	*UeIdGen
 	
 	RelativeCapacity 	int64 // To build setup response
+
+	/* temp */
+	NGSetupRes 			*ngapType.NGAPPDU
 	PlmnSupportList 	*ngapType.PLMNSupportList
 	ServedGuamiList 	*ngapType.ServedGUAMIList
 
-	NGSetupRes 			*ngapType.NGAPPDU
+	/* logger */
+	Log 	*logrus.Entry
 }
 
 func NewLBContext() (LbContext *LBContext){
