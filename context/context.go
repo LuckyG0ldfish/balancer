@@ -24,18 +24,20 @@ var (
 // }
 
 type LBContext struct {
-	Name string
-	//NetworkName   factory.NetworkName
-	LbIP 	string
-	LbPort	int
+	Name 				string
+	// NetworkName   		factory.NetworkName
+	NfId               	string
+
+	LbIP 				string
+	LbPort				int
 
 
-	LbRanPool []*LbGnb // gNBs connected to the LB
-	LbAmfPool []*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	LbRanPool 			[]*LbGnb // gNBs connected to the LB
+	LbAmfPool 			[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 	
-	Next_Amf *LbAmf
+	Next_Amf 			*LbAmf
 
-	IDGen 	*UeIdGen
+	IDGen 				*UeIdGen
 	
 	RelativeCapacity 	int64 // To build setup response
 

@@ -48,7 +48,7 @@ func main() {
 }
 
 func action(c *cli.Context) error {
-	if err := LB.Initialize(); err != nil {
+	if err := LB.Initialize(c); err != nil {
 		logger.CfgLog.Errorf("%+v", err)
 		return fmt.Errorf("Failed to initialize !!")
 	}

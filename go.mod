@@ -9,9 +9,12 @@ require (
 	github.com/free5gc/aper v1.0.1
 	github.com/free5gc/logger_conf v1.0.0
 	github.com/free5gc/logger_util v1.0.0
+	github.com/free5gc/nas v1.0.0
 	github.com/free5gc/ngap v1.0.2
 	github.com/free5gc/openapi v1.0.0
+	github.com/free5gc/path_util v1.0.0
 	github.com/free5gc/version v1.0.0
+	github.com/google/uuid v1.1.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli v1.22.5
 	golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44 // indirect

@@ -35,6 +35,7 @@ git.cs.nctu.edu.tw/calee/sctp v1.1.0 h1:caiPJ0g2sH1QmDkC7x2yklKrc01Fuo1rqYW68Tq4
 git.cs.nctu.edu.tw/calee/sctp v1.1.0/go.mod h1:NeOuBXO1iJBtldmNhkfSH8yFbnxlhI8eEJdUd7DZvws=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/aead/cmac v0.0.0-20160719120800-7af84192f0b1 h1:+JkXLHME8vLJafGhOH4aoV2Iu8bR55nU6iKMVfYVLjY=
 github.com/aead/cmac v0.0.0-20160719120800-7af84192f0b1/go.mod h1:nuudZmJhzWtx2212z+pkuy7B6nkBqa+xwNXZHL1j8cg=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/antonfisher/nested-logrus-formatter v1.3.0 h1:8zixYquU1Odk+vzAaAQPAdRh1ZjmUXNQ1T+dUBvlhVo=
@@ -57,20 +58,24 @@ github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.m
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/free5gc/CommonConsumerTestData v1.0.0/go.mod h1:zhv32NDxa/HWukKeEZV0b4uE2Yl+gBkycfp81HqUo4A=
+github.com/free5gc/UeauCommon v1.0.0 h1:ykhHNOcGpk6hLpVrGcMuKBbc+PgSmrwxCELnyFH9xKs=
 github.com/free5gc/UeauCommon v1.0.0/go.mod h1:Ly9JlJN4c1uCALizCmEha1Nu78ibQjbpQvSrt04nGfw=
 github.com/free5gc/amf v1.3.0 h1:TJeIC3Md2R6sDw7tjmwYi+4p1qcT6ff8fVM+85QB+0k=
 github.com/free5gc/amf v1.3.0/go.mod h1:rvKiesox0/VcKaXPLEqb1udczlvRMdcd7q22fcPQs80=
 github.com/free5gc/aper v1.0.0/go.mod h1:L1R91VwLpAIh/kx/hOWXwgBQp3ZZflRHHKCYmfeGegU=
 github.com/free5gc/aper v1.0.1 h1:GUUoLYTKTXv9DIH/T5wwxZRBmOJ74ejwNpzkkmrW9BY=
 github.com/free5gc/aper v1.0.1/go.mod h1:1iGSt+WSNrLnsA0U340Nyd8aAqkPAW80Oko/L2CXK2U=
+github.com/free5gc/fsm v1.0.0 h1:n4YwDx6bDdUtWLo49Z3u84dt/bOrLJjJPZX2jUM+XSQ=
 github.com/free5gc/fsm v1.0.0/go.mod h1:DGWHYWqsDJkb7ycNk9WiAe5WfbFyFTjGPEY0lfwlDg8=
 github.com/free5gc/http2_util v1.0.0/go.mod h1:GN2BCD8IINjtnAKYGwe+dEeTBRFEv4lQnZblFIIhbdE=
 github.com/free5gc/http_wrapper v1.0.0/go.mod h1:vVArDqfCo7fvmYGi9WRPj4yurSu86GxRh3iQ70aq+OE=
+github.com/free5gc/idgenerator v1.0.0 h1:e55Cn2p8dGCGYv5VoJ6oOsTj3SIVLToNLuS2CDOulZA=
 github.com/free5gc/idgenerator v1.0.0/go.mod h1:+iGY7VUgUX88lqPhGAPGy/b2SxtNJMvymdJbNyjk4HU=
 github.com/free5gc/logger_conf v1.0.0 h1:cMqqB8L4HjE57tP36mBmiVUPIcHv8Ayr12jKfeiwqZU=
 github.com/free5gc/logger_conf v1.0.0/go.mod h1:DHecLXVV1qA5Z+lSoUvZdZ6tCtZidTNmtx99jsCfgLE=
 github.com/free5gc/logger_util v1.0.0 h1:hLTCTnKlEqJURrBwooNFQLavWPdJzS0o9KGIYUNKdJI=
 github.com/free5gc/logger_util v1.0.0/go.mod h1:TK/bAJbm/l2TMNmbsKn83+xUmDNqts69IEir/nCa8w0=
+github.com/free5gc/nas v1.0.0 h1:OO4klCGRhflBrOUMyKfFXwxGu5Sz4B8vYrWtIXA1G9Q=
 github.com/free5gc/nas v1.0.0/go.mod h1:aZkA9pzIy6D1I4mTYExoUsr1pBwC81+aLvhs382TlD0=
 github.com/free5gc/ngap v1.0.0/go.mod h1:FIAFElkAuJzusN2kXrCNJlSuCcQid8RZd5qZaf4N7pI=
 github.com/free5gc/ngap v1.0.2 h1:/89OIJVR0AWdMfiUuoe325RnjlF45UvIFdAxWrrbiYU=
@@ -79,6 +84,7 @@ github.com/free5gc/openapi v1.0.0 h1:DaGVt05b1pSDBOailKAlLj6hAk6vunN0Nhzvl/xcWCY
 github.com/free5gc/openapi v1.0.0/go.mod h1:7OzxoWBj6KQgznMW2ZiUtZdCGY+t89v4wtgKLhluKgU=
 github.com/free5gc/path_util v1.0.0 h1:vJPGTymaWtavz6fJ/7k6WKEYv5BQLAq/O04RP54sab0=
 github.com/free5gc/path_util v1.0.0/go.mod h1:OpmcebEKrMPnH7Jg5lZ8y9ZWJNAjQ4l9FGWXUv58Mo0=
+github.com/free5gc/util_3gpp v1.0.0 h1:yDuCFVlzLWKu6+vKBNG/PVAxjtrr8hPlJaTE/00hX8A=
 github.com/free5gc/util_3gpp v1.0.0/go.mod h1:6uI6CB6SD/yWpalo17gc5eWUVFMAIKkWDiQpkOX3+c8=
 github.com/free5gc/version v1.0.0 h1:Kn4uOhyHT1IAgerBgWRHag4xLMDXrRsqubLeMv5Nb/w=
 github.com/free5gc/version v1.0.0/go.mod h1:wOTwzjk7sqeysX1b/Z4x+pWBHFuZOPtQj3h+IJXSpmQ=
@@ -149,6 +155,7 @@ github.com/google/pprof v0.0.0-20200229191704-1ebb73c60ed3/go.mod h1:ZgVRPoUq/hf
 github.com/google/pprof v0.0.0-20200430221834-fc25d7d30c6d/go.mod h1:ZgVRPoUq/hfqzAqh7sHMqb3I9Rq5C59dIz2SbBwJ4eM=
 github.com/google/pprof v0.0.0-20200708004538-1a94d8640e99/go.mod h1:ZgVRPoUq/hfqzAqh7sHMqb3I9Rq5C59dIz2SbBwJ4eM=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
+github.com/google/uuid v1.1.2 h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=
 github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
@@ -184,6 +191,7 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1 h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9AWI=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
+github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 h1:RWengNIwukTxcDr9M+97sNutRR1RKhG96O6jWumTTnw=
 github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826/go.mod h1:TaXosZuwdSHYgviHp1DAtfrULt5eUgsSMsZf+YrPgl8=
 github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32/go.mod h1:9wM+0iRr9ahx58uYLpLIr5fm8diHn0JbqRycJi6w0Ms=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
