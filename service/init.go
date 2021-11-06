@@ -14,7 +14,7 @@ import (
 	"strconv"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
-	// "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
 	// "github.com/free5gc/amf/communication"
@@ -24,7 +24,7 @@ import (
 	// "github.com/free5gc/amf/factory"
 	// "github.com/free5gc/amf/httpcallback"
 	// "github.com/free5gc/amf/location"
-	// "github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	// "github.com/free5gc/amf/mt"
 	"github.com/LuckyG0ldfish/balancer/ngap"
 	// ngap_message "github.com/free5gc/amf/ngap/message"
@@ -63,7 +63,7 @@ const LbGnbPort int = 48484
 const LbAmfPort int = 32323
 const amfPort int = 38412
 
-// var config Config
+var config Config
 
 var lbCLi = []cli.Flag{
 	cli.StringFlag{
@@ -76,34 +76,35 @@ var lbCLi = []cli.Flag{
 	},
 }
 
-// var initLog *logrus.Entry
+var initLog *logrus.Entry
 
 func init() {
-	// initLog = logger.InitLog
+	initLog = logger.InitLog
 }
 
 func (*Load) GetCliCmd() (flags []cli.Flag) {
 	return lbCLi
 }
 
-func (Lb *Load) Initialize()  { // c *cli.Context) error {
-	// config = Config{
-	// 	lbcfg: c.String("lbcfg"),
-	// }
+func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
+	config = Config{
+		lbcfg: c.String("lbcfg"),
+	}
 
 	// lb = NewLB()
-	// if config.lbcfg != "" {
-	// 	if err := factory.InitConfigFactory(config.lbcfg); err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
-	// 	if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if config.lbcfg != "" {
+		if err := factory.InitConfigFactory(config.lbcfg); err != nil {
+			return err
+		}
+	} else {
+		DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
+		if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
+			return err
+		}
+	}
 
-	// lb.setLogLevel()
+	lb.setLogLevel()
+
 	Lb.LbContext = context.LB_Self()
 	Lb.LbContext.LbIP = LbIP
 	Lb.LbContext.LbPort = LbGnbPort
@@ -116,6 +117,7 @@ func (Lb *Load) Initialize()  { // c *cli.Context) error {
 	// if err := factory.CheckConfigVersion(); err != nil {
 	// 	return err
 	// }
+	return nil 
 }
 
 // func (amf *LB) setLogLevel() {

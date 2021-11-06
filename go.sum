@@ -80,6 +80,7 @@ github.com/free5gc/openapi v1.0.0/go.mod h1:7OzxoWBj6KQgznMW2ZiUtZdCGY+t89v4wtgK
 github.com/free5gc/path_util v1.0.0 h1:vJPGTymaWtavz6fJ/7k6WKEYv5BQLAq/O04RP54sab0=
 github.com/free5gc/path_util v1.0.0/go.mod h1:OpmcebEKrMPnH7Jg5lZ8y9ZWJNAjQ4l9FGWXUv58Mo0=
 github.com/free5gc/util_3gpp v1.0.0/go.mod h1:6uI6CB6SD/yWpalo17gc5eWUVFMAIKkWDiQpkOX3+c8=
+github.com/free5gc/version v1.0.0 h1:Kn4uOhyHT1IAgerBgWRHag4xLMDXrRsqubLeMv5Nb/w=
 github.com/free5gc/version v1.0.0/go.mod h1:wOTwzjk7sqeysX1b/Z4x+pWBHFuZOPtQj3h+IJXSpmQ=
 github.com/gin-contrib/cors v1.3.1/go.mod h1:jjEJ4268OPZUcU7k9Pm653S7lXUGcqMADzFA61xsmDk=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=

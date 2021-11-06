@@ -1,61 +1,91 @@
 package logger
 
 import (
-	"os"
+	// "os"
 	"time"
 
 	formatter "github.com/antonfisher/nested-logrus-formatter"
 	"github.com/sirupsen/logrus"
 
-	"github.com/free5gc/logger_util"
+	// "github.com/free5gc/logger_conf"
+	// "github.com/free5gc/logger_util"
 )
 
-var logFileName = "loadbalancer.log"
+var (
+	log         *logrus.Logger
+	AppLog      *logrus.Entry
+	InitLog     *logrus.Entry
+	CfgLog      *logrus.Entry
+	ContextLog  *logrus.Entry
+	NgapLog     *logrus.Entry
+	HandlerLog  *logrus.Entry
+	HttpLog     *logrus.Entry
+	GmmLog      *logrus.Entry
+	MtLog       *logrus.Entry
+	ProducerLog *logrus.Entry
+	LocationLog *logrus.Entry
+	CommLog     *logrus.Entry
+	CallbackLog *logrus.Entry
+	UtilLog     *logrus.Entry
+	NasLog      *logrus.Entry
+	ConsumerLog *logrus.Entry
+	EeLog       *logrus.Entry
+	GinLog      *logrus.Entry
+)
 
-var log *logrus.Logger
-var AppLog *logrus.Entry
-var InitLog *logrus.Entry
-var NASLog *logrus.Entry
-var NGAPLog *logrus.Entry
-var LoadbalancerLog *logrus.Entry
-var GmmLog *logrus.Entry
+const (
+	FieldRanAddr     	string = "ran_addr"
+	FieldAmfAddr     	string = "amf_addr"
+	FieldLbUeNgapID 	string = "lb_ue_ngap_id"
+	FieldSupi        	string = "supi"
+)
 
 func init() {
 	log = logrus.New()
 	log.SetReportCaller(false)
 
 	log.Formatter = &formatter.Formatter{
-		TimestampFormat: time.RFC3339Nano,
+		TimestampFormat: time.RFC3339,
+		TrimMessages:    true,
 		NoFieldsSpace:   true,
 		HideKeys:        true,
-		FieldsOrder:     []string{"category"},
+		FieldsOrder:     []string{"component", "category", FieldRanAddr, FieldLbUeNgapID, FieldSupi},
 	}
 
-	selfLogHook, err := logger_util.NewFileHook(logFileName, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
-	if err == nil {
-		log.Hooks.Add(selfLogHook)
-	}
+	// free5gcLogHook, err := logger_util.NewFileHook(logger_conf.Free5gcLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666)
+	// if err == nil {
+	// 	log.Hooks.Add(free5gcLogHook)
+	// }
 
-	AppLog = log.WithFields(logrus.Fields{"category": "App"})
-	InitLog = log.WithFields(logrus.Fields{"category": "Init"})
-	LoadbalancerLog = log.WithFields(logrus.Fields{"category": "LB"})
-	NASLog = log.WithFields(logrus.Fields{"category": "NAS"})
-	NGAPLog = log.WithFields(logrus.Fields{"category": "NGAP"})
-	GmmLog = log.WithFields(logrus.Fields{"category": "GMM"})
+	// selfLogHook, err := logger_util.NewFileHook(logger_conf.NfLogDir+"amf.log", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0o666)
+	// if err == nil {
+	// 	log.Hooks.Add(selfLogHook)
+	// }
 
+	AppLog = log.WithFields(logrus.Fields{"component": "LB", "category": "App"})
+	InitLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Init"})
+	CfgLog = log.WithFields(logrus.Fields{"component": "LB", "category": "CFG"})
+	ContextLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Context"})
+	NgapLog = log.WithFields(logrus.Fields{"component": "LB", "category": "NGAP"})
+	HandlerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Handler"})
+	HttpLog = log.WithFields(logrus.Fields{"component": "LB", "category": "HTTP"})
+	GmmLog = log.WithFields(logrus.Fields{"component": "LB", "category": "GMM"})
+	MtLog = log.WithFields(logrus.Fields{"component": "LB", "category": "MT"})
+	ProducerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Producer"})
+	LocationLog = log.WithFields(logrus.Fields{"component": "LB", "category": "LocInfo"})
+	CommLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Comm"})
+	CallbackLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Callback"})
+	UtilLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Util"})
+	NasLog = log.WithFields(logrus.Fields{"component": "LB", "category": "NAS"})
+	ConsumerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Consumer"})
+	EeLog = log.WithFields(logrus.Fields{"component": "LB", "category": "EventExposure"})
+	GinLog = log.WithFields(logrus.Fields{"component": "LB", "category": "GIN"})
 }
 
 func SetLogLevel(level logrus.Level) {
 	log.SetLevel(level)
 }
 
-func SetReportCaller(bool bool) {
-	log.SetReportCaller(bool)
-}
-
-func TryAddLogFileHook(fileName string) {
-	selfLogHook, err := logger_util.NewFileHook(fileName, os.O_CREATE|os.O_RDWR, 0666)
-	if err == nil {
-		log.Hooks.Add(selfLogHook)
-	}
+func SetReportCaller(set bool) {
+	log.SetReportCaller(set)
 }
