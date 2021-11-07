@@ -337,7 +337,7 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 			self.Next_Amf = amf
 			self.AddAmfToLB(amf)
 			ngap_service.StartAmf(amf, Lb.lbAddr, self.NewAmfIp, self.NewAmfPort, ngapHandler)
-			fmt.Println("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
+			// fmt.Println("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
 			initLog.Infoln("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
 			self.NewAmf = false
 		}

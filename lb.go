@@ -23,9 +23,7 @@ func init() {
 	appLog = logger.AppLog
 }
 
-func main() {
-	// LB.Initialize()
-	
+func main() {	
 	// LB.Initialize()
 	// LB.Start()
 
@@ -42,7 +40,7 @@ func main() {
 	}
 	
 	for{
-		fmt.Println("loop")
+		// fmt.Println("loop")
 		time.Sleep(1 *time.Hour)
 	}
 }

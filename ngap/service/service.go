@@ -2,7 +2,7 @@ package service
 
 import (
 	// "encoding/hex"
-	"fmt"
+	// "fmt"
 	"io"
 	"net"
 	"strconv"
@@ -161,7 +161,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 		connections.Delete(lbConn.Conn)
 	}()
-	fmt.Println("waiting for message ")
+	logger.NgapLog.Tracef("Waiting for message")
 	for {
 		buf := make([]byte, bufsize)
 
@@ -184,13 +184,13 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			}
 		}
 		if lbConn.TypeID == context.TypeIdentAMFConn {
-			fmt.Println("\n \nAMF message recieved")
+			logger.NgapLog.Debugf("AMF message recieved")
 		} else if lbConn.TypeID == context.TypeIdentGNBConn {
-			fmt.Println("\n \nRAN message recieved")
+			logger.NgapLog.Debugf("\n \nRAN message recieved")
 		} else {
-			fmt.Println("unidientified message recieved")
+			logger.NgapLog.Errorf("unidientified message recieved")
 		}
-		fmt.Println("length: " + strconv.Itoa(n))
+		logger.NgapLog.Tracef("length: " + strconv.Itoa(n))
 		// fmt.Println(buf)
 		if notification != nil {
 			if handler.HandleNotification != nil {
@@ -202,7 +202,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			// TODO no info recieved 
 			if info == nil {
 				
-				fmt.Println("info == nil")
+				logger.NgapLog.Warnln("info == nil")
 				// continue
 			} else if info.PPID != ngap.PPID{
 				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet") 
