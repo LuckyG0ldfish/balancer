@@ -13,7 +13,7 @@ import (
 	"git.cs.nctu.edu.tw/calee/sctp"
 
 	//"github.com/LuckyG0ldfish/balancer/ngap"
-	"github.com/free5gc/amf/logger"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"
 
 	"github.com/LuckyG0ldfish/balancer/context"
@@ -55,7 +55,6 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 	} else {
 		sctpListener = listener
 	}
-	fmt.Println("Listening")
 	logger.NgapLog.Infof("Listen on %s", sctpListener.Addr())
 
 	for {
@@ -130,7 +129,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		// add connection as new GNBConn 
 		lbSelf := context.LB_Self()
 		ran := lbSelf.AddGnbToLB(newConn)
-		fmt.Println("gnb created")
+		logger.ContextLog.Tracef("LB_GNB created")
 		// fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 		go handleConnection(ran.LbConn, readBufSize, handler)
 	}
@@ -219,14 +218,15 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 }
 
 func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
+	logger.NgapLog.Debugf("Connecting to amf")
 	for {
-		fmt.Println("connecting to amf")
 		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
 		if err == nil {
 			// amf.up = true
 			amf.LbConn.Conn = conn
 			ngap_message.SendNGSetupRequest(amf.LbConn)
 			go handleConnection(amf.LbConn, readBufSize, handler)
+			logger.NgapLog.Debugf("Connecting to amf")
 			break
 		}
 		time.Sleep(2 * time.Second)

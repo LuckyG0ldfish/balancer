@@ -10,7 +10,7 @@ import (
 	"github.com/LuckyG0ldfish/balancer/context"
 	amf_ngap "github.com/LuckyG0ldfish/balancer/ngap/amf_ngap"
 	gnb_ngap "github.com/LuckyG0ldfish/balancer/ngap/gnb_ngap"
-	"github.com/free5gc/amf/logger"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
 )

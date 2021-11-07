@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"fmt"
-	// "time"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -30,9 +30,9 @@ func main() {
 	// LB.Start()
 
 	app := cli.NewApp()
-	app.Name = "amf"
+	app.Name = "lb"
 	appLog.Infoln(app.Name)
-	appLog.Infoln("AMF version: ", version.GetVersion())
+	appLog.Infoln("LB version: ", version.GetVersion())
 	app.Usage = "-free5gccfg common configuration file -amfcfg amf configuration file"
 	app.Action = action
 	app.Flags = LB.GetCliCmd()
@@ -41,19 +41,19 @@ func main() {
 		return
 	}
 	
-	// for{
-	// 	fmt.Println("loop")
-	// 	time.Sleep(1 *time.Hour)
-	// }
+	for{
+		fmt.Println("loop")
+		time.Sleep(1 *time.Hour)
+	}
 }
 
 func action(c *cli.Context) error {
 	if err := LB.Initialize(c); err != nil {
 		logger.CfgLog.Errorf("%+v", err)
-		return fmt.Errorf("Failed to initialize !!")
+		return fmt.Errorf("Failed to initialize!!")
 	}
 
-// 	LB.Start()
+	LB.Start()
 
 	return nil
 }

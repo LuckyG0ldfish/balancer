@@ -3,13 +3,15 @@ package context
 import (
 	// "sync"
 
-	"fmt"
+	"encoding/hex"
 	"strconv"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 	// "github.com/free5gc/amf/factory" // TODO
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
+
 	// "github.com/free5gc/openapi/models"
 	"github.com/sirupsen/logrus"
 )
@@ -62,21 +64,23 @@ func NewLBContext() (LbContext *LBContext){
 func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
 	// if mes, err := ngap.Encoder(*message); err == nil {
 	// }
-	fmt.Println("forward to nextAMF")
-
 	ue.AmfID = lb.Next_Amf.AmfID
 	_, ok := lb.Next_Amf.Ues.Load(ue.UeLbID)
+	if lb.Next_Amf == nil {
+		logger.NgapLog.Errorf("No Connected AMF")
+		return 
+	}
 	if ok {
-		fmt.Println("UE already exists")
+		logger.NgapLog.Errorf("UE already exists")
 		return 
 	} 
 	lb.Next_Amf.Ues.Store(ue.UeLbID, ue)
 	var mes []byte
 	mes, _  = ngap.Encoder(*message)
 	lb.Next_Amf.LbConn.Conn.Write(mes)
-	fmt.Println(mes)
-	fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
-	fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
+	logger.NgapLog.Debugf("forward to nextAMF:")
+	logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
+	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 }
 
 func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
@@ -84,15 +88,14 @@ func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
-		fmt.Println("forward to AMF:")
 		var mes []byte
 		mes, _  = ngap.Encoder(*message)
 		amf.LbConn.Conn.Write(mes)
-		fmt.Println(mes)
-		fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
-		fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))	
+		logger.NgapLog.Debugf("forward to AMF:")
+		logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
+		logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 	} else {
-		fmt.Println("AMF not found")
+		logger.NgapLog.Errorf("AMF not found")
 	}
 }
 
@@ -101,15 +104,14 @@ func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 	// if mes, err := ngap.Encoder(*message); err == nil {	
 	// }
 	if ok {
-		fmt.Println("forward to GNB:")
 		var mes []byte
 		mes, _  = ngap.Encoder(*message)
 		gnb.LbConn.Conn.Write(mes)
-		fmt.Println(mes)
-		fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
-		fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
+		logger.NgapLog.Debugf("forward to GNB:")
+		logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
+		logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 	} else {
-		fmt.Println("GNB not found")
+		logger.NgapLog.Errorf("GNB not found")
 	}
 }
 

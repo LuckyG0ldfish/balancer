@@ -326,7 +326,6 @@ func (Lb *Load) Start() {
 		Lb.Terminate()
 		os.Exit(0)
 	}()
-	for {}
 }
 
 func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
@@ -394,7 +393,7 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 
 // Used in AMF planned removal procedure
 func (Lb *Load) Terminate() {
-	logger.InitLog.Infof("Terminating AMF...")
+	logger.InitLog.Infof("Terminating LB...")
 	lbSelf := context.LB_Self()
 
 	// TODO: forward registered UE contexts to target AMF in the same AMF set if there is one
