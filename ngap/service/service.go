@@ -183,9 +183,9 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				return
 			}
 		}
-		if lbConn.TypeID == context.TypeIdentAMFConn {
+		if lbConn.TypeID == context.TypeIdAMFConn {
 			logger.NgapLog.Debugf("AMF message recieved")
-		} else if lbConn.TypeID == context.TypeIdentGNBConn {
+		} else if lbConn.TypeID == context.TypeIdGNBConn {
 			logger.NgapLog.Debugf("\n \nRAN message recieved")
 		} else {
 			logger.NgapLog.Errorf("unidientified message recieved")

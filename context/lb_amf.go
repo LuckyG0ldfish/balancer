@@ -12,15 +12,22 @@ import (
 
 // const lbPPID uint32 = 0x3c000000
 
+const TypeIdRegistAMF 		int	= 0
+const TypeIdRegularAMF 		int	= 1
+const TypeIdDeregistAMF		int = 2
+
 var nextAmfID int64 = 1
 
 type LbAmf struct {
-	AmfID  int64
-	LbConn *LBConn
-	Ues    sync.Map
+	AmfID  			int64
+
+	AmfTypeIdent 	int
+
+	LbConn 			*LBConn
+	Ues    			sync.Map
 
 	/* logger */
-	Log 	*logrus.Entry
+	Log 			*logrus.Entry
 }
 
 func (amf *LbAmf) FindUeByUeRanID(id int64) (*LbUe, bool){
@@ -35,7 +42,7 @@ func NewLbAmf() *LbAmf {
 	amf.AmfID = nextAmfID
 	amf.LbConn = NewLBConn()
 	amf.LbConn.ID = nextAmfID
-	amf.LbConn.TypeID = TypeIdentAMFConn
+	amf.LbConn.TypeID = TypeIdAMFConn
 	nextAmfID++
 	return &amf
 }

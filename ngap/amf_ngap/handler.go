@@ -769,7 +769,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		}
 	}
 
-	if lbConn.TypeID == context.TypeIdentGNBConn {
+	if lbConn.TypeID == context.TypeIdGNBConn {
 		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
 		ue := context.NewUE()		
 		if ok {
@@ -1591,7 +1591,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 
 	//TODO
 
-	if lbConn.TypeID == context.TypeIdentGNBConn {
+	if lbConn.TypeID == context.TypeIdGNBConn {
 		gnb, ok := LB.LbGnbFindByConn(lbConn.Conn)
 		ue := context.NewUE()		
 		if ok {
@@ -2055,7 +2055,7 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		}
 	}
 
-	if lbConn.TypeID == context.TypeIdentAMFConn {
+	if lbConn.TypeID == context.TypeIdAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		fmt.Println("AMF Found")
 		UE, _ := amf.FindUeByUeRanID(rANUENGAPID.Value)
@@ -2083,7 +2083,7 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		LB.ForwardToGnb(lbConn, message, UE)
 		return
 	}
-	if lbConn.TypeID == context.TypeIdentGNBConn {
+	if lbConn.TypeID == context.TypeIdGNBConn {
 		gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
 		UE, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
 		if !ok {

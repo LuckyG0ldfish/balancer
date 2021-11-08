@@ -16,7 +16,7 @@ import (
 )
 
 func Dispatch(lbConn *context.LBConn, msg []byte) {
-	if lbConn.TypeID == context.TypeIdentGNBConn {
+	if lbConn.TypeID == context.TypeIdGNBConn {
 		DispatchForMessageToAmf(lbConn, msg)
 	} else {
 		DispatchForMessageToGnb(lbConn, msg)

@@ -23,7 +23,7 @@ func NewLbGnb() (*LbGnb){
 	gnb.GnbID = nextGnbID
 	gnb.LbConn = NewLBConn()
 	gnb.LbConn.ID = nextGnbID
-	gnb.LbConn.TypeID = TypeIdentGNBConn
+	gnb.LbConn.TypeID = TypeIdGNBConn
 	nextGnbID++
 	return &gnb
 }

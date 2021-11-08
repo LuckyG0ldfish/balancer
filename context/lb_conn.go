@@ -4,9 +4,9 @@ import(
 	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
-const TypeIndetNotThere 	int	= 0
-const TypeIdentAMFConn 		int	= 1
-const TypeIdentGNBConn		int = 2
+const TypeIdNotThere 	int	= 0
+const TypeIdAMFConn 	int	= 1
+const TypeIdGNBConn		int = 2
 
 type LBConn struct{
 	TypeID 		int 
