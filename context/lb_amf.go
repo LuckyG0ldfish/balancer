@@ -23,6 +23,8 @@ type LbAmf struct {
 
 	AmfTypeIdent 	int
 
+	Capacity 		int64
+
 	LbConn 			*LBConn
 	Ues    			sync.Map
 

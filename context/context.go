@@ -75,9 +75,12 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU,
 		return 
 	} 
 	lb.Next_Amf.Ues.Store(ue.UeLbID, ue)
+
 	var mes []byte
 	mes, _  = ngap.Encoder(*message)
 	lb.Next_Amf.LbConn.Conn.Write(mes)
+	lb.Next_Amf.Capacity -= 1
+	lb.SelectNextAmf()
 	logger.NgapLog.Debugf("forward to nextAMF:")
 	logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
 	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
@@ -184,6 +187,28 @@ func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{
 func (context *LBContext) AddAmfToLB(amf *LbAmf) *LbAmf{
 	context.LbAmfPool = append(context.LbAmfPool, amf)
 	return amf
+}
+
+// TODO
+func (context *LBContext) SelectNextAmf() bool{
+	if context.LbAmfPool == nil {
+		logger.ContextLog.Errorf("No AMF found")
+		return false
+	}
+	var i int64
+	var amf *LbAmf
+	for in, v := range context.LbAmfPool {
+		if in == 0 {
+			i = v.Capacity
+			amf = v
+		} else if v.Capacity < i {
+			i = v.Capacity
+			amf = v
+		}
+	}
+	context.Next_Amf = amf
+	logger.ContextLog.Tracef("NextAMF = AMFID: %d", amf.AmfID)
+	return true 
 }
 
 func LB_Self() *LBContext {

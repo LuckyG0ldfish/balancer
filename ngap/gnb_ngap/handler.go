@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/LuckyG0ldfish/balancer/context"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap/ngapType"
 	// "github.com/sirupsen/logrus"
 	// "github.com/ishidawataru/sctp"
@@ -80,6 +81,11 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		case ngapType.ProtocolIEIDRelativeAMFCapacity:
 			// NGAPLog.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
 			//relativeAMFCapacity = ie.Value.RelativeAMFCapacity
+			amf, ok :=LB.LbAmfFindByConn(lbConn.Conn)
+			if !ok {
+				logger.NgapLog.Errorf("AMF not found -> Capacity not set")
+			}
+			amf.Capacity = ie.Value.RelativeAMFCapacity.Value
 		case ngapType.ProtocolIEIDPLMNSupportList:
 			// NGAPLog.Traceln("[NGAP] Decode IE PLMNSupportList")
 			plmnSupportList = ie.Value.PLMNSupportList
