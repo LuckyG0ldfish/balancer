@@ -32,15 +32,16 @@ func InitLbContext(context *context.LBContext) {
 	}
 
 	// adding AMFs 
-	if configuration.AmfNgapIp != "" {
-		context.NewAmfIp = configuration.AmfNgapIp
+	if configuration.AmfNgapIpList != nil {
+		context.NewAmfIpList = configuration.AmfNgapIpList
 	} else {
-		context.NewAmfIp = "127.0.0.1" // default localhost
+		context.NewAmfIpList = []string{"127.0.0.1"} // default localhost
 	}
-	if configuration.AmfNgapPort != 0 {
-		context.NewAmfPort = configuration.AmfNgapPort
+	
+	if configuration.AmfNgapPortList != nil {
+		context.NewAmfPortList = configuration.AmfNgapPortList
 	} else {
-		context.NewAmfPort = 38412 // default Port for AMF
+		context.NewAmfPortList = []string{"38412"} // default Port for AMF
 	}
 	context.NewAmf = true 
 

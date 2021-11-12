@@ -36,8 +36,8 @@ type LBContext struct {
 	Running 			bool
 
 	NewAmf				bool
-	NewAmfIp 			string 
-	NewAmfPort 			int 
+	NewAmfIpList 		[]string 
+	NewAmfPortList		[]string 
 	
 	LbRanPool 			[]*LbGnb // gNBs connected to the LB
 	LbAmfPool 			[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB

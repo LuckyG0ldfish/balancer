@@ -37,8 +37,8 @@
 	 LbName                          string                    `yaml:"lbName,omitempty"`
 	 NgapIp                      	 string                  		`yaml:"ngapIp,omitempty"`
 	 NgapPort						 int
-	 AmfNgapIp						 string
-	 AmfNgapPort 					 int
+	 AmfNgapIpList					 []string
+	 AmfNgapPortList				 []string
 	//  Sbi                             *Sbi                      `yaml:"sbi,omitempty"`
 	//  NetworkFeatureSupport5GS        *NetworkFeatureSupport5GS `yaml:"networkFeatureSupport5GS,omitempty"`
 	//  ServiceNameList                 []string                  `yaml:"serviceNameList,omitempty"`

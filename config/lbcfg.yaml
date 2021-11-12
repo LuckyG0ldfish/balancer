@@ -7,9 +7,15 @@ configuration:
   ngapIp: "127.0.0.1" # the IP list of N2 interfaces on this AMF
     # - 127.0.0.1
   ngapPort: 48484
-  amfNgapIp: "127.0.0.1"
-  amfNgapPort: 38412
-  
+  amfNgapIpList: 
+    - 127.0.0.1
+    - 127.0.0.1
+  amfNgapPortList: 
+    - 38412
+    - 38413
+  # amfNgapIp2: 
+  # amfNgapPort2: 38413
+
   # sbi: # Service-based interface information
   #   scheme: http # the protocol for sbi (http or https)
   #   registerIPv4: 127.0.0.18 # IP used to register to NRF

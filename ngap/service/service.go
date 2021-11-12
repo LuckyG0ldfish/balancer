@@ -217,6 +217,8 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 	}
 }
 
+
+
 func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
 	logger.NgapLog.Debugf("Connecting to amf")
 	for {
