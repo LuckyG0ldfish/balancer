@@ -340,7 +340,7 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 					ip = self.NewAmfIpList[i]
 					port = self.NewAmfPortList[i]
 					if a, err := strconv.Atoi(port); err == nil {
-						Lb.StartAmfs(ip, a, ngapHandler)
+						go Lb.StartAmfs(ip, a, ngapHandler)
 					} else {
 						logger.CfgLog.Errorf("port conversion to int failed")
 					}
@@ -363,7 +363,6 @@ func (Lb *Load) StartAmfs(amfIP string, amfPort int, ngapHandler ngap_service.NG
 	ngap_service.StartAmf(amf, Lb.lbAddr, amfIP, amfPort, ngapHandler)
 	// fmt.Println("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
 	initLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
-	
 }
 
 
