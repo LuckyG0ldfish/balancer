@@ -11,8 +11,8 @@ configuration:
     - 127.0.0.1
     - 127.0.0.1
   amfNgapPortList: 
+    - 38000
     - 38412
-    - 38413
   # amfNgapIp2: 
   # amfNgapPort2: 38413
 

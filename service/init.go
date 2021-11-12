@@ -339,6 +339,7 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 				for i := 0; i < len(self.NewAmfIpList); i++  {
 					ip = self.NewAmfIpList[i]
 					port = self.NewAmfPortList[i]
+					logger.NgapLog.Tracef("connecting to: " + ip + ":" + port)
 					if a, err := strconv.Atoi(port); err == nil {
 						go Lb.StartAmfs(ip, a, ngapHandler)
 					} else {

@@ -34,11 +34,11 @@
 //  )
  
  type Configuration struct {
-	 LbName                          string                    `yaml:"lbName,omitempty"`
-	 NgapIp                      	 string                  		`yaml:"ngapIp,omitempty"`
-	 NgapPort						 int
-	 AmfNgapIpList					 []string
-	 AmfNgapPortList				 []string
+	 LbName                          string                    	`yaml:"lbName,omitempty"`
+	 NgapIp                      	 string                  	`yaml:"ngapIp,omitempty"`
+	 NgapPort						 int						`yaml:"ngapPort,omitempty"`
+	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
+	 AmfNgapPortList				 []string					`yaml:"amfNgapPortList,omitempty"`
 	//  Sbi                             *Sbi                      `yaml:"sbi,omitempty"`
 	//  NetworkFeatureSupport5GS        *NetworkFeatureSupport5GS `yaml:"networkFeatureSupport5GS,omitempty"`
 	//  ServiceNameList                 []string                  `yaml:"serviceNameList,omitempty"`
