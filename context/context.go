@@ -31,7 +31,12 @@ type LBContext struct {
 	NfId               	string
 
 	LbIP 				string
-	LbPort				int
+
+	LbToAmfPort			int 
+	LbToAmfAddr			*sctp.SCTPAddr
+
+	LbListenPort		int
+	LbListenAddr		*sctp.SCTPAddr
 
 	Running 			bool
 

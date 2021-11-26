@@ -103,19 +103,7 @@ func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
 			return err
 		}
 	}
-
 	Lb.setLogLevel()
-
-	// Lb.LbContext = context.LB_Self()
-	// Lb.LbContext.LbIP = LbIP
-	// Lb.LbContext.LbPort = LbGnbPort
-	// Lb.LbContext.IDGen = context.NewUeIdGen()
-	// Lb.LbContext.RelativeCapacity = 0xff
-	// addr, _ := context.GenSCTPAddr(LbIP, LbAmfPort)
-	// Lb.lbAddr = addr
-	// fmt.Println("LB init done")
-	// Lb.LbContext.Log.Error("test")
-
 	if err := factory.CheckConfigVersion(); err != nil {
 		return err
 	}
@@ -258,53 +246,6 @@ func (amf *Load) FilterCli(c *cli.Context) (args []string) {
 func (Lb *Load) Start() {
 	initLog.Infoln("Server started")
 
-
-	// ngapHandler := ngap_service.NGAPHandler{
-	// 	HandleMessage:      ngap.Dispatch,
-	// 	HandleNotification: ngap.HandleSCTPNotification,
-	// }
-
-	// // TODO add func for multiple amfs 
-	// amf := context.NewLbAmf()
-	// Lb.LbContext.Next_Amf = amf
-	// Lb.LbContext.AddAmfToLB(amf)
-	// ngap_service.StartAmf(amf, Lb.lbAddr, amfIP, amfPort, ngapHandler)
-	// fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
-	
-	// Ran Listen init()
-	// go ngap_service.Run(Lb.LbContext.LbIP, Lb.LbContext.LbPort, ngapHandler)
-
-	// TODO 
-
-
-	// router := logger_util.NewGinWithLogrus(logger.GinLog)
-	// router.Use(cors.New(cors.Config{
-	// 	AllowMethods: []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
-	// 	AllowHeaders: []string{
-	// 		"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host",
-	// 		"Token", "X-Requested-With",
-	// 	},
-	// 	ExposeHeaders:    []string{"Content-Length"},
-	// 	AllowCredentials: true,
-	// 	AllowAllOrigins:  true,
-	// 	MaxAge:           86400,
-	// }))
-
-	// httpcallback.AddService(router)
-	// oam.AddService(router)
-	// for _, serviceName := range factory.AmfConfig.Configuration.ServiceNameList {
-	// 	switch models.ServiceName(serviceName) {
-	// 	case models.ServiceName_NAMF_COMM:
-	// 		communication.AddService(router)
-	// 	case models.ServiceName_NAMF_EVTS:
-	// 		eventexposure.AddService(router)
-	// 	case models.ServiceName_NAMF_MT:
-	// 		mt.AddService(router)
-	// 	case models.ServiceName_NAMF_LOC:
-	// 		location.AddService(router)
-	// 	}
-	// }
-
 	self := context.LB_Self()
 	util.InitLbContext(self)
 
@@ -317,7 +258,7 @@ func (Lb *Load) Start() {
 
 	go Lb.InitAmfs(ngapHandler)
 
-	go ngap_service.Run(self.LbIP, self.LbPort, ngapHandler)
+	go ngap_service.Run(self.LbListenAddr, ngapHandler)
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
@@ -361,7 +302,7 @@ func (Lb *Load) StartAmfs(amfIP string, amfPort int, ngapHandler ngap_service.NG
 	amf := context.NewLbAmf()
 	// self.Next_Amf = amf
 	self.AddAmfToLB(amf)
-	ngap_service.StartAmf(amf, Lb.lbAddr, amfIP, amfPort, ngapHandler)
+	ngap_service.StartAmf(amf, self.LbToAmfAddr, amfIP, amfPort, ngapHandler)
 	// fmt.Println("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
 	initLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 }

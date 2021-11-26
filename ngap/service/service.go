@@ -41,11 +41,8 @@ var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
 	AssocInfo: &sctp.AssocInfo{AsocMaxRxt: 4},
 }
 
-func Run(ip string, port int, handler NGAPHandler) {
-	addr, err := context.GenSCTPAddr(ip, port) 
-	if err == nil {
-		go listenAndServeGNBs(addr, handler)
-	}
+func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
+	go listenAndServeGNBs(addr, handler)
 }
 
 func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
@@ -239,15 +236,18 @@ func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPC
 	amfAddr, _ := context.GenSCTPAddr(amfIP, amfPort)
 	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
 	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: Dial failed")
 		return nil, err
 	}
 	info, err := conn.GetDefaultSentParam()
 	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: failed to get DefaultSentParam")
 		return nil, err
 	}
 	info.PPID = ngap.PPID
 	err = conn.SetDefaultSentParam(info)
 	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: failed to set DefaultSentParam")
 		return nil, err
 	}
 	//setting this connection as the amf SCTPConn

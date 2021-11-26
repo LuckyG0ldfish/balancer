@@ -40,26 +40,26 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if message == nil {
-		// NGAPLog.Error("NGAP Message is nil")
+		logger.NgapLog.Error("NGAP Message is nil")
 		return
 	}
 
 	successfulOutcome := message.SuccessfulOutcome
 	if successfulOutcome == nil {
-		// NGAPLog.Error("Successful Outcome is nil")
+		logger.NgapLog.Error("Successful Outcome is nil")
 		return
 	}
 
 	ngSetupResponse := successfulOutcome.Value.NGSetupResponse
 	if ngSetupResponse == nil {
-		// NGAPLog.Error("ngSetupResponse is nil")
+		logger.NgapLog.Error("ngSetupResponse is nil")
 		return
 	}
 
 	for _, ie := range ngSetupResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-		// case ngapType.ProtocolIEIDAMFName:
-			// NGAPLog.Traceln("[NGAP] Decode IE AMFName")
+		case ngapType.ProtocolIEIDAMFName:
+			logger.NgapLog.Traceln("[NGAP] Decode IE AMFName")
 			// amfName = ie.Value.AMFName
 			// if amfName == nil {
 			// 	// NGAPLog.Errorf("AMFName is nil")
@@ -68,37 +68,40 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			// 	iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
 			// }
 		case ngapType.ProtocolIEIDServedGUAMIList:
-			// NGAPLog.Traceln("[NGAP] Decode IE ServedGUAMIList")
+			logger.NgapLog.Traceln("[NGAP] Decode IE ServedGUAMIList")
 			servedGUAMIList = ie.Value.ServedGUAMIList
 			if servedGUAMIList == nil {
-				// NGAPLog.Errorf("ServedGUAMIList is nil")
+				logger.NgapLog.Errorf("ServedGUAMIList is nil")
 				// item := buildCriticalityDiagnosticsIEItem(
 				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
 				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-				fmt.Println("plmnSupportList == nil")
+				// fmt.Println("plmnSupportList == nil")
 			}
 			LB.ServedGuamiList = servedGUAMIList
 		case ngapType.ProtocolIEIDRelativeAMFCapacity:
-			// NGAPLog.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
-			//relativeAMFCapacity = ie.Value.RelativeAMFCapacity
+			logger.NgapLog.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
+			relativeAMFCapacity := ie.Value.RelativeAMFCapacity
 			amf, ok :=LB.LbAmfFindByConn(lbConn.Conn)
 			if !ok {
 				logger.NgapLog.Errorf("AMF not found -> Capacity not set")
+				
+			} else {
+				amf.Capacity = relativeAMFCapacity.Value
+				logger.NgapLog.Traceln("[NGAP] AMFs RelativeAMFCapacity set to %d", relativeAMFCapacity.Value)
 			}
-			amf.Capacity = ie.Value.RelativeAMFCapacity.Value
 		case ngapType.ProtocolIEIDPLMNSupportList:
-			// NGAPLog.Traceln("[NGAP] Decode IE PLMNSupportList")
+			logger.NgapLog.Traceln("[NGAP] Decode IE PLMNSupportList")
 			plmnSupportList = ie.Value.PLMNSupportList
 			if plmnSupportList == nil {
-				// NGAPLog.Errorf("PLMNSupportList is nil")
+				logger.NgapLog.Errorf("PLMNSupportList is nil")
 				// item := buildCriticalityDiagnosticsIEItem(
 				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
 				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-				fmt.Println("plmnSupportList == nil")
+				// fmt.Println("plmnSupportList == nil")
 			}
 			LB.PlmnSupportList = plmnSupportList
-		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
-			// NGAPLog.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
+		case ngapType.ProtocolIEIDCriticalityDiagnostics:
+			logger.NgapLog.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
 			//criticalityDiagnostics = ie.Value.CriticalityDiagnostics
 		}
 	}
