@@ -13,7 +13,7 @@ import (
 )
 
 func InitLbContext(self *context.LBContext) {
-	config := factory.AmfConfig
+	config := factory.LbConfig
 	logger.UtilLog.Infof("amfconfig Info: Version[%s] Description[%s]", config.Info.Version, config.Info.Description)
 	configuration := config.Configuration
 	self.NfId = uuid.New().String()
@@ -71,4 +71,7 @@ func InitLbContext(self *context.LBContext) {
 	} else {
 		logger.CfgLog.Warnf("LbAddr couldn't be set")
 	}
+
+	self.IDGen = context.NewUeIdGen()
+	
 }

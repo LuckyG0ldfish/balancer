@@ -10,44 +10,30 @@ import (
 	// "sync"
 	"syscall"
 
-	// "github.com/gin-contrib/cors"
-	"fmt"
-	// "strconv"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
-	// "github.com/LuckyG0ldfish/balancer/communication"
-	// "github.com/LuckyG0ldfish/balancer/consumer"
 	"github.com/LuckyG0ldfish/balancer/context"
-	// "github.com/LuckyG0ldfish/balancer/eventexposure"
+
 	"github.com/LuckyG0ldfish/balancer/factory"
-	// "github.com/LuckyG0ldfish/balancer/httpcallback"
-	// "github.com/LuckyG0ldfish/balancer/location"
+
 	"github.com/LuckyG0ldfish/balancer/logger"
-	// "github.com/LuckyG0ldfish/balancer/mt"
+
 	"github.com/LuckyG0ldfish/balancer/ngap"
-	// ngap_message "github.com/free5gc/amf/ngap/message"
+
 	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
-	// "github.com/LuckyG0ldfish/balancer/oam"
-	// "github.com/LuckyG0ldfish/balancer/producer/callback"
+
 	"github.com/LuckyG0ldfish/balancer/util"
-	// aperLogger "github.com/free5gc/aper/logger"
-	// fsmLogger "github.com/free5gc/fsm/logger"
-	// "github.com/free5gc/http2_util"
-	// "github.com/free5gc/logger_util"
-	// nasLogger "github.com/free5gc/nas/logger"
-	// ngapLogger "github.com/free5gc/ngap/logger"
-	// openApiLogger "github.com/free5gc/openapi/logger"
-	// "github.com/free5gc/openapi/models"
+
 	"github.com/free5gc/path_util"
-	// pathUtilLogger "github.com/free5gc/path_util/logger"
+
 )
 
 type Load struct{
 	LbContext 	*context.LBContext
-	lbAddr 		*sctp.SCTPAddr
 }
 
 type (
@@ -56,13 +42,6 @@ type (
 		lbcfg string
 	}
 )
-
-// const LbIP string = "127.0.0.1"
-// const amfIP string = "127.0.0.1"
-
-// const LbGnbPort int = 48484
-// const LbAmfPort int = 32323
-// const amfPort int = 38412
 
 var config Config
 
@@ -111,16 +90,16 @@ func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
 }
 
 func (amf *Load) setLogLevel() {
-	if factory.AmfConfig.Logger == nil {
+	if factory.LbConfig.Logger == nil {
 		initLog.Warnln("AMF config without log level setting!!!")
 		return
 	}
 
-	if factory.AmfConfig.Logger.AMF != nil {
-		if factory.AmfConfig.Logger.AMF.DebugLevel != "" {
-			if level, err := logrus.ParseLevel(factory.AmfConfig.Logger.AMF.DebugLevel); err != nil {
+	if factory.LbConfig.Logger.AMF != nil {
+		if factory.LbConfig.Logger.AMF.DebugLevel != "" {
+			if level, err := logrus.ParseLevel(factory.LbConfig.Logger.AMF.DebugLevel); err != nil {
 				initLog.Warnf("AMF Log level [%s] is invalid, set to [info] level",
-					factory.AmfConfig.Logger.AMF.DebugLevel)
+					factory.LbConfig.Logger.AMF.DebugLevel)
 				logger.SetLogLevel(logrus.InfoLevel)
 			} else {
 				initLog.Infof("AMF Log level is set to [%s] level", level)
@@ -130,105 +109,26 @@ func (amf *Load) setLogLevel() {
 			initLog.Warnln("AMF Log level not set. Default set to [info] level")
 			logger.SetLogLevel(logrus.InfoLevel)
 		}
-		logger.SetReportCaller(factory.AmfConfig.Logger.AMF.ReportCaller)
+		logger.SetReportCaller(factory.LbConfig.Logger.AMF.ReportCaller)
 	}
 
-	if factory.AmfConfig.Logger.NAS != nil {
-		if factory.AmfConfig.Logger.NAS.DebugLevel != "" {
-			if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.NAS.DebugLevel); err != nil {
-				// nasLogger.NasLog.Warnf("NAS Log level [%s] is invalid, set to [info] level",
-					// factory.AmfConfig.Logger.NAS.DebugLevel)
-				logger.SetLogLevel(logrus.InfoLevel)
-			} else {
-				// nasLogger.SetLogLevel(level)
-			}
-		} else {
-			// nasLogger.NasLog.Warnln("NAS Log level not set. Default set to [info] level")
-			// nasLogger.SetLogLevel(logrus.InfoLevel)
-		}
-		// nasLogger.SetReportCaller(factory.AmfConfig.Logger.NAS.ReportCaller)
-	}
-
-	if factory.AmfConfig.Logger.NGAP != nil {
-		if factory.AmfConfig.Logger.NGAP.DebugLevel != "" {
-			if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.NGAP.DebugLevel); err != nil {
-				// ngapLogger.NgapLog.Warnf("NGAP Log level [%s] is invalid, set to [info] level",
-					// factory.AmfConfig.Logger.NGAP.DebugLevel)
-				// ngapLogger.SetLogLevel(logrus.InfoLevel)
-			} else {
-				// ngapLogger.SetLogLevel(level)
-			}
-		} else {
-			// ngapLogger.NgapLog.Warnln("NGAP Log level not set. Default set to [info] level")
-			// ngapLogger.SetLogLevel(logrus.InfoLevel)
-		}
-		// ngapLogger.SetReportCaller(factory.AmfConfig.Logger.NGAP.ReportCaller)
-	}
-
-	if factory.AmfConfig.Logger.FSM != nil {
-		if factory.AmfConfig.Logger.FSM.DebugLevel != "" {
-			if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.FSM.DebugLevel); err != nil {
-				// fsmLogger.FsmLog.Warnf("FSM Log level [%s] is invalid, set to [info] level",
-					// factory.AmfConfig.Logger.FSM.DebugLevel)
-				// fsmLogger.SetLogLevel(logrus.InfoLevel)
-			} else {
-				// fsmLogger.SetLogLevel(level)
-			}
-		} else {
-			// fsmLogger.FsmLog.Warnln("FSM Log level not set. Default set to [info] level")
-			// fsmLogger.SetLogLevel(logrus.InfoLevel)
-		}
-		// fsmLogger.SetReportCaller(factory.AmfConfig.Logger.FSM.ReportCaller)
-	}
-
-	if factory.AmfConfig.Logger.Aper != nil {
-		if factory.AmfConfig.Logger.Aper.DebugLevel != "" {
-			if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.Aper.DebugLevel); err != nil {
-				// aperLogger.AperLog.Warnf("Aper Log level [%s] is invalid, set to [info] level",
-					// factory.AmfConfig.Logger.Aper.DebugLevel)
-				// aperLogger.SetLogLevel(logrus.InfoLevel)
-			} else {
-				// aperLogger.SetLogLevel(level)
-			}
-		} else {
-			// aperLogger.AperLog.Warnln("Aper Log level not set. Default set to [info] level")
-			// aperLogger.SetLogLevel(logrus.InfoLevel)
-		}
-		// aperLogger.SetReportCaller(factory.AmfConfig.Logger.Aper.ReportCaller)
-	}
-
-	if factory.AmfConfig.Logger.PathUtil != nil {
-		if factory.AmfConfig.Logger.PathUtil.DebugLevel != "" {
-			if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.PathUtil.DebugLevel); err != nil {
-				// pathUtilLogger.PathLog.Warnf("PathUtil Log level [%s] is invalid, set to [info] level",
-					// factory.AmfConfig.Logger.PathUtil.DebugLevel)
-				// pathUtilLogger.SetLogLevel(logrus.InfoLevel)
-			} else {
-				// pathUtilLogger.SetLogLevel(level)
-			}
-		} else {
-			// pathUtilLogger.PathLog.Warnln("PathUtil Log level not set. Default set to [info] level")
-			// pathUtilLogger.SetLogLevel(logrus.InfoLevel)
-		}
-		// pathUtilLogger.SetReportCaller(factory.AmfConfig.Logger.PathUtil.ReportCaller)
-	}
-
-	if factory.AmfConfig.Logger.OpenApi != nil {
-		if factory.AmfConfig.Logger.OpenApi.DebugLevel != "" {
-			if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.OpenApi.DebugLevel); err != nil {
-				// openApiLogger.OpenApiLog.Warnf("OpenAPI Log level [%s] is invalid, set to [info] level",
-					// factory.AmfConfig.Logger.OpenApi.DebugLevel)
-				// openApiLogger.SetLogLevel(logrus.InfoLevel)
-			} else {
-				// openApiLogger.SetLogLevel(level)
-			}
-		} else {
-			// openApiLogger.OpenApiLog.Warnln("OpenAPI Log level not set. Default set to [info] level")
-			// openApiLogger.SetLogLevel(logrus.InfoLevel)
-		}
-		// openApiLogger.SetReportCaller(factory.AmfConfig.Logger.OpenApi.ReportCaller)
-	}
+	
 }
+	// if factory.AmfConfig.Logger.NGAP != nil {
+	// 	if factory.AmfConfig.Logger.NGAP.DebugLevel != "" {
+	// 		if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.NGAP.DebugLevel); err != nil {
+	// 			// ngapLogger.NgapLog.Warnf("NGAP Log level [%s] is invalid, set to [info] level",
+	// 				// factory.AmfConfig.Logger.NGAP.DebugLevel)
+	// 			// ngapLogger.SetLogLevel(logrus.InfoLevel)
+	// 		} else {
+	// 			// ngapLogger.SetLogLevel(level)
+	// 		}
+	// 	} else {
+	// 		// ngapLogger.NgapLog.Warnln("NGAP Log level not set. Default set to [info] level")
+	// 		// ngapLogger.SetLogLevel(logrus.InfoLevel)
+	// 	}
+	// 	// ngapLogger.SetReportCaller(factory.AmfConfig.Logger.NGAP.ReportCaller)
+	// }
 
 func (amf *Load) FilterCli(c *cli.Context) (args []string) {
 	for _, flag := range amf.GetCliCmd() {

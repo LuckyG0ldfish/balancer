@@ -217,6 +217,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 
 
 func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
+	self := context.LB_Self()
 	logger.NgapLog.Debugf("Connecting to amf")
 	for {
 		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
@@ -225,7 +226,8 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			amf.LbConn.Conn = conn
 			ngap_message.SendNGSetupRequest(amf.LbConn)
 			go handleConnection(amf.LbConn, readBufSize, handler)
-			logger.NgapLog.Debugf("Connecting to amf")
+			logger.NgapLog.Debugf("Connected to amf")
+			self.Next_Amf = amf
 			break
 		}
 		time.Sleep(2 * time.Second)

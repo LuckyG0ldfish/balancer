@@ -13,16 +13,16 @@
 	 "github.com/LuckyG0ldfish/balancer/logger"
  )
  
- var AmfConfig Config
+ var LbConfig Config
  
  // TODO: Support configuration update from REST api
  func InitConfigFactory(f string) error {
 	 if content, err := ioutil.ReadFile(f); err != nil {
 		 return err
 	 } else {
-		 AmfConfig = Config{}
+		 LbConfig = Config{}
  
-		 if yamlErr := yaml.Unmarshal(content, &AmfConfig); yamlErr != nil {
+		 if yamlErr := yaml.Unmarshal(content, &LbConfig); yamlErr != nil {
 			 return yamlErr
 		 }
 	 }
@@ -31,7 +31,7 @@
  }
  
  func CheckConfigVersion() error {
-	 currentVersion := AmfConfig.GetVersion()
+	 currentVersion := LbConfig.GetVersion()
  
 	 if currentVersion != AMF_EXPECTED_CONFIG_VERSION {
 		 return fmt.Errorf("config version is [%s], but expected is [%s].",

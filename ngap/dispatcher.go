@@ -1,9 +1,6 @@
 package ngap
 
 import (
-	// "net"
-
-	// "fmt"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
 
@@ -32,22 +29,12 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 		// ran.Remove()
 		return
 	}
-	msgCopy := make([]byte, len(msg))
-	copy(msgCopy, msg)
-
-	// ran, ok := lbSelf.LbGnbFindByConn(lbConn.Conn)
-	// if !ok {
-	// 	logger.NgapLog.Infof("Create a new NG connection for: %s", lbConn.Conn.RemoteAddr().String())
-	// 	ran = lbSelf.AddGnbToLB(lbConn.Conn)
-	// }
 
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
 		// ran.Log.Errorf("NGAP decode error : %+v", err)
 		return
 	}
-
-	// lbConn = ran.LbConn
 
 	switch pdu.Present {
 	case ngapType.NGAPPDUPresentInitiatingMessage:
