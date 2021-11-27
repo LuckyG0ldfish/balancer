@@ -1542,48 +1542,49 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
-		// logger.NgapLog.Error("ran is nil")
+		logger.NgapLog.Errorf("ran is nil")
 		return
 	}
 	if message == nil {
-		// lbConn.Log.Error("NGAP Message is nil")
+		lbConn.Log.Errorf("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		// lbConn.Log.Error("Initiating Message is nil")
+		lbConn.Log.Errorf("Initiating Message is nil")
 		return
 	}
 	HandoverCancel := initiatingMessage.Value.HandoverCancel
 	if HandoverCancel == nil {
-		// lbConn.Log.Error("Handover Cancel is nil")
+		lbConn.Log.Errorf("Handover Cancel is nil")
 		return
 	}
 
-	// lbConn.Log.Info("Handle Handover Cancel")
+	lbConn.Log.Infoln("Handle Handover Cancel")
+
 	for i := 0; i < len(HandoverCancel.ProtocolIEs.List); i++ {
 		ie := HandoverCancel.ProtocolIEs.List[i]
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDAMFUENGAPID:
 			aMFUENGAPID = ie.Value.AMFUENGAPID
-			// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
 			if aMFUENGAPID == nil {
-				// lbConn.Log.Error("AMFUENGAPID is nil")
+				lbConn.Log.Errorf("AMFUENGAPID is nil")
 				return
 			}
 		case ngapType.ProtocolIEIDRANUENGAPID:
 			rANUENGAPID = ie.Value.RANUENGAPID
-			// lbConn.Log.Trace("Decode IE RanUeNgapID")
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
 			if rANUENGAPID == nil {
-				// lbConn.Log.Error("RANUENGAPID is nil")
+				lbConn.Log.Errorf("RANUENGAPID is nil")
 				return
 			}
 		case ngapType.ProtocolIEIDCause:
 			cause = ie.Value.Cause
-			// lbConn.Log.Trace("Decode IE Cause")
+			lbConn.Log.Traceln("Decode IE Cause")
 			if cause == nil {
-				// lbConn.Log.Error(cause, "cause is nil")
+				// lbConn.Log.Errorf(cause, "cause is nil")
 				return
 			}
 		}
@@ -1859,7 +1860,7 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {

@@ -122,12 +122,6 @@ func BuildNGSetupRequestHelp() (pdu ngapType.NGAPPDU) {
 
 func BuildNGSetupResponse() ([]byte, error) {
 	LB := context.LB_Self()
-	// pkt, err := BuildNGSetupResponse()
-	// if err != nil {
-	// 	// lb.Log.Errorf("Build NGSetupResponse failed : %s", err.Error())
-	// 	fmt.Println("BuildNGSetupResponse failed")
-	// 	return
-	// }
 	pkt, err := ngap.Encoder(*LB.NGSetupRes)
 	if err != nil {
 		// lb.Log.Errorf("Build NGSetupResponse failed : %s", err.Error())
