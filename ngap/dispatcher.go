@@ -21,18 +21,15 @@ func Dispatch(lbConn *context.LBConn, msg []byte) {
 }
 
 func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
-	// var lbConn *context.LBConn
-	// lbSelf := context.LB_Self()
-
 	if len(msg) == 0 {
-		// ran.Log.Infof("RAN close the connection.")
+		lbConn.Log.Infof("RAN close the connection.")
 		// ran.Remove()
 		return
 	}
 
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
-		// ran.Log.Errorf("NGAP decode error : %+v", err)
+		lbConn.Log.Errorf("NGAP decode error : %+v", err)
 		return
 	}
 
@@ -40,7 +37,7 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 	case ngapType.NGAPPDUPresentInitiatingMessage:
 		initiatingMessage := pdu.InitiatingMessage
 		if initiatingMessage == nil {
-			// lbConn.Log.Errorln("Initiating Message is nil")
+			lbConn.Log.Errorln("Initiating Message is nil")
 			return
 		}
 		switch initiatingMessage.ProcedureCode.Value {
@@ -276,7 +273,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 	case ngapType.NGAPPDUPresentUnsuccessfulOutcome:
 		unsuccessfulOutcome := pdu.UnsuccessfulOutcome
 		if unsuccessfulOutcome == nil {
-			// NGAPLog.Errorln("Unsuccessful Outcome is nil")
+			logger.NgapLog.Errorf("Unsuccessful Outcome is nil")
 			return
 		}
 

@@ -89,7 +89,7 @@ func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
 	return nil 
 }
 
-func (amf *Load) setLogLevel() {
+func (lb *Load) setLogLevel() {
 	if factory.LbConfig.Logger == nil {
 		initLog.Warnln("AMF config without log level setting!!!")
 		return
@@ -254,33 +254,13 @@ func (Lb *Load) StartAmfs(amfIP string, amfPort int, ngapHandler ngap_service.NG
 // 	return err
 // }
 
-// Used in AMF planned removal procedure
+// Used in LB planned removal procedure
 func (Lb *Load) Terminate() {
 	logger.InitLog.Infof("Terminating LB...")
 	lbSelf := context.LB_Self()
 
-	// TODO: forward registered UE contexts to target AMF in the same AMF set if there is one
-
-	// // deregister with NRF
-	// problemDetails, err := consumer.SendDeregisterNFInstance()
-	// if problemDetails != nil {
-	// 	logger.InitLog.Errorf("Deregister NF instance Failed Problem[%+v]", problemDetails)
-	// } else if err != nil {
-	// 	logger.InitLog.Errorf("Deregister NF instance Error[%+v]", err)
-	// } else {
-	// 	logger.InitLog.Infof("[AMF] Deregister from NRF successfully")
-	// }
-
-	// send AMF status indication to ran to notify ran that this AMF will be unavailable
-	// logger.InitLog.Infof("Send LB Status Indication to Notify RANs due to LB terminating")
-	// unavailableGuamiList := ngap_message.BuildUnavailableGUAMIList(lbSelf.ServedGuamiList)
-	// for _, ran := range lbSelf.LbRanPool {
-	// 	ngap_message.SendAMFStatusIndication(ran, unavailableGuamiList)
-	// } TODO
-
 	lbSelf.Running = false 
 	ngap_service.Stop()
 
-	// callback.SendAmfStatusChangeNotify((string)(models.StatusChange_UNAVAILABLE), lbSelf.ServedGuamiList)
-	// logger.InitLog.Infof("LB terminated")
+	logger.InitLog.Infof("LB terminated")
 }

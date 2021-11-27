@@ -1,15 +1,11 @@
 package util
 
 import (
-	// "os"
-
 	"github.com/google/uuid"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/factory"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	// "github.com/free5gc/nas/security"
-	// "github.com/free5gc/openapi/models"
 )
 
 func InitLbContext(self *context.LBContext) {

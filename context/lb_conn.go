@@ -1,7 +1,8 @@
 package context
 
-import(
+import (
 	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/sirupsen/logrus"
 )
 
 const TypeIdNotThere 	int	= 0
@@ -13,6 +14,9 @@ type LBConn struct{
 	ID 			int64 				// internal AMF/GNB ID that is connected with Conn 
 	TypeID 		int 				// type identifier of the connected AMF/GNB 
 	Conn 		*sctp.SCTPConn		// actual connection to AMF/GNB 
+
+	/* logger */
+	Log 			*logrus.Entry
 }
 
 // creates, initializes and returns a new *LbConn
