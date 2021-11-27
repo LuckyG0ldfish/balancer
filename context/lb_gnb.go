@@ -3,7 +3,6 @@ package context
 import (
 	"sync"
 
-	//"github.com/ishidawataru/sctp"
 	"github.com/sirupsen/logrus"
 )
 

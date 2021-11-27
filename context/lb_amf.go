@@ -1,16 +1,10 @@
 package context
 
 import (
-	// "fmt"
 	"sync"
-	// "time"
-
-	// "git.cs.nctu.edu.tw/calee/sctp"
-
+	
 	"github.com/sirupsen/logrus"
 )
-
-// const lbPPID uint32 = 0x3c000000
 
 const TypeIdRegistAMF 		int	= 0
 const TypeIdRegularAMF 		int	= 1
@@ -33,7 +27,6 @@ type LbAmf struct {
 }
 
 func (amf *LbAmf) FindUeByUeRanID(id int64) (*LbUe, bool){
-	//var ue LbUe
 	ue, _ := amf.Ues.Load(id)
 	ue2, ok :=  ue.(*LbUe)
 	return ue2, ok

@@ -125,7 +125,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		
 		// add connection as new GNBConn 
 		lbSelf := context.LB_Self()
-		ran := lbSelf.AddGnbToLB(newConn)
+		ran := lbSelf.AddNewGnbToLB(newConn)
 		logger.ContextLog.Tracef("LB_GNB created")
 		// fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 		go handleConnection(ran.LbConn, readBufSize, handler)

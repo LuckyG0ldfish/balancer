@@ -1,7 +1,6 @@
 package context 
 
 import (
-	// "github.com/ishidawataru/sctp"
 	"github.com/sirupsen/logrus"
 )
 

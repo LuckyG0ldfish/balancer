@@ -4,13 +4,13 @@ info:
 
 configuration:
   lbName: LB # the name of this LB
-  ngapIp: "10.162.149.214"    
-  ngapListenPort: 48484
-  ngapLbToAmfPort: 23232
-  amfNgapIpList: 
+  ngapIp: "10.162.149.214" # IP of this LB 
+  ngapListenPort: 48484 # port of this LB that listens to incoming GNB connections 
+  ngapLbToAmfPort: 23232  # port of this LB that connects to the AMFs 
+  amfNgapIpList: # on launch known AMF-IPs 
     - 10.162.149.189
     #- 127.0.0.1
-  amfNgapPortList: 
+  amfNgapPortList: # on launch known AMF-ports 
     - 38412
     #- 38000
 

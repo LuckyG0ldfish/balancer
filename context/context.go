@@ -20,11 +20,6 @@ var (
 	lbContext = LBContext{}
 )
 
-// func init() {
-// 	LB_Self().Name = "lb"
-// 	//LB_Self().NetworkName.Full = "free5GC"
-// }
-
 type LBContext struct {
 	Name 				string
 	// NetworkName   		factory.NetworkName
@@ -40,7 +35,7 @@ type LBContext struct {
 
 	Running 			bool
 
-	NewAmf				bool
+	NewAmf				bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
 	NewAmfIpList 		[]string 
 	NewAmfPortList		[]string 
 	
@@ -67,40 +62,49 @@ func NewLBContext() (LbContext *LBContext){
 }
 
 func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
-	// if mes, err := ngap.Encoder(*message); err == nil {
-	// }
-	ue.AmfID = lb.Next_Amf.AmfID
-	_, ok := lb.Next_Amf.Ues.Load(ue.UeLbID)
 	if lb.Next_Amf == nil {
-		logger.NgapLog.Errorf("No Connected AMF")
+		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
 		return 
 	}
+
+	// Temporarily stores the pointer to the chosen AMF so no 
+	// parallelized process will change it during runtime 
+	next := lb.Next_Amf
+
+	// Checks whether an UE with this UeLbID already exists 
+	// and otherwise adds it 
+	ue.AmfID = next.AmfID
+	_, ok := next.Ues.Load(ue.UeLbID)
 	if ok {
 		logger.NgapLog.Errorf("UE already exists")
 		return 
 	} 
-	lb.Next_Amf.Ues.Store(ue.UeLbID, ue)
+	next.Ues.Store(ue.UeLbID, ue)
 
+	// Forwarding the message
 	var mes []byte
 	mes, _  = ngap.Encoder(*message)
-	lb.Next_Amf.LbConn.Conn.Write(mes)
-	lb.Next_Amf.Capacity -= 1
-	lb.SelectNextAmf()
-	logger.NgapLog.Debugf("forward to nextAMF:")
+	next.LbConn.Conn.Write(mes)
+	next.Capacity -= 1
+	logger.NgapLog.Debugf("Forward to nextAMF:")
 	logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
 	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
+	
+	// Felecting AMF that will be used for the next new UE 
+	lb.SelectNextAmf()
 }
 
 func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
+	
+	
+	// finding the correct AMF by the in UE stored AMF-ID 
 	amf, ok := lb.LbAmfFindByID(ue.AmfID)
-	// if mes, err := ngap.Encoder(*message); err == nil {	
-	// }
 	if ok {
 		var mes []byte
 		mes, _  = ngap.Encoder(*message)
 		amf.LbConn.Conn.Write(mes)
-		logger.NgapLog.Debugf("forward to AMF:")
-		logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
+		logger.NgapLog.Debugf("Message forwarded to AMF")
+		logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 		logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 	} else {
 		logger.NgapLog.Errorf("AMF not found")
@@ -108,22 +112,22 @@ func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue 
 }
 
 func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { //*ngapType.NGAPPDU
+	
+	// finding the correct GNB by the in UE stored AMF-ID 
 	gnb, ok := lb.LbGnbFindByID(ue.RanID)
-	// if mes, err := ngap.Encoder(*message); err == nil {	
-	// }
 	if ok {
 		var mes []byte
 		mes, _  = ngap.Encoder(*message)
 		gnb.LbConn.Conn.Write(mes)
-		logger.NgapLog.Debugf("forward to GNB:")
-		logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
+		logger.NgapLog.Debugf("Message forwarded to GNB")
+		logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 		logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 	} else {
 		logger.NgapLog.Errorf("GNB not found")
 	}
 }
 
-// use net.Conn to find RAN context, return *AmfRan and ok bit
+// use sctp.SCTPConn to find RAN context, return *LbRan and true if found
 func (context *LBContext) LbGnbFindByConn(conn *sctp.SCTPConn) (*LbGnb, bool) {
 	for _, v := range context.LbRanPool {
 		if v.LbConn.Conn == conn {
@@ -133,6 +137,7 @@ func (context *LBContext) LbGnbFindByConn(conn *sctp.SCTPConn) (*LbGnb, bool) {
 	return nil, false
 }
 
+// use ID to find RAN context, return *LbRan and true if found
 func (context *LBContext) LbGnbFindByID(ranID int64) (*LbGnb, bool) {
 	for _, v := range context.LbRanPool {
 		if v.GnbID == ranID {
@@ -142,6 +147,7 @@ func (context *LBContext) LbGnbFindByID(ranID int64) (*LbGnb, bool) {
 	return nil, false
 }
 
+// use sctp.SCTPConn to find AMF context, return *LBAmf and true if found
 func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
 	for _, v := range context.LbAmfPool {
 		if v.LbConn.Conn == conn {
@@ -151,6 +157,7 @@ func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
 	return nil, false
 }
 
+// use ID to find AMF context, return *LbAmf and true if found
 func (context *LBContext) LbAmfFindByID(amfID int64) (*LbAmf, bool) {
 	for _, v := range context.LbAmfPool {
 		if v.AmfID == amfID {
@@ -160,6 +167,7 @@ func (context *LBContext) LbAmfFindByID(amfID int64) (*LbAmf, bool) {
 	return nil, false
 }
 
+// use UeID to find UE context, return *AmfRan and true if found
 func (context *LBContext) LbAmfFindByUeID(UeID int64) (*LbAmf, bool) {
 	for _, Amf := range context.LbAmfPool {
 		if check := Amf.ContainsUE(UeID); check {
@@ -169,6 +177,7 @@ func (context *LBContext) LbAmfFindByUeID(UeID int64) (*LbAmf, bool) {
 	return nil, false
 }
 
+// use sctp.SCTPConn to find RAN context, return *AmfRan and true if found
 func (context *LBContext) LbGnbFindByUeID(UeID int64) (*LbGnb, *LbUe, bool) {
 	for _, Gnb := range context.LbRanPool {
 		if ue, check := Gnb.Ues.Load(UeID); check {
@@ -182,13 +191,15 @@ func (context *LBContext) LbGnbFindByUeID(UeID int64) (*LbGnb, *LbUe, bool) {
 	return nil, nil, false
 }
 
-func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{
+// use sctp.SCTPConn to find RAN context, return *AmfRan and true if found
+func (context *LBContext) AddNewGnbToLB(conn *sctp.SCTPConn) *LbGnb{
 	gnb := NewLbGnb()
 	gnb.LbConn.Conn = conn
 	context.LbRanPool = append(context.LbRanPool, gnb)
 	return gnb
 }
 
+// 
 func (context *LBContext) AddAmfToLB(amf *LbAmf) *LbAmf{
 	context.LbAmfPool = append(context.LbAmfPool, amf)
 	return amf
