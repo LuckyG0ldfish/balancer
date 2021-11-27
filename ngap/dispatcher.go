@@ -23,7 +23,7 @@ func Dispatch(lbConn *context.LBConn, msg []byte) {
 func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 	if len(msg) == 0 {
 		lbConn.Log.Infof("RAN close the connection.")
-		// ran.Remove()
+		// ran.Remove() TODO
 		return
 	}
 
@@ -111,12 +111,12 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 			logger.NgapLog.Tracef("Handling UplinkNonUEAssociatedNRPPATransport")
 			amf_ngap.HandleUplinkNonUEAssociatedNRPPATransport(lbConn, pdu)
 		default:
-			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, initiatingMessage.ProcedureCode.Value)
+			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, initiatingMessage.ProcedureCode.Value)
 		}
 	case ngapType.NGAPPDUPresentSuccessfulOutcome:
 		successfulOutcome := pdu.SuccessfulOutcome
 		if successfulOutcome == nil {
-			// lbConn.Log.Errorln("successful Outcome is nil")
+			lbConn.Log.Errorln("successful Outcome is nil")
 			return
 		}
 		switch successfulOutcome.ProcedureCode.Value {
@@ -151,12 +151,12 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 			logger.NgapLog.Tracef("Handling HandoverRequestAcknowledge")
 			amf_ngap.HandleHandoverRequestAcknowledge(lbConn, pdu)
 		default:
-			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, successfulOutcome.ProcedureCode.Value)
+			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, successfulOutcome.ProcedureCode.Value)
 		}
 	case ngapType.NGAPPDUPresentUnsuccessfulOutcome:
 		unsuccessfulOutcome := pdu.UnsuccessfulOutcome
 		if unsuccessfulOutcome == nil {
-			// lbConn.Log.Errorln("unsuccessful Outcome is nil")
+			lbConn.Log.Errorf("unsuccessful Outcome is nil")
 			return
 		}
 		switch unsuccessfulOutcome.ProcedureCode.Value {
@@ -173,7 +173,7 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 			logger.NgapLog.Tracef("Handling HandoverFailure")
 			amf_ngap.HandleHandoverFailure(lbConn, pdu)
 		default:
-			// lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, unsuccessfulOutcome.ProcedureCode.Value)
+			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, unsuccessfulOutcome.ProcedureCode.Value)
 		}
 	}
 }

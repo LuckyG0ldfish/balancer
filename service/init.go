@@ -200,59 +200,10 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 func (Lb *Load) StartAmfs(amfIP string, amfPort int, ngapHandler ngap_service.NGAPHandler) {
 	self := context.LB_Self()
 	amf := context.NewLbAmf()
-	// self.Next_Amf = amf
 	self.AddAmfToLB(amf)
 	ngap_service.StartAmf(amf, self.LbToAmfAddr, amfIP, amfPort, ngapHandler)
-	// fmt.Println("connected to amf: IP " + self.NewAmfIp + " Port: " + strconv.Itoa(self.NewAmfPort))
 	initLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 }
-
-
-// func (Lb *Load) Exec(c *cli.Context) error {
-// 	// AMF.Initialize(cfgPath, c)
-
-// 	initLog.Traceln("args:", c.String("amfcfg"))
-// 	args := Lb.FilterCli(c)
-// 	initLog.Traceln("filter: ", args)
-// 	command := exec.Command("./amf", args...)
-
-// 	stdout, err := command.StdoutPipe()
-// 	if err != nil {
-// 		initLog.Fatalln(err)
-// 	}
-// 	wg := sync.WaitGroup{}
-// 	wg.Add(3)
-// 	go func() {
-// 		in := bufio.NewScanner(stdout)
-// 		for in.Scan() {
-// 			fmt.Println(in.Text())
-// 		}
-// 		wg.Done()
-// 	}()
-
-// 	stderr, err := command.StderrPipe()
-// 	if err != nil {
-// 		initLog.Fatalln(err)
-// 	}
-// 	go func() {
-// 		in := bufio.NewScanner(stderr)
-// 		for in.Scan() {
-// 			fmt.Println(in.Text())
-// 		}
-// 		wg.Done()
-// 	}()
-
-// 	go func() {
-// 		if err = command.Start(); err != nil {
-// 			initLog.Errorf("LB Start error: %+v", err)
-// 		}
-// 		wg.Done()
-// 	}()
-
-// 	wg.Wait()
-
-// 	return err
-// }
 
 // Used in LB planned removal procedure
 func (Lb *Load) Terminate() {
