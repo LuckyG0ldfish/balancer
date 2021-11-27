@@ -8,24 +8,26 @@ import (
 
 var nextGnbID int64 = 1
 
+// Type, that stores all relevant information of connected GNBs 
 type LbGnb struct{
-	GnbID 		int64
-	LbConn 		*LBConn
-	Ues 		sync.Map
+	GnbID 		int64			// INTERNAL ID for this GNB
+	
+	LbConn 		*LBConn			// stores all the connection related information 
+	Ues 		sync.Map		// "list" of all UE that are processed by this GNB
 
 	/* logger */
 	Log 		*logrus.Entry
 }
 
+// creates, initializes and returns a new *LbGnb
 func NewLbGnb() (*LbGnb){
 	var gnb LbGnb
 	gnb.GnbID = nextGnbID
-	gnb.LbConn = NewLBConn()
-	gnb.LbConn.ID = nextGnbID
-	gnb.LbConn.TypeID = TypeIdGNBConn
+	gnb.LbConn = newLBConn(nextGnbID, TypeIdGNBConn)
 	nextGnbID++
 	return &gnb
 }
+
 
 func (gnb *LbGnb) FindUeByUeRanID(id int64) (*LbUe, bool){
 	//var ue LbUe
@@ -34,6 +36,7 @@ func (gnb *LbGnb) FindUeByUeRanID(id int64) (*LbUe, bool){
 	return ue2, ok
 }
 
+// takes UeID and returns true if UE exists in the GNBs list 
 func (gnb *LbGnb) ContainsUE(id int64) (cont bool) {
 	_, cont = gnb.Ues.Load(id)
 	return 
