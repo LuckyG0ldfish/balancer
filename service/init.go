@@ -114,21 +114,6 @@ func (lb *Load) setLogLevel() {
 
 	
 }
-	// if factory.AmfConfig.Logger.NGAP != nil {
-	// 	if factory.AmfConfig.Logger.NGAP.DebugLevel != "" {
-	// 		if /*level*/_, err := logrus.ParseLevel(factory.AmfConfig.Logger.NGAP.DebugLevel); err != nil {
-	// 			// ngapLogger.NgapLog.Warnf("NGAP Log level [%s] is invalid, set to [info] level",
-	// 				// factory.AmfConfig.Logger.NGAP.DebugLevel)
-	// 			// ngapLogger.SetLogLevel(logrus.InfoLevel)
-	// 		} else {
-	// 			// ngapLogger.SetLogLevel(level)
-	// 		}
-	// 	} else {
-	// 		// ngapLogger.NgapLog.Warnln("NGAP Log level not set. Default set to [info] level")
-	// 		// ngapLogger.SetLogLevel(logrus.InfoLevel)
-	// 	}
-	// 	// ngapLogger.SetReportCaller(factory.AmfConfig.Logger.NGAP.ReportCaller)
-	// }
 
 func (amf *Load) FilterCli(c *cli.Context) (args []string) {
 	for _, flag := range amf.GetCliCmd() {
@@ -149,8 +134,6 @@ func (Lb *Load) Start() {
 	self := context.LB_Self()
 	util.InitLbContext(self)
 
-	// addr := fmt.Sprintf("%s:%d", self.BindingIPv4, self.SBIPort)
-
 	ngapHandler := ngap_service.NGAPHandler{
 		HandleMessage:      ngap.Dispatch,
 		HandleNotification: ngap.HandleSCTPNotification,
@@ -169,6 +152,7 @@ func (Lb *Load) Start() {
 	}()
 }
 
+// Continuesly checks whether new AMFs have to be added 
 func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 	self := context.LB_Self()
 	for {
@@ -176,28 +160,29 @@ func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
 		if self.NewAmf {
 			var ip string 
 			var port string  
-			if len(self.NewAmfIpList) == len(self.NewAmfPortList) {
+			if len(self.NewAmfIpList) != len(self.NewAmfPortList) {
+				logger.CfgLog.Errorf("length of IP-List and Port-List aren't identical")
+			} else {
 				for i := 0; i < len(self.NewAmfIpList); i++  {
 					ip = self.NewAmfIpList[i]
 					port = self.NewAmfPortList[i]
 					logger.NgapLog.Tracef("connecting to: " + ip + ":" + port)
 					if a, err := strconv.Atoi(port); err == nil {
-						go Lb.StartAmfs(ip, a, ngapHandler)
+						go Lb.CreateAndStartAmf(ip, a, ngapHandler)
 					} else {
 						logger.CfgLog.Errorf("port conversion to int failed")
 					}
 				}
-			} else {
-				logger.CfgLog.Errorf("length of IP-List and Port-List aren't identical")
 			}
+			self.NewAmfPortList = []string{}
+			self.NewAmfIpList = []string{}
+			self.NewAmf = false
 		}
-		self.NewAmfPortList = []string{}
-		self.NewAmfIpList = []string{}
-		self.NewAmf = false
 	}
 }
 
-func (Lb *Load) StartAmfs(amfIP string, amfPort int, ngapHandler ngap_service.NGAPHandler) {
+// 
+func (Lb *Load) CreateAndStartAmf(amfIP string, amfPort int, ngapHandler ngap_service.NGAPHandler) {
 	self := context.LB_Self()
 	amf := context.NewLbAmf()
 	self.AddAmfToLB(amf)

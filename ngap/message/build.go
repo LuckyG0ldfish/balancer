@@ -1,15 +1,18 @@
 package message
 
 import (
-	"fmt"
+	// "fmt"
 
 	"github.com/LuckyG0ldfish/balancer/context"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap"
+
 	// "github.com/free5gc/ngap/ngapConvert"
 	"github.com/free5gc/ngap/ngapType"
 )
 
+// Builds NGSetupRequest
 func BuildNGSetupRequest(gnbId []byte, bitlength uint64, name string) ([]byte, error) {
 	message := BuildNGSetupRequestHelp()
 	// GlobalRANNodeID
@@ -23,6 +26,7 @@ func BuildNGSetupRequest(gnbId []byte, bitlength uint64, name string) ([]byte, e
 	return ngap.Encoder(message)
 }
 
+// Helps building NGSetupRequest
 func BuildNGSetupRequestHelp() (pdu ngapType.NGAPPDU) {
 
 	pdu.Present = ngapType.NGAPPDUPresentInitiatingMessage
@@ -120,12 +124,12 @@ func BuildNGSetupRequestHelp() (pdu ngapType.NGAPPDU) {
 	return pdu
 }
 
+// TODO: Builds NGSetupResponse
 func BuildNGSetupResponse() ([]byte, error) {
 	LB := context.LB_Self()
 	pkt, err := ngap.Encoder(*LB.NGSetupRes)
 	if err != nil {
-		// lb.Log.Errorf("Build NGSetupResponse failed : %s", err.Error())
-		fmt.Println("BuildNGSetupResponse failed")
+		logger.NgapLog.Errorf("Build NGSetupResponse failed : %s", err.Error())
 		return nil, err
 	}
 	return pkt, nil
@@ -215,6 +219,7 @@ func BuildNGSetupResponse() ([]byte, error) {
 // 	return ngap.Encoder(pdu)
 // }
 
+// Builds NGSetupFailure | requires cause 
 func BuildNGSetupFailure(cause ngapType.Cause) ([]byte, error) {
 	var pdu ngapType.NGAPPDU
 	pdu.Present = ngapType.NGAPPDUPresentUnsuccessfulOutcome
