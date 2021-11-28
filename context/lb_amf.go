@@ -2,7 +2,6 @@ package context
 
 import (
 	"sync"
-	
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,24 +15,29 @@ var nextAmfID int64 = 1
 type LbAmf struct {
 	AmfID  			int64 			// INTERNAL ID for this AMF 
 
-	AmfTypeIdent 	int 			// identifies the type of AMF 
+	AmfTypeIdent 	int 			// Identifies the type of AMF 
 
 	Capacity 		int64 			// AMFs Relative Cap. -> extracted out of NGSetup
 
-	LbConn 			*LBConn 		// stores all the connection related information 
-	Ues    			sync.Map 		// "list" of all UE that are processed by this AMF 
+	LbConn 			*LBConn 		// Stores all the connection related information 
+	Ues    			sync.Map 		// "List" of all UE that are processed by this AMF 
 
 	/* logger */
 	Log 			*logrus.Entry
 }
 
-func (amf *LbAmf) FindUeByUeRanID(id int64) (*LbUe, bool){
-	ue, _ := amf.Ues.Load(id)
+// Use a UE-ID to find UE context, return *LbUe and true if found
+func (amf *LbAmf) FindUeByUeID(id int64) (*LbUe, bool){
+	ue, ok := amf.Ues.Load(id)
+	if !ok {
+		amf.Log.Errorf("UE not found")
+		return nil, false
+	}
 	ue2, ok :=  ue.(*LbUe)
 	return ue2, ok
 }
 
-// creates, initializes and returns a new *LbAmf
+// Creates, initializes and returns a new *LbAmf
 func NewLbAmf() *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID

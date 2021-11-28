@@ -28,12 +28,12 @@ type LBContext struct {
 	LbIP 				string
 
 	LbToAmfPort			int 
-	LbToAmfAddr			*sctp.SCTPAddr
+	LbToAmfAddr			*sctp.SCTPAddr 	
 
 	LbListenPort		int
 	LbListenAddr		*sctp.SCTPAddr
 
-	Running 			bool
+	Running 			bool 	// true while the LB is not beeing terminated 
 
 	NewAmf				bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
 	NewAmfIpList 		[]string 
@@ -57,9 +57,13 @@ type LBContext struct {
 	Log 	*logrus.Entry
 }
 
-func NewLBContext() (LbContext *LBContext){
-	return 
+// Creates and returns a new *LBContext
+func NewLBContext() (*LBContext){
+	var new LBContext
+	new.IDGen = newUeIdGen()
+	return &new
 }
+
 
 func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
 	if lb.Next_Amf == nil {
@@ -90,41 +94,57 @@ func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU,
 	logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
 	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 	
-	// Felecting AMF that will be used for the next new UE 
+	// Selecting AMF that will be used for the next new UE 
 	lb.SelectNextAmf()
 }
 
-func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
-	
-	
+// 
+func (lb *LBContext) ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 	// finding the correct AMF by the in UE stored AMF-ID 
 	amf, ok := lb.LbAmfFindByID(ue.AmfID)
-	if ok {
-		var mes []byte
-		mes, _  = ngap.Encoder(*message)
-		amf.LbConn.Conn.Write(mes)
-		logger.NgapLog.Debugf("Message forwarded to AMF")
-		logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-		logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
-	} else {
+	if !ok {
 		logger.NgapLog.Errorf("AMF not found")
+		return 
 	}
+	
+	// Encoding 
+	var mes []byte
+	mes, err := ngap.Encoder(*message)
+	if err != nil {
+		logger.NgapLog.Errorf("Message encoding failed")	
+		return 
+	}
+
+	// Forwarding 
+	SendByteToConn(amf.LbConn.Conn, mes)
+	logger.NgapLog.Debugf("Message forwarded to AMF")
+	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
+	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 }
 
-func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { //*ngapType.NGAPPDU
-	
+// 
+func (lb *LBContext) ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
 	// finding the correct GNB by the in UE stored AMF-ID 
 	gnb, ok := lb.LbGnbFindByID(ue.RanID)
-	if ok {
-		var mes []byte
-		mes, _  = ngap.Encoder(*message)
-		gnb.LbConn.Conn.Write(mes)
-		logger.NgapLog.Debugf("Message forwarded to GNB")
-		logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-		logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
-	} else {
+	if !ok {
 		logger.NgapLog.Errorf("GNB not found")
+		return 
 	}
+	
+	// Encoding 
+	var mes []byte
+	mes, err := ngap.Encoder(*message)
+	if err != nil {
+		logger.NgapLog.Errorf("Message encoding failed")	
+		return 
+	}
+
+	// Forwarding
+	SendByteToConn(gnb.LbConn.Conn, mes)
+	logger.NgapLog.Debugf("Message forwarded to GNB")
+	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
+	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
+	
 }
 
 // use sctp.SCTPConn to find RAN context, return *LbRan and true if found
@@ -205,7 +225,7 @@ func (context *LBContext) AddAmfToLB(amf *LbAmf) *LbAmf{
 	return amf
 }
 
-// TODO
+// TODO: 
 func (context *LBContext) SelectNextAmf() bool{
 	if context.LbAmfPool == nil {
 		logger.ContextLog.Errorf("No AMF found")

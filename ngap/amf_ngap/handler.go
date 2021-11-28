@@ -141,7 +141,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -319,7 +319,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -378,7 +378,7 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -439,7 +439,7 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -499,7 +499,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -560,8 +560,6 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			ue.UeRanID = rANUENGAPIDInt
 			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
-			// var empty *context.LbUe
-			// ues := append(empty, ue)
 			gnb.Ues.Store(rANUENGAPIDInt, ue)
 			LB.ForwardToNextAmf(lbConn, message, ue)
 			lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
@@ -626,7 +624,7 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -685,7 +683,7 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -744,7 +742,7 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 		}
@@ -817,7 +815,7 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -876,7 +874,7 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -935,7 +933,7 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -994,7 +992,7 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 		}
@@ -1053,7 +1051,7 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1112,7 +1110,7 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1174,7 +1172,7 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1235,7 +1233,7 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1366,7 +1364,7 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1527,7 +1525,7 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1593,8 +1591,8 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	if lbConn.TypeID == context.TypeIdAMFConn {
 		amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
 		lbConn.Log.Traceln("AMF Found")
-		UE, _ := amf.FindUeByUeRanID(rANUENGAPID.Value)
-		LB.ForwardToGnb(lbConn, message, UE)
+		UE, _ := amf.FindUeByUeID(rANUENGAPID.Value)
+		LB.ForwardToGnb(message, UE)
 		return
 	}
 	if lbConn.TypeID == context.TypeIdGNBConn {
@@ -1604,7 +1602,7 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			lbConn.Log.Errorf("UE not found")
 			return 
 		}
-		LB.ForwardToAmf(lbConn, message, UE)
+		LB.ForwardToAmf(message, UE)
 		return
 	}
 }
@@ -1662,7 +1660,7 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1721,7 +1719,7 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 		}
@@ -1875,7 +1873,7 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -1989,7 +1987,7 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -2049,7 +2047,7 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -2215,7 +2213,7 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}
@@ -2274,7 +2272,7 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					LB.ForwardToAmf(lbConn, message, ue)
+					LB.ForwardToAmf(message, ue)
 				}
 			}
 	}

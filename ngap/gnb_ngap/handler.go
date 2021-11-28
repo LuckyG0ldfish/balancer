@@ -117,7 +117,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 						lbConn.Log.Errorf("AMF not registered")
 						return 
 					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
+					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
 						return 
@@ -126,7 +126,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(lbConn, message, ue)
+					LB.ForwardToGnb(message, ue)
 				}
 		}
 	}
@@ -267,7 +267,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 						lbConn.Log.Errorf("Amf not registered")
 						return 
 					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
+					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
 						return 
@@ -276,7 +276,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(lbConn, message, ue)
+					LB.ForwardToGnb(message, ue)
 				}
 		}	
 	}
@@ -333,7 +333,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 						lbConn.Log.Errorf("AMF not registered")
 						return 
 					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
+					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
 						return 
@@ -342,7 +342,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(lbConn, message, ue)
+					LB.ForwardToGnb(message, ue)
 				}
 		}
 	}
@@ -400,7 +400,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 						logger.NgapLog.Errorf("Amf not registered")
 						return 
 					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
+					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						logger.NgapLog.Errorf("UE not registered")
 						return 
@@ -409,7 +409,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(lbConn, message, ue)
+					LB.ForwardToGnb(message, ue)
 				}
 		}
 	}

@@ -19,7 +19,7 @@ type LbGnb struct{
 	Log 		*logrus.Entry
 }
 
-// creates, initializes and returns a new *LbGnb
+// Creates, initializes and returns a new *LbGnb
 func NewLbGnb() (*LbGnb){
 	var gnb LbGnb
 	gnb.GnbID = nextGnbID
@@ -28,6 +28,7 @@ func NewLbGnb() (*LbGnb){
 	return &gnb
 }
 
+// Use a UE-ID to find UE context, return *LbUe and true if found
 func (gnb *LbGnb) FindUeByUeRanID(id int64) (*LbUe, bool){
 	ue, _ := gnb.Ues.Load(id)
 	ue2, ok :=  ue.(*LbUe)

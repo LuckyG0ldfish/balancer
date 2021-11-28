@@ -67,7 +67,4 @@ func InitLbContext(self *context.LBContext) {
 	} else {
 		logger.CfgLog.Warnf("LbAddr couldn't be set")
 	}
-
-	self.IDGen = context.NewUeIdGen()
-	
 }
