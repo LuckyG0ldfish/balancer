@@ -24,9 +24,6 @@ func init() {
 }
 
 func main() {	
-	// LB.Initialize()
-	// LB.Start()
-
 	app := cli.NewApp()
 	app.Name = "lb"
 	appLog.Infoln(app.Name)

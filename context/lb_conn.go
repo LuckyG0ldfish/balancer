@@ -2,6 +2,7 @@ package context
 
 import (
 	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,5 +26,6 @@ func newLBConn(id int64, typeID int) (*LBConn){
 	var lbConn LBConn
 	lbConn.ID = id
 	lbConn.TypeID = typeID 
+	lbConn.Log = logger.LbConnLog
 	return &lbConn
 }

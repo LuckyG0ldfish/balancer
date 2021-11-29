@@ -2,6 +2,8 @@ package context
 
 import (
 	"sync"
+
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,6 +44,7 @@ func NewLbAmf() *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID
 	amf.LbConn = newLBConn(nextAmfID, TypeIdAMFConn)
+	amf.Log = logger.AMFLog
 	nextAmfID++
 	return &amf
 }

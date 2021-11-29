@@ -30,8 +30,7 @@ var readTimeout syscall.Timeval = syscall.Timeval{Sec: 2, Usec: 0}
 
 var (
 	sctpListener 	*sctp.SCTPListener
-	connections  	sync.Map
-	ID 				int64
+	connections  	sync.Map	
 )
 
 var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
@@ -40,12 +39,96 @@ var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
 	AssocInfo: &sctp.AssocInfo{AsocMaxRxt: 4},
 }
 
-// Starting listen and serving of GNBs 
+// Starts all NGAP related services
 func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
+	// All AMFs related services started 
+	go InitAmfs(handler)
+	
+	// All GNBs related services started 
 	go listenAndServeGNBs(addr, handler)
 }
 
-// Listens to incoming connections and servers them 
+// Continuesly checks whether new AMFs have to be added 
+func InitAmfs(ngapHandler NGAPHandler) {
+	self := context.LB_Self()
+	for {
+		if !self.Running { return }
+		if self.NewAmf {
+			var ip string 
+			var port string  
+			if len(self.NewAmfIpList) != len(self.NewAmfPortList) {
+				logger.CfgLog.Errorf("length of IP-List and Port-List aren't identical")
+			} else {
+				for i := 0; i < len(self.NewAmfIpList); i++  {
+					ip = self.NewAmfIpList[i]
+					port = self.NewAmfPortList[i]
+					logger.NgapLog.Tracef("connecting to: " + ip + ":" + port)
+					if a, err := strconv.Atoi(port); err == nil {
+						go CreateAndStartAmf(ip, a, ngapHandler)
+					} else {
+						logger.CfgLog.Errorf("port conversion to int failed")
+					}
+				}
+			}
+			// Resets to accept more 
+			self.NewAmfPortList = []string{}
+			self.NewAmfIpList = []string{}
+			self.NewAmf = false
+		}
+	}
+}
+
+// Creates AMF and initializes the starting process
+func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler) {
+	self := context.LB_Self()
+	amf := context.NewLbAmf()
+	self.AddAmfToLB(amf)
+	StartAmf(amf, self.LbToAmfAddr, amfIP, amfPort, ngapHandler)
+}
+
+// Initializes LB to AMF communication and starts handling the connection 
+func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
+	self := context.LB_Self()
+	logger.NgapLog.Debugf("Connecting to amf")
+	for {
+		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
+		if err == nil {
+			amf.LbConn.Conn = conn
+			ngap_message.SendNGSetupRequest(amf.LbConn)
+			go handleConnection(amf.LbConn, readBufSize, handler)
+			logger.NgapLog.Debugf("Connected to amf")
+			self.Next_Amf = amf
+			connections.Store(amf.LbConn, *amf.LbConn)
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
+
+// Establishes a SCTP connection to an AMF 
+func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPConn, error) {
+	amfAddr, _ := context.GenSCTPAddr(amfIP, amfPort)
+	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
+	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: Dial failed")
+		return nil, err
+	}
+	info, err := conn.GetDefaultSentParam()
+	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: failed to get DefaultSentParam")
+		return nil, err
+	}
+	info.PPID = ngap.PPID
+	err = conn.SetDefaultSentParam(info)
+	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: failed to set DefaultSentParam")
+		return nil, err
+	}
+	logger.NgapLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
+	return conn, nil
+}
+
+// Listens to incoming connections and servers them (GNBs)
 func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 	if listener, err := sctpConfig.Listen("sctp", addr); err != nil {
 		logger.NgapLog.Errorf("Failed to listen: %+v", err)
@@ -122,21 +205,20 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		}
 
 		logger.NgapLog.Infof("[LB] SCTP Accept from: %s", newConn.RemoteAddr().String())
-		connections.Store(newConn, newConn)
+		
 		
 		// add connection as new GNBConn 
 		lbSelf := context.LB_Self()
 		ran := lbSelf.AddNewGnbToLB(newConn)
 		logger.ContextLog.Tracef("LB_GNB created")
+		connections.Store(ran.LbConn, *ran.LbConn)
 		go handleConnection(ran.LbConn, readBufSize, handler)
-		ran.LbConn.ID = ID 
-		connections.Store(ID, ran.LbConn)	
-		ID ++ 
 	}
 }
 
 // Closes all connections 
 func Stop() {
+
 	logger.NgapLog.Infof("Close SCTP server...")
 	if err := sctpListener.Close(); err != nil {
 		logger.NgapLog.Error(err)
@@ -144,7 +226,10 @@ func Stop() {
 	}
 
 	connections.Range(func(key, value interface{}) bool {
-		lbConn := value.(*context.LBConn)
+		lbConn, ok := value.(context.LBConn)
+		if !ok {
+			logger.NgapLog.Errorf("couldn't be converted")
+		}
 		if err := lbConn.Conn.Close(); err != nil {
 			logger.NgapLog.Error(err)
 		}
@@ -208,47 +293,3 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 	}
 }
-
-// Initializes LB to AMF communication and starts handling the connection 
-func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
-	self := context.LB_Self()
-	logger.NgapLog.Debugf("Connecting to amf")
-	for {
-		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
-		if err == nil {
-			amf.LbConn.Conn = conn
-			ngap_message.SendNGSetupRequest(amf.LbConn)
-			go handleConnection(amf.LbConn, readBufSize, handler)
-			logger.NgapLog.Debugf("Connected to amf")
-			self.Next_Amf = amf
-			amf.LbConn.ID = ID
-			connections.Store(ID, amf.LbConn)
-			ID++
-			break
-		}
-		time.Sleep(2 * time.Second)
-	}
-}
-
-// Establishes a SCTP connection to an AMF 
-func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPConn, error) {
-	amfAddr, _ := context.GenSCTPAddr(amfIP, amfPort)
-	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
-	if err != nil {
-		logger.NgapLog.Warnf("Connection Failed: Dial failed")
-		return nil, err
-	}
-	info, err := conn.GetDefaultSentParam()
-	if err != nil {
-		logger.NgapLog.Warnf("Connection Failed: failed to get DefaultSentParam")
-		return nil, err
-	}
-	info.PPID = ngap.PPID
-	err = conn.SetDefaultSentParam(info)
-	if err != nil {
-		logger.NgapLog.Warnf("Connection Failed: failed to set DefaultSentParam")
-		return nil, err
-	}
-	return conn, nil
-}
-

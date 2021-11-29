@@ -13,7 +13,7 @@ type UeIdGen struct{
 }
 
 // Creates, initializes and returns a new *UeIdGen
-func newUeIdGen() *UeIdGen{
+func NewUeIdGen() *UeIdGen{
 	var UeIdGen UeIdGen
 	UeIdGen.ListEmpty = true 
 	UeIdGen.Recycled = list.New()

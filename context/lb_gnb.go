@@ -3,6 +3,7 @@ package context
 import (
 	"sync"
 
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,6 +25,7 @@ func NewLbGnb() (*LbGnb){
 	var gnb LbGnb
 	gnb.GnbID = nextGnbID
 	gnb.LbConn = newLBConn(nextGnbID, TypeIdGNBConn)
+	gnb.Log = logger.GNBLog
 	nextGnbID++
 	return &gnb
 }

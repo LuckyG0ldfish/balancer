@@ -60,7 +60,6 @@ type LBContext struct {
 // Creates and returns a new *LBContext
 func NewLBContext() (*LBContext){
 	var new LBContext
-	new.IDGen = newUeIdGen()
 	return &new
 }
 

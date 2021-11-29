@@ -17,6 +17,9 @@ var (
 	AMFHandlerLog  	*logrus.Entry
 	GNBHandlerLog  	*logrus.Entry
 	UtilLog     	*logrus.Entry
+	LbConnLog		*logrus.Entry
+	AMFLog			*logrus.Entry
+	GNBLog 			*logrus.Entry
 )
 
 const (
@@ -46,6 +49,9 @@ func init() {
 	AMFHandlerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "AMFHandler"})
 	GNBHandlerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "GNBHandler"})
 	UtilLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Util"})
+	LbConnLog = log.WithFields(logrus.Fields{"component": "LB", "category": "LBConn"})
+	AMFLog = log.WithFields(logrus.Fields{"component": "LB", "category": "AMF"})
+	GNBLog = log.WithFields(logrus.Fields{"component": "LB", "category": "GNB"})
 }
 
 func SetLogLevel(level logrus.Level) {

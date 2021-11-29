@@ -1,13 +1,8 @@
 package service
 
 import (
-	// "bufio"
-	// "fmt"
 	"os"
-	"strconv"
-	// "os/exec"
 	"os/signal"
-	// "sync"
 	"syscall"
 
 
@@ -71,7 +66,6 @@ func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
 		lbcfg: c.String("lbcfg"),
 	}
 
-	// lb = NewLB()
 	if config.lbcfg != "" {
 		if err := factory.InitConfigFactory(config.lbcfg); err != nil {
 			return err
@@ -139,8 +133,7 @@ func (Lb *Load) Start() {
 		HandleNotification: ngap.HandleSCTPNotification,
 	}
 
-	go Lb.InitAmfs(ngapHandler)
-
+	// Starting NGAP Services
 	go ngap_service.Run(self.LbListenAddr, ngapHandler)
 
 	signalChannel := make(chan os.Signal, 1)
@@ -152,43 +145,9 @@ func (Lb *Load) Start() {
 	}()
 }
 
-// Continuesly checks whether new AMFs have to be added 
-func (Lb *Load) InitAmfs(ngapHandler ngap_service.NGAPHandler) {
-	self := context.LB_Self()
-	for {
-		if !self.Running { return }
-		if self.NewAmf {
-			var ip string 
-			var port string  
-			if len(self.NewAmfIpList) != len(self.NewAmfPortList) {
-				logger.CfgLog.Errorf("length of IP-List and Port-List aren't identical")
-			} else {
-				for i := 0; i < len(self.NewAmfIpList); i++  {
-					ip = self.NewAmfIpList[i]
-					port = self.NewAmfPortList[i]
-					logger.NgapLog.Tracef("connecting to: " + ip + ":" + port)
-					if a, err := strconv.Atoi(port); err == nil {
-						go Lb.CreateAndStartAmf(ip, a, ngapHandler)
-					} else {
-						logger.CfgLog.Errorf("port conversion to int failed")
-					}
-				}
-			}
-			self.NewAmfPortList = []string{}
-			self.NewAmfIpList = []string{}
-			self.NewAmf = false
-		}
-	}
-}
 
-// 
-func (Lb *Load) CreateAndStartAmf(amfIP string, amfPort int, ngapHandler ngap_service.NGAPHandler) {
-	self := context.LB_Self()
-	amf := context.NewLbAmf()
-	self.AddAmfToLB(amf)
-	ngap_service.StartAmf(amf, self.LbToAmfAddr, amfIP, amfPort, ngapHandler)
-	initLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
-}
+
+
 
 // Used in LB planned removal procedure
 func (Lb *Load) Terminate() {
