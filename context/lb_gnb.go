@@ -3,6 +3,7 @@ package context
 import (
 	"sync"
 
+	"git.cs.nctu.edu.tw/calee/sctp"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -20,8 +21,17 @@ type LbGnb struct{
 	Log 		*logrus.Entry
 }
 
+// use sctp.SCTPConn to find RAN context, return *AmfRan and true if found
+func CreateAndAddNewGnbToLB(conn *sctp.SCTPConn) *LbGnb{
+	self := LB_Self()
+	gnb := newLbGnb()
+	gnb.LbConn.Conn = conn
+	self.LbRanPool.Store(conn, gnb)
+	return gnb
+}
+
 // Creates, initializes and returns a new *LbGnb
-func NewLbGnb() (*LbGnb){
+func newLbGnb() *LbGnb{
 	var gnb LbGnb
 	gnb.GnbID = nextGnbID
 	gnb.LbConn = newLBConn(nextGnbID, TypeIdGNBConn)

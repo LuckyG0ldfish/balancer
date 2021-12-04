@@ -81,8 +81,7 @@ func InitAmfs(ngapHandler NGAPHandler) {
 // Creates AMF and initializes the starting process
 func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler) {
 	self := context.LB_Self()
-	amf := context.NewLbAmf()
-	self.AddAmfToLB(amf)
+	amf := context.CreateAndAddAmfToLB()
 	StartAmf(amf, self.LbToAmfAddr, amfIP, amfPort, ngapHandler)
 }
 
@@ -208,8 +207,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		
 		
 		// add connection as new GNBConn 
-		lbSelf := context.LB_Self()
-		ran := lbSelf.AddNewGnbToLB(newConn)
+		ran := context.CreateAndAddNewGnbToLB(newConn)
 		logger.ContextLog.Tracef("LB_GNB created")
 		connections.Store(ran.LbConn, *ran.LbConn)
 		go handleConnection(ran.LbConn, readBufSize, handler)

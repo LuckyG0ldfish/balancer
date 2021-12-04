@@ -2,7 +2,7 @@ package context
 
 import (
 	"sync"
-
+	
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -39,8 +39,16 @@ func (amf *LbAmf) FindUeByUeID(id int64) (*LbUe, bool){
 	return ue2, ok
 }
 
+// 
+func CreateAndAddAmfToLB() *LbAmf{
+	self := LB_Self()
+	amf := newLbAmf()
+	self.LbAmfPool.Store(amf.LbConn.Conn, amf)
+	return amf
+}
+
 // Creates, initializes and returns a new *LbAmf
-func NewLbAmf() *LbAmf {
+func newLbAmf() *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID
 	amf.LbConn = newLBConn(nextAmfID, TypeIdAMFConn)

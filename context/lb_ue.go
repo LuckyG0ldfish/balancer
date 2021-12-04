@@ -17,7 +17,10 @@ type LbUe struct{
 	UeAmfId 		int64		// ID given to the UE by AMF
 	
 	RanID			int64		// LB-internal ID of GNB that issued the UE 
+	RanPointer 		*LbGnb
+
 	AmfID		 	int64		// LB-internal ID of AMF that processes the UE  
+	AmfPointer		*LbAmf
 
 	/* logger */
 	Log 			*logrus.Entry

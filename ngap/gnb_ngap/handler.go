@@ -126,7 +126,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue)
 				}
 		}
 	}
@@ -276,7 +276,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue)
 				}
 		}	
 	}
@@ -342,7 +342,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue)
 				}
 		}
 	}
@@ -409,7 +409,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
 					}
-					LB.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue)
 				}
 		}
 	}
