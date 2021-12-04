@@ -45,7 +45,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		case ngapType.ProtocolIEIDRelativeAMFCapacity:
 			lbConn.Log.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
 			relativeAMFCapacity := ie.Value.RelativeAMFCapacity
-			amf, ok :=LB.LbAmfFindByConn(lbConn.Conn)
+			amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
 			if !ok {
 				lbConn.Log.Errorf("AMF not found -> Capacity not set")
 				
@@ -68,8 +68,6 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Initial Context Setup Request")
-
-	LB := context.LB_Self()
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -112,11 +110,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 				if rANUENGAPID == nil {
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-					if !ok {
-						lbConn.Log.Errorf("AMF not registered")
-						return 
-					}
+					amf := lbConn.AmfPointer
 					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
@@ -218,8 +212,6 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Downlink NAS Transport")
 
-	LB := context.LB_Self()
-
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -262,11 +254,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				if rANUENGAPID == nil {
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-					if !ok {
-						lbConn.Log.Errorf("Amf not registered")
-						return 
-					}
+					amf := lbConn.AmfPointer
 					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
@@ -284,8 +272,6 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Setup Request")
-
-	LB := context.LB_Self()
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -328,11 +314,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 				if rANUENGAPID == nil {
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-					if !ok {
-						lbConn.Log.Errorf("AMF not registered")
-						return 
-					}
+					amf := lbConn.AmfPointer
 					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
@@ -351,8 +333,6 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 // TODO
 func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Release Command")
-	
-	LB := context.LB_Self()
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -395,11 +375,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 				if rANUENGAPID == nil {
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-					if !ok {
-						logger.NgapLog.Errorf("Amf not registered")
-						return 
-					}
+					amf := lbConn.AmfPointer
 					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						logger.NgapLog.Errorf("UE not registered")

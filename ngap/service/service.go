@@ -97,6 +97,7 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			go handleConnection(amf.LbConn, readBufSize, handler)
 			logger.NgapLog.Debugf("Connected to amf")
 			self.Next_Amf = amf
+			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
 			break
 		}

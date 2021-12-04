@@ -2,7 +2,7 @@ package context
 
 import (
 	"sync"
-	
+
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -32,10 +32,14 @@ type LbAmf struct {
 func (amf *LbAmf) FindUeByUeID(id int64) (*LbUe, bool){
 	ue, ok := amf.Ues.Load(id)
 	if !ok {
-		amf.Log.Errorf("UE not found")
-		return nil, false
+		amf.Log.Errorf("UE is not registered to this AMF")
+		return nil, false 
 	}
 	ue2, ok :=  ue.(*LbUe)
+	if !ok {
+		amf.Log.Errorf("couldn't be converted")
+		return nil, false 
+	}
 	return ue2, ok
 }
 
@@ -52,6 +56,7 @@ func newLbAmf() *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID
 	amf.LbConn = newLBConn(nextAmfID, TypeIdAMFConn)
+	amf.LbConn.AmfPointer = &amf
 	amf.Log = logger.AMFLog
 	nextAmfID++
 	return &amf

@@ -16,6 +16,8 @@ type LBConn struct{
 	TypeID 		int 				// type identifier of the connected AMF/GNB 
 	Conn 		*sctp.SCTPConn		// actual connection to AMF/GNB 
 
+	RanPointer 	*LbGnb
+	AmfPointer 	*LbAmf
 	/* logger */
 	Log 			*logrus.Entry
 }
