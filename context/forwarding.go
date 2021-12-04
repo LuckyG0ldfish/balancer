@@ -23,6 +23,7 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	// Checks whether an UE with this UeLbID already exists 
 	// and otherwise adds it 
 	ue.AmfID = next.AmfID
+	ue.AmfPointer = next
 	_, ok := next.Ues.Load(ue.UeLbID)
 	if ok {
 		logger.NgapLog.Errorf("UE already exists")
@@ -45,7 +46,7 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 
 // 
 func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
-	// finding the correct AMF by the in UE stored AMF-ID 
+	// finding the correct AMF by the in UE stored AMF-Pointer 
 	amf := ue.AmfPointer
 	
 	// Encoding 
@@ -65,7 +66,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 
 // 
 func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
-	// finding the correct GNB by the in UE stored AMF-ID 
+	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.RanPointer
 	
 	// Encoding 

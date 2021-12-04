@@ -2,10 +2,11 @@ package context
 
 import (
 	"container/list"
-	"fmt" 
-) 
+	
+	"github.com/LuckyG0ldfish/balancer/logger"
+)
 
-// Generator for UE-IDs 
+// Generator for UE-IDs
 type UeIdGen struct{
 	ListEmpty 		bool
 	Recycled 		*list.List
@@ -43,7 +44,7 @@ func (gen *UeIdGen) NextID() int64 {
 // Takes unused IDs and makes them available for reuse 
 func (gen *UeIdGen) RecycleID(id int64) {
 	gen.Recycled.InsertAfter(id, gen.Recycled.Back())
-	fmt.Println("ID recycled: %d", id)
+	logger.ContextLog.Traceln("ID recycled: %d", id)
 }
 
 func (gen *UeIdGen) checkEmpty() {
@@ -57,6 +58,6 @@ func (gen *UeIdGen) checkEmpty() {
 func (gen *UeIdGen) addOne() int64{
 	id := gen.RegularID
 	gen.RegularID++
-	fmt.Println("New ID generated")
+	logger.ContextLog.Traceln("New ID generated")
 	return id
 }

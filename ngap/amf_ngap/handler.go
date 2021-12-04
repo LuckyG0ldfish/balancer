@@ -561,12 +561,12 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
 			gnb.Ues.Store(rANUENGAPIDInt, ue)
+			ue.RanPointer = gnb
 			context.ForwardToNextAmf(lbConn, message, ue)
 			lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 		} else {
 			lbConn.Log.Errorf("No GNB")
 		}
-
 		return
 	}
 }
@@ -1302,11 +1302,11 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 			ue.UeLbID = UeLbID
 			ue.RanID = gnb.GnbID
 			gnb.Ues.Store(rANUENGAPID.Value, ue)
+			ue.RanPointer = gnb
 			context.ForwardToNextAmf(lbConn, message, ue)
 		} else {
 			logger.NgapLog.Errorf("No GNB found")
 		}
-
 		return
 	}
 }
