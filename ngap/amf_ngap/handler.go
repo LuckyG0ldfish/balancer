@@ -1,5 +1,7 @@
 package amf_ngap
 
+// This handles messages incoming from GNB with the functions of the AMFs handler 
+
 import (
 	"strconv"
 

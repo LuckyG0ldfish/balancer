@@ -85,27 +85,34 @@ func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
 
 // TODO: 
 func (context *LBContext) SelectNextAmf() bool{
-	var maxCapacity int64 = 0 
-	var amf *LbAmf = nil
+	
+	var amfWithMaxCap *LbAmf = context.Next_Amf
+	var amfUsage float64 = context.Next_Amf.calculateAMFUsage()
+	
 	context.LbAmfPool.Range(func(key, value interface{}) bool{
 		amfTemp, ok := value.(*LbAmf)
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}
-		if amf.Capacity > maxCapacity {
-			maxCapacity = amf.Capacity
-			amf = amfTemp
+		tempUsage := amfTemp.calculateAMFUsage()
+		
+		// chooses the AMF with the lowest Usage
+		if  amfUsage > tempUsage {
+			amfWithMaxCap = amfTemp
+			amfUsage = tempUsage
 		} 
 		return true
 	})
-	if amf == nil {
+	if amfWithMaxCap == nil {
 		logger.ContextLog.Errorf("No Amf found")
 		return true 
 	}
-	context.Next_Amf = amf
-	logger.ContextLog.Tracef("NextAMF = AMFID: %d", amf.AmfID)
+	context.Next_Amf = amfWithMaxCap
+	logger.ContextLog.Tracef("NextAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
 }
+
+
 
 func LB_Self() *LBContext {
 	return &lbContext

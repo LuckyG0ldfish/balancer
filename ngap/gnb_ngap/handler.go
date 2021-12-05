@@ -1,5 +1,7 @@
 package gnb_ngap
 
+// This handles messages incoming from AMF with the functions of the GNBs handler 
+
 import (
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
@@ -50,7 +52,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 				lbConn.Log.Errorf("AMF not found -> Capacity not set")
 				
 			} else {
-				amf.Capacity = relativeAMFCapacity.Value
+				amf.RelativeCapacity = relativeAMFCapacity.Value
 				lbConn.Log.Traceln("[NGAP] AMFs RelativeAMFCapacity set to %d", relativeAMFCapacity.Value)
 			}
 		case ngapType.ProtocolIEIDPLMNSupportList:

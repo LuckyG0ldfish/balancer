@@ -12,14 +12,18 @@ import (
 	"github.com/free5gc/ngap/ngapType"
 )
 
+// Distributes message to the correct handler based on Type of the incoming Connection 
 func Dispatch(lbConn *context.LBConn, msg []byte) {
 	if lbConn.TypeID == context.TypeIdGNBConn {
-		DispatchForMessageToAmf(lbConn, msg)
+		DispatchForMessageToAmf(lbConn, msg) 		
+	} else if lbConn.TypeID == context.TypeIdAMFConn {
+		DispatchForMessageToGnb(lbConn, msg)		
 	} else {
-		DispatchForMessageToGnb(lbConn, msg)
+		logger.NgapLog.Errorf("Connection undefiend!")
 	}
 }
 
+// This handles messages incoming from GNB with the functions of the AMFs handler 
 func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 	if len(msg) == 0 {
 		lbConn.Log.Infof("RAN close the connection.")
@@ -178,14 +182,12 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte) {
 	}
 }
 
+// This handles messages incoming from AMF with the functions of the GNBs handler 
 func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
-	// AMF SCTP address
-	// AMF context
-	// lbConn := context.LB_Self()
 	// Decode
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
-		// NGAPLog.Errorf("NGAP decode error: %+v\n", err)
+		logger.NgapLog.Errorf("NGAP decode error: %+v\n", err)
 		return
 	}
 
@@ -193,7 +195,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte) {
 	case ngapType.NGAPPDUPresentInitiatingMessage:
 		initiatingMessage := pdu.InitiatingMessage
 		if initiatingMessage == nil {
-			// NGAPLog.Errorln("Initiating Message is nil")
+			logger.NgapLog.Errorf("Initiating Message is nil")
 			return
 		}
 

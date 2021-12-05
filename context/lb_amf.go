@@ -15,17 +15,19 @@ var nextAmfID int64 = 1
 
 // Type, that stores all relevant information of connected AMFs 
 type LbAmf struct {
-	AmfID  			int64 			// INTERNAL ID for this AMF 
+	AmfID  					int64 			// INTERNAL ID for this AMF 
 
-	AmfTypeIdent 	int 			// Identifies the type of AMF 
+	AmfTypeIdent 			int 			// Identifies the type of AMF 
 
-	Capacity 		int64 			// AMFs Relative Cap. -> extracted out of NGSetup
+	LbConn 					*LBConn 		// Stores all the connection related information 
 
-	LbConn 			*LBConn 		// Stores all the connection related information 
-	Ues    			sync.Map 		// "List" of all UE that are processed by this AMF 
+	RelativeCapacity 		int64 			// AMFs Relative Cap. -> extracted out of NGSetup
+	NumberOfConnectedUEs 	int64 			// Amount of UEs that are connected to this AMF 
+	
+	Ues    					sync.Map 		// "List" of all UE that are processed by this AMF 
 
 	/* logger */
-	Log 			*logrus.Entry
+	Log 					*logrus.Entry
 }
 
 // Use a UE-ID to find UE context, return *LbUe and true if found
@@ -58,6 +60,8 @@ func newLbAmf() *LbAmf {
 	amf.LbConn = newLBConn(nextAmfID, TypeIdAMFConn)
 	amf.LbConn.AmfPointer = &amf
 	amf.Log = logger.AMFLog
+	amf.RelativeCapacity = 0 
+	amf.NumberOfConnectedUEs = 0 
 	nextAmfID++
 	return &amf
 }
@@ -68,5 +72,8 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 	return
 }
 
-
+// calculates a number reflecting the AMF-Usage that is comparable within the loadbalancer
+func (amf *LbAmf) calculateAMFUsage() float64{
+	return float64(amf.NumberOfConnectedUEs) / float64(amf.RelativeCapacity)
+}
 
