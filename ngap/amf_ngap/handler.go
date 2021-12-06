@@ -512,7 +512,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	lbConn.Log.Infoln("Handle Initial UE Message")
 
-	UeLbID := LB.IDGen.NextID()
+	UeLbID := LB.IDGen.NextNumber()
 	var rANUENGAPIDInt int64
 
 	for _, ie := range initialUEMessage.ProtocolIEs.List {
@@ -1202,7 +1202,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 
 	lbConn.Log.Infoln("Handle Path Switch Request")
 
-	UeLbID := LB.IDGen.NextID()
+	UeLbID := LB.IDGen.NextNumber()
 
 	for _, ie := range pathSwitchRequest.ProtocolIEs.List {
 		switch ie.Id.Value {

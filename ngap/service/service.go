@@ -31,6 +31,7 @@ var readTimeout syscall.Timeval = syscall.Timeval{Sec: 2, Usec: 0}
 var (
 	sctpListener 	*sctp.SCTPListener
 	connections  	sync.Map	
+	numberGen 		context.UniqueNumberGen
 )
 
 var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
@@ -41,6 +42,9 @@ var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
 
 // Starts all NGAP related services
 func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
+	self := context.LB_Self()
+	numberGen = *context.NewUniqueNumberGen(int64(self.LbToAmfPort))
+	
 	// All AMFs related services started 
 	go InitAmfs(handler)
 	
@@ -82,7 +86,12 @@ func InitAmfs(ngapHandler NGAPHandler) {
 func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler) {
 	self := context.LB_Self()
 	amf := context.CreateAndAddAmfToLB()
-	StartAmf(amf, self.LbToAmfAddr, amfIP, amfPort, ngapHandler)
+	addr, err := context.GenSCTPAddr(self.LbIP, int(numberGen.NextNumber()))
+	if err != nil {
+		logger.NgapLog.Errorln("LB-SCTP-Address couldn't be build")
+		return 
+	}
+	go StartAmf(amf, addr, amfIP, amfPort, ngapHandler)
 }
 
 // Initializes LB to AMF communication and starts handling the connection 

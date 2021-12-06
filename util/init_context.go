@@ -51,7 +51,7 @@ func InitLbContext(self *context.LBContext) {
 		logger.CfgLog.Warnf("LbAddr couldn't be set")
 	}
 	self.Running = true
-	self.IDGen = context.NewUeIdGen()
+	self.IDGen = context.NewUniqueNumberGen(1) // internal LbUe.ID for the first UE 
 
 	// adding AMFs 
 	if configuration.AmfNgapIpList != nil {

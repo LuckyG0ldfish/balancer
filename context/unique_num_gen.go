@@ -7,23 +7,23 @@ import (
 )
 
 // Generator for UE-IDs
-type UeIdGen struct{
+type UniqueNumberGen struct{
 	ListEmpty 		bool
 	Recycled 		*list.List
 	RegularID		int64
 }
 
 // Creates, initializes and returns a new *UeIdGen
-func NewUeIdGen() *UeIdGen{
-	var UeIdGen UeIdGen
+func NewUniqueNumberGen(StartNumber int64) *UniqueNumberGen{
+	var UeIdGen UniqueNumberGen
 	UeIdGen.ListEmpty = true 
 	UeIdGen.Recycled = list.New()
-	UeIdGen.RegularID = 4
+	UeIdGen.RegularID = int64(StartNumber)
 	return &UeIdGen
 }
 
 // Selects the next available LB-internal ID for a UE 
-func (gen *UeIdGen) NextID() int64 {
+func (gen *UniqueNumberGen) NextNumber() int64 {
 	if gen.ListEmpty {
 		return gen.addOne()
 	} 
@@ -42,12 +42,12 @@ func (gen *UeIdGen) NextID() int64 {
 }
 
 // Takes unused IDs and makes them available for reuse 
-func (gen *UeIdGen) RecycleID(id int64) {
+func (gen *UniqueNumberGen) RecycleNumber(id int64) {
 	gen.Recycled.InsertAfter(id, gen.Recycled.Back())
-	logger.ContextLog.Traceln("ID recycled: %d", id)
+	logger.ContextLog.Traceln("Number recycled: %d", id)
 }
 
-func (gen *UeIdGen) checkEmpty() {
+func (gen *UniqueNumberGen) checkEmpty() {
 	if gen.Recycled == nil || gen.Recycled.Len() == 0 {
 		gen.ListEmpty = true 
 		return 
@@ -55,9 +55,9 @@ func (gen *UeIdGen) checkEmpty() {
 	gen.ListEmpty = false 
 }
 
-func (gen *UeIdGen) addOne() int64{
+func (gen *UniqueNumberGen) addOne() int64{
 	id := gen.RegularID
 	gen.RegularID++
-	logger.ContextLog.Traceln("New ID generated")
+	logger.ContextLog.Traceln("New Number generated%d", id)
 	return id
 }

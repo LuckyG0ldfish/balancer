@@ -9,6 +9,7 @@ import (
 	"github.com/free5gc/ngap/ngapType"
 )
 
+// Used to forward unregistered UEs to an preselected AMF 
 func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
 	lb := LB_Self()
 	if lb.Next_Amf == nil {

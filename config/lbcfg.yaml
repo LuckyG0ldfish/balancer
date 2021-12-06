@@ -11,8 +11,8 @@ configuration:
     - 10.162.149.189
     # - 10.162.149.214
   amfNgapPortList: # on launch known AMF-ports 
-    # - 38412
     - 38412
+    # - 38412
 
 # # the kind of log output
 #   # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic

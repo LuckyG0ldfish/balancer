@@ -38,7 +38,7 @@ type LBContext struct {
 
 	Next_Amf 			*LbAmf
 
-	IDGen 				*UeIdGen
+	IDGen 				*UniqueNumberGen
 	
 	RelativeCapacity 	int64 // To build setup response
 
