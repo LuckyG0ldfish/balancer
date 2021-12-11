@@ -8,8 +8,8 @@ configuration:
   ngapListenPort: 48484 # port of this LB that listens to incoming GNB connections 
   ngapLbToAmfPort: 23232  # port of this LB that connects to the AMFs 
   amfNgapIpList: # on launch known AMF-IPs 
-    - 10.162.149.189
-    # - 10.162.149.214
+    # - 10.162.149.189
+    - 10.162.149.214
   amfNgapPortList: # on launch known AMF-ports 
     - 38412
     # - 38412

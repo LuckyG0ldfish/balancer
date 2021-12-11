@@ -112,8 +112,6 @@ func (context *LBContext) SelectNextAmf() bool{
 	return true 
 }
 
-
-
 func LB_Self() *LBContext {
 	return &lbContext
 }

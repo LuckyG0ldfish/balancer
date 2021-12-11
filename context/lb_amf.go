@@ -77,3 +77,10 @@ func (amf *LbAmf) calculateAMFUsage() float64{
 	return float64(amf.NumberOfConnectedUEs) / float64(amf.RelativeCapacity)
 }
 
+// Removes AMF-Context and closes the Connection  
+func (amf *LbAmf) RemoveAmfContext() {
+	lb := LB_Self()
+	lb.LbAmfPool.Delete(amf.LbConn.Conn)
+	amf.LbConn.Conn.Close()
+	amf = nil 
+}

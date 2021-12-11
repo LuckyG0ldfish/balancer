@@ -132,83 +132,56 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle UE Context Release Command TODO")
 
-	// var ueNgapIDs *ngapType.UENGAPIDs
-	// var cause *ngapType.Cause
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
+	var ueNgapIDs *ngapType.UENGAPIDs
+	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
-	// var ueCtx *RAN.UeContext
 	// var lbCtx = context.LB_Self()
 
-	// if message == nil {
-	// 	NGAPLog.Error("NGAP Message is nil")
-	// 	return
-	// }
+	if message == nil {
+		logger.NgapLog.Error("NGAP Message is nil")
+		return
+	}
 
-	// initiatingMessage := message.InitiatingMessage
-	// if initiatingMessage == nil {
-	// 	NGAPLog.Error("Initiating Message is nil")
-	// 	return
-	// }
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		logger.NgapLog.Error("Initiating Message is nil")
+		return
+	}
 
-	// ueContextReleaseCommand := initiatingMessage.Value.UEContextReleaseCommand
-	// if ueContextReleaseCommand == nil {
-	// 	NGAPLog.Error("UEContextReleaseCommand is nil")
-	// 	return
-	// }
+	ueContextReleaseCommand := initiatingMessage.Value.UEContextReleaseCommand
+	if ueContextReleaseCommand == nil {
+		logger.NgapLog.Error("UEContextReleaseCommand is nil")
+		return
+	}
 
-	// for _, ie := range ueContextReleaseCommand.ProtocolIEs.List {
-	// 	switch ie.Id.Value {
-	// 	case ngapType.ProtocolIEIDUENGAPIDs:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE UENGAPIDs")
-	// 		ueNgapIDs = ie.Value.UENGAPIDs
-	// 		if ueNgapIDs == nil {
-	// 			NGAPLog.Errorf("UENGAPIDs is nil")
-	// 			item := buildCriticalityDiagnosticsIEItem(
-	// 				ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-	// 			iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-	// 		}
-	// 	case ngapType.ProtocolIEIDCause:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE Cause")
-	// 		cause = ie.Value.Cause
-	// 	}
-	// }
+	for _, ie := range ueContextReleaseCommand.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDUENGAPIDs:
+			logger.NgapLog.Traceln("[NGAP] Decode IE UENGAPIDs")
+			ueNgapIDs = ie.Value.UENGAPIDs
+			if ueNgapIDs == nil {
+				logger.NgapLog.Errorf("UENGAPIDs is nil")
+				return 
+			}
+		}
+	}
 
-	// if len(iesCriticalityDiagnostics.List) > 0 {
-	// 	// TODO: send error indication
-	// 	return
-	// }
+	if len(iesCriticalityDiagnostics.List) > 0 {
+		// TODO: send error indication
+		return
+	}
 
-	// switch ueNgapIDs.Present {
-	// case ngapType.UENGAPIDsPresentUENGAPIDPair:
-	// 	ueCtx, _ = lbCtx.UePoolLoad(ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value)
-	// case ngapType.UENGAPIDsPresentAMFUENGAPID:
-	// 	// TODO: find UE according to specific AMF
-	// 	// The implementation here may have error when N3IWF need to
-	// 	// connect multiple AMFs.
-	// 	// Use UEpool in AMF context can solve this problem
-	// 	// ueCtx = amf.FindUeByAmfUeNgapID(ueNgapIDs.AMFUENGAPID.Value)
-	// }
-
-	// if ueCtx == nil {
-	// 	// TODO: send error indication(unknown local ngap ue id)
-	// 	return
-	// }
-
-	// if cause != nil {
-	// 	printAndGetCause(cause)
-	// }
-
-	// ngap_message.SendUEContextReleaseComplete(lbConn, ueCtx.AmfUeNgapId, ueCtx.RanUeNgapId)
-
-	// ueCtx.DeregisrtationFinished = true
-	// ueCtx.TimestampT8 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
-
-
-	// if err := gmm.GmmFSM.SendEvent(ueCtx.State, gmm.DeregistrationAcceptEvent, fsm.ArgsType{
-	// 	gmm.ArgRanUe:         ueCtx,
-	// }); err != nil {
-	// 	logger.GmmLog.Errorln(err)
-	// }
+	switch ueNgapIDs.Present {
+	case ngapType.UENGAPIDsPresentUENGAPIDPair:
+		// TODO
+		// ueCtx, _ = lbCtx.UePoolLoad(ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value)
+	case ngapType.UENGAPIDsPresentAMFUENGAPID:
+		// TODO: find UE according to specific AMF
+		// The implementation here may have error when N3IWF need to
+		// connect multiple AMFs.
+		// Use UEpool in AMF context can solve this problem
+		// ueCtx = amf.FindUeByAmfUeNgapID(ueNgapIDs.AMFUENGAPID.Value)
+	}
 }
 
 func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {

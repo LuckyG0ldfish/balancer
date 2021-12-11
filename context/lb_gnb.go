@@ -61,3 +61,11 @@ func (gnb *LbGnb) ContainsUE(id int64) (cont bool) {
 	_, cont = gnb.Ues.Load(id)
 	return 
 }
+
+// Removes GNB-Context and closes the Connection
+func (gnb *LbGnb) RemoveGnbContext() {
+	lb := LB_Self()
+	lb.LbRanPool.Delete(gnb.LbConn.Conn)
+	gnb.LbConn.Conn.Close()
+	gnb = nil 
+}
