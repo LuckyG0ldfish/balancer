@@ -10,7 +10,7 @@ import (
 	"github.com/LuckyG0ldfish/balancer/factory"
 	
 	"github.com/free5gc/openapi/models"
-	"github.com/free5gc/ngap/ngapType"
+	// "github.com/free5gc/ngap/ngapType"
 )
 
 var (
@@ -46,7 +46,6 @@ type LBContext struct {
 	RelativeCapacity 	int64 // To build setup response
 
 	/* temp */
-	NGSetupRes 			*ngapType.NGAPPDU
 	PlmnSupportList 	[]factory.PlmnSupportItem
 	ServedGuamiList 	[]models.Guami
 
