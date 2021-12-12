@@ -4,10 +4,13 @@ import (
 	"sync"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
-	"github.com/LuckyG0ldfish/balancer/logger"
-	"github.com/free5gc/ngap/ngapType"
-
 	"github.com/sirupsen/logrus"
+	
+	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/factory"
+	
+	"github.com/free5gc/openapi/models"
+	"github.com/free5gc/ngap/ngapType"
 )
 
 var (
@@ -44,8 +47,8 @@ type LBContext struct {
 
 	/* temp */
 	NGSetupRes 			*ngapType.NGAPPDU
-	PlmnSupportList 	*ngapType.PLMNSupportList
-	ServedGuamiList 	*ngapType.ServedGUAMIList
+	PlmnSupportList 	[]factory.PlmnSupportItem
+	ServedGuamiList 	[]models.Guami
 
 	/* logger */
 	Log 	*logrus.Entry

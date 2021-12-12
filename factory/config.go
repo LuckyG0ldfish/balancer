@@ -6,6 +6,7 @@
 
  import (
 	 "github.com/free5gc/logger_util" 
+	 "github.com/free5gc/openapi/models"
  )
  
  const (
@@ -30,7 +31,17 @@
 	 NgapLbToAmfPort				 int						`yaml:"ngapLbToAmfPort,omitempty"`
 	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
 	 AmfNgapPortList				 []string					`yaml:"amfNgapPortList,omitempty"`
+	 ServiceNameList                 []string                  `yaml:"serviceNameList,omitempty"`
+	 ServedGumaiList                 []models.Guami            `yaml:"servedGuamiList,omitempty"`
+	 SupportTAIList                  []models.Tai              `yaml:"supportTaiList,omitempty"`
+	 PlmnSupportList                 []PlmnSupportItem         `yaml:"plmnSupportList,omitempty"`
+	 SupportDnnList                  []string                  `yaml:"supportDnnList,omitempty"`
  }
+
+ type PlmnSupportItem struct {
+	PlmnId     models.PlmnId   `yaml:"plmnId"`
+	SNssaiList []models.Snssai `yaml:"snssaiList,omitempty"`
+}
 
  func (c *Config) GetVersion() string {
 	 if c.Info != nil && c.Info.Version != "" {

@@ -44,7 +44,7 @@ func (gen *UniqueNumberGen) NextNumber() int64 {
 // Takes unused IDs and makes them available for reuse 
 func (gen *UniqueNumberGen) RecycleNumber(id int64) {
 	gen.Recycled.InsertAfter(id, gen.Recycled.Back())
-	logger.ContextLog.Traceln("Number recycled: %d", id)
+	logger.ContextLog.Traceln("Number reusable: %d", id)
 }
 
 func (gen *UniqueNumberGen) checkEmpty() {
@@ -58,6 +58,5 @@ func (gen *UniqueNumberGen) checkEmpty() {
 func (gen *UniqueNumberGen) addOne() int64{
 	id := gen.RegularID
 	gen.RegularID++
-	logger.ContextLog.Traceln("New Number generated%d", id)
 	return id
 }

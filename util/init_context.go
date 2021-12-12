@@ -50,6 +50,8 @@ func InitLbContext(self *context.LBContext) {
 	} else {
 		logger.CfgLog.Warnf("LbAddr couldn't be set")
 	}
+	self.ServedGuamiList = configuration.ServedGumaiList
+	self.PlmnSupportList = configuration.PlmnSupportList
 	self.Running = true
 	self.IDGen = context.NewUniqueNumberGen(1) // internal LbUe.ID for the first UE 
 

@@ -43,7 +43,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			if servedGUAMIList == nil {
 				lbConn.Log.Errorf("ServedGUAMIList is nil")
 			}
-			LB.ServedGuamiList = servedGUAMIList
+			// LB.ServedGuamiList = servedGUAMIList
 		case ngapType.ProtocolIEIDRelativeAMFCapacity:
 			lbConn.Log.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
 			relativeAMFCapacity := ie.Value.RelativeAMFCapacity
@@ -61,7 +61,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			if plmnSupportList == nil {
 				lbConn.Log.Errorf("PLMNSupportList is nil")
 			}
-			LB.PlmnSupportList = plmnSupportList
+			// LB.PlmnSupportList = plmnSupportList
 		case ngapType.ProtocolIEIDCriticalityDiagnostics:
 			lbConn.Log.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
 		}
