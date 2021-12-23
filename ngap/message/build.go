@@ -4,7 +4,6 @@ import (
 	// "fmt"
 
 	"github.com/LuckyG0ldfish/balancer/context"
-	// "github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap"
 
