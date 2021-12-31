@@ -7,12 +7,9 @@ configuration:
   ngapIp: "10.162.149.214" # IP of this LB 
   ngapListenPort: 48484 # port of this LB that listens to incoming GNB connections 
   ngapLbToAmfPort: 23232  # port of this LB that connects to the AMFs 
-  amfNgapIpList: # on launch known AMF-IPs 
+  amfNgapIpList: # on launch known AMF-IPs (default port: 38412)
     - 10.162.149.172
     - 10.162.149.214
-  amfNgapPortList: # on launch known AMF-ports 
-    - 38412
-    - 38412
   servedGuamiList: # Guami (Globally Unique AMF ID) list supported by this AMF
     # <GUAMI> = <MCC><MNC><AMF ID>
     - plmnId: # Public Land Mobile Network ID, <PLMN ID> = <MCC><MNC>

@@ -30,7 +30,6 @@
 	 NgapListenPort					 int						`yaml:"ngapListenPort,omitempty"`
 	 NgapLbToAmfPort				 int						`yaml:"ngapLbToAmfPort,omitempty"`
 	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
-	 AmfNgapPortList				 []string					`yaml:"amfNgapPortList,omitempty"`
 	 ServedGumaiList                 []models.Guami            `yaml:"servedGuamiList,omitempty"`
 	 PlmnSupportList                 []PlmnSupportItem         `yaml:"plmnSupportList,omitempty"`
  }

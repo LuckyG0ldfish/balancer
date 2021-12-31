@@ -8,25 +8,25 @@ import (
 )
 
 var (
-	log         	*logrus.Logger
-	AppLog      	*logrus.Entry
-	InitLog     	*logrus.Entry
-	CfgLog      	*logrus.Entry
-	ContextLog  	*logrus.Entry
-	NgapLog     	*logrus.Entry
-	AMFHandlerLog  	*logrus.Entry
-	GNBHandlerLog  	*logrus.Entry
-	UtilLog     	*logrus.Entry
-	LbConnLog		*logrus.Entry
-	AMFLog			*logrus.Entry
-	GNBLog 			*logrus.Entry
+	log           *logrus.Logger
+	AppLog        *logrus.Entry
+	InitLog       *logrus.Entry
+	CfgLog        *logrus.Entry
+	ContextLog    *logrus.Entry
+	NgapLog       *logrus.Entry
+	AMFHandlerLog *logrus.Entry
+	GNBHandlerLog *logrus.Entry
+	UtilLog       *logrus.Entry
+	LbConnLog     *logrus.Entry
+	AMFLog        *logrus.Entry
+	GNBLog        *logrus.Entry
 )
 
 const (
-	FieldRanAddr     	string = "ran_addr"
-	FieldAmfAddr     	string = "amf_addr"
-	FieldLbUeNgapID 	string = "lb_ue_ngap_id"
-	FieldSupi        	string = "supi"
+	FieldRanAddr    string = "ran_addr"
+	FieldAmfAddr    string = "amf_addr"
+	FieldLbUeNgapID string = "lb_ue_ngap_id"
+	FieldSupi       string = "supi"
 )
 
 func init() {

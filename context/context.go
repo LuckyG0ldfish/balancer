@@ -34,7 +34,6 @@ type LBContext struct {
 
 	NewAmf				bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
 	NewAmfIpList 		[]string 
-	NewAmfPortList		[]string 
 	
 	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
 	LbAmfPool 			sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
