@@ -6,7 +6,7 @@ import (
 	"git.cs.nctu.edu.tw/calee/sctp"
 	"github.com/sirupsen/logrus"
 	
-	"github.com/LuckyG0ldfish/balancer/logger"
+	// "github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/LuckyG0ldfish/balancer/factory"
 	
 	"github.com/free5gc/openapi/models"
@@ -38,7 +38,9 @@ type LBContext struct {
 	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
 	LbAmfPool 			sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 
-	Next_Amf 			*LbAmf
+	Next_Regist_Amf 			*LbAmf
+	Next_Regular_Amf 			*LbAmf
+	Next_Deregist_Amf 			*LbAmf
 
 	IDGen 				*UniqueNumberGen
 	
@@ -82,35 +84,6 @@ func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
 		return nil, false
 	}
 	return amf, ok
-}
-
-// TODO: 
-func (context *LBContext) SelectNextAmf() bool{
-	
-	var amfWithMaxCap *LbAmf = context.Next_Amf
-	var amfUsage float64 = context.Next_Amf.calculateAMFUsage()
-	
-	context.LbAmfPool.Range(func(key, value interface{}) bool{
-		amfTemp, ok := value.(*LbAmf)
-		if !ok {
-			logger.NgapLog.Errorf("couldn't be converted")
-		}
-		tempUsage := amfTemp.calculateAMFUsage()
-		
-		// chooses the AMF with the lowest Usage
-		if  amfUsage > tempUsage {
-			amfWithMaxCap = amfTemp
-			amfUsage = tempUsage
-		} 
-		return true
-	})
-	if amfWithMaxCap == nil {
-		logger.ContextLog.Errorf("No Amf found")
-		return true 
-	}
-	context.Next_Amf = amfWithMaxCap
-	logger.ContextLog.Tracef("NextAMF = AMFID: %d", amfWithMaxCap.AmfID)
-	return true 
 }
 
 func LB_Self() *LBContext {

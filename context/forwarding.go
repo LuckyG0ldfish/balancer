@@ -12,14 +12,14 @@ import (
 // Used to forward unregistered UEs to an preselected AMF
 func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	lb := LB_Self()
-	if lb.Next_Amf == nil {
+	if lb.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
 		return
 	}
 
 	// Temporarily stores the pointer to the chosen AMF so no
 	// parallelized process will change it during runtime
-	next := lb.Next_Amf
+	next := lb.Next_Regist_Amf
 
 	// Checks whether an UE with this UeLbID already exists
 	// and otherwise adds it
