@@ -7,10 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const TypeIdRegistAMF 		int	= 0
-const TypeIdRegularAMF 		int	= 1
-const TypeIdDeregistAMF		int = 2
-
 var nextAmfID int64 = 1
 
 // Type, that stores all relevant information of connected AMFs 

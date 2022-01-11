@@ -41,7 +41,7 @@ func SelectNextRegistAmf() bool{
 		return false 
 	}
 
-	nextAmf := findNextAMF(StateIdRegular)
+	nextAmf := findNextAMF(TypeIdRegist)
 	context.Next_Regist_Amf = nextAmf
 	logger.ContextLog.Tracef("NextAMF = AMFID: %d", nextAmf.AmfID)
 	return true 
@@ -55,7 +55,7 @@ func SelectNextRegularAmf() bool{
 		return false 
 	}
 
-	amfWithMaxCap := findNextAMF(StateIdRegular)
+	amfWithMaxCap := findNextAMF(TypeIdRegular)
 	context.Next_Regist_Amf = amfWithMaxCap
 	logger.ContextLog.Tracef("NextRegularAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
@@ -68,7 +68,7 @@ func SelectNextDeregistAmf() bool{
 		logger.ContextLog.Errorf("No Amf found")
 		return false 
 	}
-	amfWithMaxCap := findNextAMF(StateIdDeregistration)
+	amfWithMaxCap := findNextAMF(TypeIdDeregist)
 	context.Next_Regist_Amf = amfWithMaxCap
 	logger.ContextLog.Tracef("NextDeregistAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
@@ -80,11 +80,11 @@ func findNextAMF(state int) *LbAmf{
 	var amfUsage float64
 	
 	switch state {
-	case StateIdRegistration:
+	case TypeIdRegist:
 		amfWithMaxCap = lb.Next_Regist_Amf
-	case StateIdRegular:
+	case TypeIdRegular:
 		amfWithMaxCap = lb.Next_Regular_Amf
-	case StateIdDeregistration:
+	case TypeIdDeregist:
 		amfWithMaxCap = lb.Next_Deregist_Amf
 	} 
 	amfUsage = amfWithMaxCap.calculateAMFUsage()

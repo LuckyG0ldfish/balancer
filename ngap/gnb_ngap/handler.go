@@ -138,8 +138,12 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 						lbConn.Log.Errorf("UE not registered")
 						return 
 					}
-					if ue.UeStateIdent == context.StateIdRegistration {
-						
+					if ue.UeStateIdent == context.TypeIdRegist {
+						// TODO: 
+						// change ID to TypeIdRegular
+						// remove from registration AMF context 
+						// add to next regular AMF context
+						// find next regular amf 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
 					context.ForwardToAmf(message, ue)

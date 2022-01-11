@@ -6,6 +6,10 @@ import (
 	"git.cs.nctu.edu.tw/calee/sctp"
 )
 
+const TypeIdRegist 		int	= 0
+const TypeIdRegular 		int	= 1
+const TypeIdDeregist		int = 2
+
 // Writing a slice of bytes to a sctp.SCTPConn
 func SendByteToConn(conn *sctp.SCTPConn, message []byte) {
 	conn.Write(message)
