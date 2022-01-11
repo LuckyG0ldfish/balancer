@@ -56,7 +56,7 @@ func SelectNextRegularAmf() bool{
 	}
 
 	amfWithMaxCap := findNextAMF(TypeIdRegular)
-	context.Next_Regist_Amf = amfWithMaxCap
+	context.Next_Regular_Amf = amfWithMaxCap
 	logger.ContextLog.Tracef("NextRegularAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
 }
@@ -69,7 +69,7 @@ func SelectNextDeregistAmf() bool{
 		return false 
 	}
 	amfWithMaxCap := findNextAMF(TypeIdDeregist)
-	context.Next_Regist_Amf = amfWithMaxCap
+	context.Next_Deregist_Amf = amfWithMaxCap
 	logger.ContextLog.Tracef("NextDeregistAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
 }
