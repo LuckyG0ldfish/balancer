@@ -13,7 +13,7 @@ func SendNGSetupRequest(conn *context.LBConn) {
 	lbID := 1
 
 	hexGNBID := []byte{0x00, 0x02, byte(lbID)}
-	gnbName := fmt.Sprintf("free5gc_%d", lbID)
+	gnbName := fmt.Sprintf("f5gcLB_%d", lbID)
 
 	sendMsg, err := BuildNGSetupRequest(hexGNBID, 24, gnbName)
 	if err != nil {

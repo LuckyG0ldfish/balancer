@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"git.cs.nctu.edu.tw/calee/sctp"
+	// "github.com/ishidawataru/sctp"
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
@@ -81,6 +82,32 @@ func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPC
 		logger.NgapLog.Warnf("Connection Failed: failed to set DefaultSentParam")
 		return nil, err
 	}
+	err = conn.SubscribeEvents(sctp.SCTP_EVENT_DATA_IO)
+	if err != nil {
+		logger.NgapLog.Warnf("Connection Failed: failed to SubscribeEvents")
+		return nil, err
+	}
+
+	// Change the value of the SCTP_NODELAY flag to disable the Nagle Algorithm and send packets as soon as they're available.
+	// value, err := conn.GetNoDelay()
+	// if err != nil {
+	// 	logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
+	// }
+	// logger.AppLog.Infof("[BEFORE] Boolean value of the SCTP_NODELAY flag: %v", value)
+
+
+	// err = conn.SetNoDelay(1)
+	// if err != nil {
+	// 	logger.AppLog.Errorf("Error setting SCTP_NODELAY: %v", err)
+	// }
+
+	// value, err = conn.GetNoDelay()
+	// if err != nil {
+	// 	logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
+	// }
+	// logger.AppLog.Infof("[AFTER] Boolean value of the SCTP_NODELAY flag: %v", value)
+
+
 	logger.NgapLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 	return conn, nil
 }
