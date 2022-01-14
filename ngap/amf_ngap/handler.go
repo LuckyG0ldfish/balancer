@@ -102,8 +102,8 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+					aMFUENGAPIDInt = aMFUENGAPID.Value
+					amfIDPresent = true
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
@@ -121,6 +121,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
 					if amfIDPresent {
 						ue.UeAmfId = aMFUENGAPIDInt
+						lbConn.Log.Traceln("UeAmfID set")
 					}
 					context.ForwardToGnb(message, ue)
 				}
@@ -171,22 +172,29 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		return
 	}
 
-	// var id int64
+	var id int64
+	var ue *context.LbUe
 
 	switch ueNgapIDs.Present {
 	case ngapType.UENGAPIDsPresentUENGAPIDPair:
-		// TODO
-		// ueCtx, _ = lbCtx.UePoolLoad(ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value)
-		// id = ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
-		// lbConn.AmfPointer.
+		id = ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
+		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
+		if !ok {
+			logger.NgapLog.Errorf("UE not found")
+			return 
+		}
+		ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value = ueTemp.UeRanID
+		ue = ueTemp
 	case ngapType.UENGAPIDsPresentAMFUENGAPID:
-		// TODO: find UE according to specific AMF
-		// The implementation here may have error when N3IWF need to
-		// connect multiple AMFs.
-		// Use UEpool in AMF context can solve this problem
-		// ueCtx = amf.FindUeByAmfUeNgapID(ueNgapIDs.AMFUENGAPID.Value)
-		// id = ueNgapIDs.AMFUENGAPID.Value
+		id = ueNgapIDs.AMFUENGAPID.Value
+		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
+		if !ok {
+			logger.NgapLog.Errorf("UE not found")
+			return 
+		}
+		ue = ueTemp
 	}
+	context.ForwardToGnb(message, ue)
 }
 
 func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -213,8 +221,8 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		return
 	}
 
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false
+	// var aMFUENGAPIDInt int64
+	// var amfIDPresent bool = false
 
 	for _, ie := range downlinkNASTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
@@ -224,8 +232,8 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+				// aMFUENGAPIDInt = aMFUENGAPID.Value
+				// amfIDPresent = true
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
@@ -241,9 +249,10 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
+					// if amfIDPresent {
+					// 	ue.UeAmfId = aMFUENGAPIDInt
+					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
+					// }
 					context.ForwardToGnb(message, ue)
 				}
 		}	
@@ -273,8 +282,8 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 		return
 	}
 
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false
+	// var aMFUENGAPIDInt int64
+	// var amfIDPresent bool = false
 
 	for _, ie := range pduSessionResourceSetupRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
@@ -284,8 +293,8 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+				// aMFUENGAPIDInt = aMFUENGAPID.Value
+				// amfIDPresent = true
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
@@ -301,9 +310,10 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
+					// if amfIDPresent {
+					// 	ue.UeAmfId = aMFUENGAPIDInt
+					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
+					// }
 					context.ForwardToGnb(message, ue)
 				}
 		}
@@ -334,8 +344,8 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 		return
 	}
 
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false
+	// var aMFUENGAPIDInt int64
+	// var amfIDPresent bool = false
 
 	for _, ie := range pDUSessionResourceReleaseCommand.ProtocolIEs.List {
 		switch ie.Id.Value {
@@ -345,8 +355,8 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+				// aMFUENGAPIDInt = aMFUENGAPID.Value
+				// amfIDPresent = true
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
@@ -362,9 +372,10 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
+					// if amfIDPresent {
+					// 	ue.UeAmfId = aMFUENGAPIDInt
+					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
+					// }
 					context.ForwardToGnb(message, ue)
 				}
 		}

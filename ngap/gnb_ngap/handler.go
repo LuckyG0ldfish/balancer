@@ -322,6 +322,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
 					context.ForwardToAmf(message, ue)
+					ue.RemoveUeEntirely()
 				}
 			}
 	}

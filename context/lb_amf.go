@@ -43,17 +43,20 @@ func (amf *LbAmf) FindUeByUeID(id int64) (*LbUe, bool){
 
 // Use a UEAMF-ID to find UE context, return *LbUe and true if found TODO
 func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
-	ue, ok := amf.Ues.Load(id)
-	if !ok {
-		amf.Log.Errorf("UE is not registered to this AMF")
-		return nil, false 
-	}
-	ue2, ok :=  ue.(*LbUe)
-	if !ok {
-		amf.Log.Errorf("couldn't be converted")
-		return nil, false 
-	}
-	return ue2, ok
+	var ue *LbUe
+	var ok bool = false 
+	amf.Ues.Range(func(key, value interface{}) bool{
+		ueTemp, okTemp := value.(*LbUe)
+		if !okTemp {
+			logger.NgapLog.Errorf("couldn't be converted")
+		}
+		if ueTemp.UeAmfId == id{
+			ue = ueTemp
+			ok = true 
+		}
+		return true
+	})
+	return ue, ok
 }
 
 // 
