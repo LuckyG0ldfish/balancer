@@ -171,16 +171,21 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		return
 	}
 
+	// var id int64
+
 	switch ueNgapIDs.Present {
 	case ngapType.UENGAPIDsPresentUENGAPIDPair:
 		// TODO
 		// ueCtx, _ = lbCtx.UePoolLoad(ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value)
+		// id = ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
+		// lbConn.AmfPointer.
 	case ngapType.UENGAPIDsPresentAMFUENGAPID:
 		// TODO: find UE according to specific AMF
 		// The implementation here may have error when N3IWF need to
 		// connect multiple AMFs.
 		// Use UEpool in AMF context can solve this problem
 		// ueCtx = amf.FindUeByAmfUeNgapID(ueNgapIDs.AMFUENGAPID.Value)
+		// id = ueNgapIDs.AMFUENGAPID.Value
 	}
 }
 

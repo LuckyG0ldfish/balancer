@@ -26,8 +26,23 @@ type LbAmf struct {
 	Log 					*logrus.Entry
 }
 
-// Use a UE-ID to find UE context, return *LbUe and true if found
+// Use a UELB-ID to find UE context, return *LbUe and true if found
 func (amf *LbAmf) FindUeByUeID(id int64) (*LbUe, bool){
+	ue, ok := amf.Ues.Load(id)
+	if !ok {
+		amf.Log.Errorf("UE is not registered to this AMF")
+		return nil, false 
+	}
+	ue2, ok :=  ue.(*LbUe)
+	if !ok {
+		amf.Log.Errorf("couldn't be converted")
+		return nil, false 
+	}
+	return ue2, ok
+}
+
+// Use a UEAMF-ID to find UE context, return *LbUe and true if found TODO
+func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
 	ue, ok := amf.Ues.Load(id)
 	if !ok {
 		amf.Log.Errorf("UE is not registered to this AMF")
