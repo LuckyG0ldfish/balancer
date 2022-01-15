@@ -12,7 +12,6 @@ require (
 	github.com/free5gc/path_util v1.0.0
 	github.com/free5gc/version v1.0.0
 	github.com/google/uuid v1.1.2
-	github.com/ishidawataru/sctp v0.0.0-20210707070123-9a39160e9062
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli v1.22.5
@@ -20,4 +19,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-// replace github.com/ishidawataru/sctp => ./lib/sctp
+replace github.com/ishidawataru/sctp => ./lib/sctp

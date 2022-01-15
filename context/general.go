@@ -14,18 +14,6 @@ const TypeIdRegist 			int	= 0
 const TypeIdRegular 		int	= 1
 const TypeIdDeregist		int = 2
 
-// func GetNoDelay(c *sctp.SCTPConn) (int, error) {
-// 	return syscall.GetsockoptInt(c.fd(), SOL_SCTP, SCTP_NODELAY)
-// }
-
-// func SetNoDelay(bytes int, c *sctp.SCTPConn) error {
-// 	return syscall.SetsockoptInt(c.fd(), SOL_SCTP, SCTP_NODELAY, bytes)
-// }
-
-// func fd(c *sctp.SCTPConn) int {
-// 	return int(atomic.LoadInt32(&c._fd))
-// }
-
 // Writing a slice of bytes to a sctp.SCTPConn
 func SendByteToConn(conn *sctp.SCTPConn, message []byte) {
 	n, err := conn.Write(message)
