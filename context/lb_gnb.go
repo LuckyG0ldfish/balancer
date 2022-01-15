@@ -3,7 +3,7 @@ package context
 import (
 	"sync"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/ishidawataru/sctp"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )

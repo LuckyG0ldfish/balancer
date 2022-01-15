@@ -3,7 +3,7 @@ package service
 import (
 	"syscall"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/ishidawataru/sctp"
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"

@@ -5,7 +5,7 @@ import (
 	// "syscall"
 	// "sync/atomic"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/ishidawataru/sctp"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
 )

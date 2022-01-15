@@ -84,6 +84,7 @@ const (
 )
 
 type SCTPNotificationType int
+type SCTPAssocID int32
 
 const (
 	SCTP_SN_TYPE_BASE = SCTPNotificationType(iota + (1 << 15))
@@ -138,6 +139,29 @@ type InitMsg struct {
 	MaxInstreams   uint16
 	MaxAttempts    uint16
 	MaxInitTimeout uint16
+}
+
+// Retransmission Timeout Parameters defined in RFC 6458 8.1
+type RtoInfo struct {
+	SrtoAssocID int32
+	SrtoInitial uint32
+	SrtoMax     uint32
+	StroMin     uint32
+}
+
+// Association Parameters defined in RFC 6458 8.1
+type AssocInfo struct {
+	AssocID SCTPAssocID
+	// maximum retransmission attempts to make for the association
+	AsocMaxRxt uint16
+	// number of destination addresses that the peer has
+	NumberPeerDestinations uint16
+	// current value of the peer's rwnd (reported in the last selective acknowledgment (SACK)) minus any outstanding data
+	PeerRwnd uint32
+	// the last reported rwnd that was sent to the peer
+	LocalRwnd uint32
+	// the association's cookie life value used when issuing cookies
+	CookieLife uint32
 }
 
 type SndRcvInfo struct {
@@ -217,6 +241,39 @@ var ntohs = htons
 func setInitOpts(fd int, options InitMsg) error {
 	optlen := unsafe.Sizeof(options)
 	_, _, err := setsockopt(fd, SCTP_INITMSG, uintptr(unsafe.Pointer(&options)), uintptr(optlen))
+	return err
+}
+
+func getRtoInfo(fd int) (*RtoInfo, error) {
+	rtoInfo := RtoInfo{}
+	rtolen := unsafe.Sizeof(rtoInfo)
+	_, _, err := getsockopt(fd, SCTP_RTOINFO, uintptr(unsafe.Pointer(&rtoInfo)), uintptr(unsafe.Pointer(&rtolen)))
+	if err != nil {
+		return nil, err
+	}
+
+	return &rtoInfo, err
+}
+
+func setRtoInfo(fd int, rtoInfo RtoInfo) error {
+	rtolen := unsafe.Sizeof(rtoInfo)
+	_, _, err := setsockopt(fd, SCTP_RTOINFO, uintptr(unsafe.Pointer(&rtoInfo)), uintptr(rtolen))
+	return err
+}
+
+func getAssocInfo(fd int) (*AssocInfo, error) {
+	info := AssocInfo{}
+	optlen := unsafe.Sizeof(info)
+	_, _, err := getsockopt(fd, SCTP_ASSOCINFO, uintptr(unsafe.Pointer(&info)), uintptr(unsafe.Pointer(&optlen)))
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+func setAssocInfo(fd int, info AssocInfo) error {
+	optlen := unsafe.Sizeof(info)
+	_, _, err := setsockopt(fd, SCTP_ASSOCINFO, uintptr(unsafe.Pointer(&info)), uintptr(optlen))
 	return err
 }
 
@@ -386,7 +443,7 @@ func (c *SCTPConn) Write(b []byte) (int, error) {
 }
 
 func (c *SCTPConn) Read(b []byte) (int, error) {
-	n, _, err := c.SCTPRead(b)
+	n, _, _, err := c.SCTPRead(b)
 	if n < 0 {
 		n = 0
 	}
@@ -670,7 +727,7 @@ func (c *SCTPSndRcvInfoWrappedConn) Read(b []byte) (int, error) {
 	if len(b) < int(sndRcvInfoSize) {
 		return 0, syscall.EINVAL
 	}
-	n, info, err := c.conn.SCTPRead(b[sndRcvInfoSize:])
+	n, info, _, err := c.conn.SCTPRead(b[sndRcvInfoSize:])
 	if err != nil {
 		return n, err
 	}
@@ -726,6 +783,12 @@ type SocketConfig struct {
 
 	// InitMsg is the options to send in the initial SCTP message
 	InitMsg InitMsg
+
+	// RtoInfo
+	RtoInfo *RtoInfo
+
+	// AssocInfo (RFC 6458)
+	AssocInfo *AssocInfo
 }
 
 func (cfg *SocketConfig) Listen(net string, laddr *SCTPAddr) (*SCTPListener, error) {

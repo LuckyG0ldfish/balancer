@@ -2,7 +2,7 @@ package ngap
 
 import (
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/ishidawataru/sctp"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	amf_ngap "github.com/LuckyG0ldfish/balancer/ngap/amf_ngap"
