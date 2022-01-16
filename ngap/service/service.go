@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/hex"
 	"io"
-	"strconv"
 	"sync"
 	"syscall"
 
@@ -65,7 +64,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				logger.NgapLog.Debugln("Read EOF from client")
 				return
 			case syscall.EAGAIN:
-				logger.NgapLog.Debugln("SCTP read timeout")
+				logger.NgapLog.Traceln("SCTP read timeout")
 				continue
 			case syscall.EINTR:
 				logger.NgapLog.Debugf("SCTPRead: %+v", err)
@@ -83,7 +82,6 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			logger.NgapLog.Errorf("unidientified message recieved") // TODO 
 			break 
 		}
-		logger.NgapLog.Tracef("length: " + strconv.Itoa(n))
 		if notification != nil {
 			if handler.HandleNotification != nil {
 				handler.HandleNotification(lbConn.Conn, notification)

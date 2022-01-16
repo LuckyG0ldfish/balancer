@@ -37,8 +37,8 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	mes, _ = ngap.Encoder(*message)
 	next.LbConn.Conn.Write(mes)
 	next.NumberOfConnectedUEs += 1
-	logger.NgapLog.Debugf("Forward to nextAMF:")
-	logger.NgapLog.Debugf("Packet content:\n%+v", hex.Dump(mes))
+	logger.NgapLog.Tracef("Forward to nextAMF:")
+	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
 
 	// Selecting AMF that will be used for the next new UE
