@@ -1,175 +1,91 @@
 package context
 
 import (
-	// "sync"
+	"sync"
 
-	"fmt"
-	"strconv"
-
-	"git.cs.nctu.edu.tw/calee/sctp"
-	// "github.com/free5gc/amf/factory" // TODO
-	"github.com/free5gc/ngap"
-	"github.com/free5gc/ngap/ngapType"
-	// "github.com/free5gc/openapi/models"
+	"github.com/ishidawataru/sctp"
+	"github.com/sirupsen/logrus"
+	
+	"github.com/LuckyG0ldfish/balancer/factory"
+	
+	"github.com/free5gc/openapi/models"
+	// "github.com/free5gc/ngap/ngapType"
 )
 
 var (
 	lbContext = LBContext{}
 )
 
-// func init() {
-// 	LB_Self().Name = "lb"
-// 	//LB_Self().NetworkName.Full = "free5GC"
-// }
-
 type LBContext struct {
-	Name string
-	//NetworkName   factory.NetworkName
-	LbIP 	string
-	LbPort	int
+	Name 				string
+	// NetworkName   		factory.NetworkName
+	NfId               	string
 
+	LbIP 				string
 
-	LbRanPool []*LbGnb // gNBs connected to the LB
-	LbAmfPool []*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	LbToAmfPort			int 
+	LbToAmfAddr			*sctp.SCTPAddr 	
+
+	LbListenPort		int
+	LbListenAddr		*sctp.SCTPAddr
+
+	Running 			bool 	// true while the LB is not beeing terminated 
+
+	NewAmf				bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
+	NewAmfIpList 		[]string 
 	
-	Next_Amf *LbAmf
+	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
+	LbAmfPool 			sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 
-	IDGen 	*UeIdGen
+	Next_Regist_Amf 			*LbAmf
+	Next_Regular_Amf 			*LbAmf
+	Next_Deregist_Amf 			*LbAmf
+
+	IDGen 				*UniqueNumberGen
 	
 	RelativeCapacity 	int64 // To build setup response
-	PlmnSupportList 	*ngapType.PLMNSupportList
-	ServedGuamiList 	*ngapType.ServedGUAMIList
 
-	NGSetupRes 			*ngapType.NGAPPDU
+	/* temp */
+	PlmnSupportList 	[]factory.PlmnSupportItem
+	ServedGuamiList 	[]models.Guami
+
+	/* logger */
+	Log 				*logrus.Entry
+
+	/* metrics */
+	Table 				*Routing_Table
 }
 
-func NewLBContext() (LbContext *LBContext){
-	return 
+// Creates and returns a new *LBContext
+func NewLBContext() (*LBContext){
+	var new LBContext
+	return &new
 }
 
-func (lb *LBContext) ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { 
-	// if mes, err := ngap.Encoder(*message); err == nil {
-	// }
-	fmt.Println("forward to nextAMF")
-
-	ue.AmfID = lb.Next_Amf.AmfID
-	_, ok := lb.Next_Amf.Ues.Load(ue.UeLbID)
-	if ok {
-		fmt.Println("UE already exists")
-		return 
-	} 
-	lb.Next_Amf.Ues.Store(ue.UeLbID, ue)
-	var mes []byte
-	mes, _  = ngap.Encoder(*message)
-	lb.Next_Amf.LbConn.Conn.Write(mes)
-	fmt.Println(mes)
-	fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
-	fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
-}
-
-func (lb *LBContext) ForwardToAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
-	amf, ok := lb.LbAmfFindByID(ue.AmfID)
-	// if mes, err := ngap.Encoder(*message); err == nil {	
-	// }
-	if ok {
-		fmt.Println("forward to AMF:")
-		var mes []byte
-		mes, _  = ngap.Encoder(*message)
-		amf.LbConn.Conn.Write(mes)
-		fmt.Println(mes)
-		fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
-		fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))	
-	} else {
-		fmt.Println("AMF not found")
-	}
-}
-
-func (lb *LBContext) ForwardToGnb(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) { //*ngapType.NGAPPDU
-	gnb, ok := lb.LbGnbFindByID(ue.RanID)
-	// if mes, err := ngap.Encoder(*message); err == nil {	
-	// }
-	if ok {
-		fmt.Println("forward to GNB:")
-		var mes []byte
-		mes, _  = ngap.Encoder(*message)
-		gnb.LbConn.Conn.Write(mes)
-		fmt.Println(mes)
-		fmt.Println("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10))
-		fmt.Println("UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
-	} else {
-		fmt.Println("GNB not found")
-	}
-}
-
-// use net.Conn to find RAN context, return *AmfRan and ok bit
+// use sctp.SCTPConn to find RAN context, return *LbRan and true if found
 func (context *LBContext) LbGnbFindByConn(conn *sctp.SCTPConn) (*LbGnb, bool) {
-	for _, v := range context.LbRanPool {
-		if v.LbConn.Conn == conn {
-			return v, true
-		}
+	gnbTemp, ok := context.LbRanPool.Load(conn)
+	if !ok {
+		return nil, false
 	}
-	return nil, false
+	gnb, ok := gnbTemp.(*LbGnb)
+	if !ok {
+		return nil, false
+	}
+	return gnb, ok
 }
 
-func (context *LBContext) LbGnbFindByID(ranID int64) (*LbGnb, bool) {
-	for _, v := range context.LbRanPool {
-		if v.GnbID == ranID {
-			return v, true
-		}
-	}
-	return nil, false
-}
-
+// use sctp.SCTPConn to find Amf context, return *LbAmf and true if found
 func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
-	for _, v := range context.LbAmfPool {
-		if v.LbConn.Conn == conn {
-			return v, true
-		}
+	amfTemp, ok := context.LbAmfPool.Load(conn)
+	if !ok {
+		return nil, false
 	}
-	return nil, false
-}
-
-func (context *LBContext) LbAmfFindByID(amfID int64) (*LbAmf, bool) {
-	for _, v := range context.LbAmfPool {
-		if v.AmfID == amfID {
-			return v, true
-		}
+	amf, ok := amfTemp.(*LbAmf)
+	if !ok {
+		return nil, false
 	}
-	return nil, false
-}
-
-func (context *LBContext) LbAmfFindByUeID(UeID int64) (*LbAmf, bool) {
-	for _, Amf := range context.LbAmfPool {
-		if check := Amf.ContainsUE(UeID); check {
-			return Amf, true
-		}
-	}
-	return nil, false
-}
-
-func (context *LBContext) LbGnbFindByUeID(UeID int64) (*LbGnb, *LbUe, bool) {
-	for _, Gnb := range context.LbRanPool {
-		if ue, check := Gnb.Ues.Load(UeID); check {
-			UE, ok := ue.(*LbUe)
-			if !ok {
-				return nil, nil, false
-			}
-			return Gnb, UE, true
-		}
-	}
-	return nil, nil, false
-}
-
-func (context *LBContext) AddGnbToLB(conn *sctp.SCTPConn) *LbGnb{
-	gnb := NewLbGnb()
-	gnb.LbConn.Conn = conn
-	context.LbRanPool = append(context.LbRanPool, gnb)
-	return gnb
-}
-
-func (context *LBContext) AddAmfToLB(amf *LbAmf) *LbAmf{
-	context.LbAmfPool = append(context.LbAmfPool, amf)
-	return amf
+	return amf, ok
 }
 
 func LB_Self() *LBContext {

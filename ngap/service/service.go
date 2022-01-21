@@ -1,23 +1,17 @@
 package service
 
 import (
-	// "encoding/hex"
-	"fmt"
+	"encoding/hex"
 	"io"
-	"net"
-	"strconv"
 	"sync"
 	"syscall"
-	"time"
 
-	"git.cs.nctu.edu.tw/calee/sctp"
+	"github.com/ishidawataru/sctp"
 
-	//"github.com/LuckyG0ldfish/balancer/ngap"
-	"github.com/free5gc/amf/logger"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"
 
 	"github.com/LuckyG0ldfish/balancer/context"
-	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
 )
 
 type NGAPHandler struct {
@@ -26,13 +20,15 @@ type NGAPHandler struct {
 }
 
 const readBufSize uint32 = 8192
+const amfPort int = 38412
 
 // set default read timeout to 2 seconds
 var readTimeout syscall.Timeval = syscall.Timeval{Sec: 2, Usec: 0}
 
 var (
-	sctpListener *sctp.SCTPListener
-	connections  sync.Map
+	sctpListener 	*sctp.SCTPListener
+	connections  	sync.Map	
+	numberGen 		context.UniqueNumberGen
 )
 
 var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
@@ -41,128 +37,22 @@ var sctpConfig sctp.SocketConfig = sctp.SocketConfig{
 	AssocInfo: &sctp.AssocInfo{AsocMaxRxt: 4},
 }
 
-func Run(ip string, port int, handler NGAPHandler) {
-	addr, err := context.GenSCTPAddr(ip, port) 
-	if err == nil {
-		go listenAndServeGNBs(addr, handler)
-	}
+// Starts all NGAP related services
+func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
+	// creating number generator for ports to connect to AMFs 
+	self := context.LB_Self()
+	numberGen = *context.NewUniqueNumberGen(int64(self.LbToAmfPort))
+	
+	// All AMFs related services started 
+	go InitAmfs(handler)
+	
+	// All GNBs related services started 
+	go listenAndServeGNBs(addr, handler)
 }
 
-func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
-	if listener, err := sctpConfig.Listen("sctp", addr); err != nil {
-		logger.NgapLog.Errorf("Failed to listen: %+v", err)
-		return
-	} else {
-		sctpListener = listener
-	}
-	fmt.Println("Listening")
-	logger.NgapLog.Infof("Listen on %s", sctpListener.Addr())
-
-	for {
-		newConn, err := sctpListener.AcceptSCTP()
-		if err != nil {
-			switch err {
-			case syscall.EINTR, syscall.EAGAIN:
-				logger.NgapLog.Debugf("AcceptSCTP: %+v", err)
-			default:
-				logger.NgapLog.Errorf("Failed to accept: %+v", err)
-			}
-			continue
-		}
-
-		var info *sctp.SndRcvInfo
-		if infoTmp, err := newConn.GetDefaultSentParam(); err != nil {
-			logger.NgapLog.Errorf("Get default sent param error: %+v, accept failed", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			info = infoTmp
-			logger.NgapLog.Debugf("Get default sent param[value: %+v]", info)
-		}
-
-		info.PPID = ngap.PPID
-		if err := newConn.SetDefaultSentParam(info); err != nil {
-			logger.NgapLog.Errorf("Set default sent param error: %+v, accept failed", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			logger.NgapLog.Debugf("Set default sent param[value: %+v]", info)
-		}
-
-		events := sctp.SCTP_EVENT_DATA_IO | sctp.SCTP_EVENT_SHUTDOWN | sctp.SCTP_EVENT_ASSOCIATION
-		if err := newConn.SubscribeEvents(events); err != nil {
-			logger.NgapLog.Errorf("Failed to accept: %+v", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			logger.NgapLog.Debugln("Subscribe SCTP event[DATA_IO, SHUTDOWN_EVENT, ASSOCIATION_CHANGE]")
-		}
-
-		if err := newConn.SetReadBuffer(int(readBufSize)); err != nil {
-			logger.NgapLog.Errorf("Set read buffer error: %+v, accept failed", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			logger.NgapLog.Debugf("Set read buffer to %d bytes", readBufSize)
-		}
-
-		if err := newConn.SetReadTimeout(readTimeout); err != nil {
-			logger.NgapLog.Errorf("Set read timeout error: %+v, accept failed", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			logger.NgapLog.Debugf("Set read timeout: %+v", readTimeout)
-		}
-
-		logger.NgapLog.Infof("[LB] SCTP Accept from: %s", newConn.RemoteAddr().String())
-		connections.Store(newConn, newConn)
-		
-		// add connection as new GNBConn 
-		lbSelf := context.LB_Self()
-		ran := lbSelf.AddGnbToLB(newConn)
-		fmt.Println("gnb created")
-		// fmt.Println("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
-		go handleConnection(ran.LbConn, readBufSize, handler)
-	}
-}
-
-func Stop() {
-	logger.NgapLog.Infof("Close SCTP server...")
-	if err := sctpListener.Close(); err != nil {
-		logger.NgapLog.Error(err)
-		logger.NgapLog.Infof("SCTP server may not close normally.")
-	}
-
-	connections.Range(func(key, value interface{}) bool {
-		conn := value.(net.Conn)
-		if err := conn.Close(); err != nil {
-			logger.NgapLog.Error(err)
-		}
-		return true
-	})
-
-	logger.NgapLog.Infof("SCTP server closed")
-}
-
+// Handling all the the LBs open connections (AMFs + GNBs)
 func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandler) {// conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) {
-	defer func() {
-		// if AMF call Stop(), then conn.Close() will return EBADF because conn has been closed inside Stop()
-		if err := lbConn.Conn.Close(); err != nil && err != syscall.EBADF {
-			logger.NgapLog.Errorf("close connection error: %+v", err)
-		}
-		connections.Delete(lbConn.Conn)
-	}()
-	fmt.Println("waiting for message ")
+	logger.NgapLog.Tracef("Waiting for message")
 	for {
 		buf := make([]byte, bufsize)
 
@@ -174,7 +64,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				logger.NgapLog.Debugln("Read EOF from client")
 				return
 			case syscall.EAGAIN:
-				logger.NgapLog.Debugln("SCTP read timeout")
+				logger.NgapLog.Traceln("SCTP read timeout")
 				continue
 			case syscall.EINTR:
 				logger.NgapLog.Debugf("SCTPRead: %+v", err)
@@ -184,15 +74,14 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 				return
 			}
 		}
-		if lbConn.TypeID == context.TypeIdentAMFConn {
-			fmt.Println("\n \nAMF message recieved")
-		} else if lbConn.TypeID == context.TypeIdentGNBConn {
-			fmt.Println("\n \nRAN message recieved")
+		if lbConn.TypeID == context.TypeIdAMFConn {
+			logger.NgapLog.Debugf("AMF message recieved")
+		} else if lbConn.TypeID == context.TypeIdGNBConn {
+			logger.NgapLog.Debugf("RAN message recieved")
 		} else {
-			fmt.Println("unidientified message recieved")
+			logger.NgapLog.Errorf("unidientified message recieved") // TODO 
+			break 
 		}
-		fmt.Println("length: " + strconv.Itoa(n))
-		// fmt.Println(buf)
 		if notification != nil {
 			if handler.HandleNotification != nil {
 				handler.HandleNotification(lbConn.Conn, notification)
@@ -203,52 +92,37 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			// TODO no info recieved 
 			if info == nil {
 				
-				fmt.Println("info == nil")
+				logger.NgapLog.Warnln("info == nil")
 				// continue
 			} else if info.PPID != ngap.PPID{
 				logger.NgapLog.Warnln("Received SCTP PPID != 60, discard this packet") 
 			}
-
-			// logger.NgapLog.Tracef("Read %d bytes", n)
-			// logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
-
-			// TODO: concurrent on per-UE message
-			handler.HandleMessage(lbConn, buf[:n])
+			logger.NgapLog.Tracef("Read %d bytes", n)
+			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
+			go handler.HandleMessage(lbConn, buf[:n])
 		}
 	}
 }
 
-func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
-	for {
-		fmt.Println("connecting to amf")
-		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
-		if err == nil {
-			// amf.up = true
-			amf.LbConn.Conn = conn
-			ngap_message.SendNGSetupRequest(amf.LbConn)
-			go handleConnection(amf.LbConn, readBufSize, handler)
-			break
+// Closes all connections 
+func Stop() {
+
+	logger.NgapLog.Infof("Close SCTP server...")
+	if err := sctpListener.Close(); err != nil {
+		logger.NgapLog.Error(err)
+		logger.NgapLog.Infof("SCTP server may not close normally.")
+	}
+
+	connections.Range(func(key, value interface{}) bool {
+		lbConn, ok := value.(context.LBConn)
+		if !ok {
+			logger.NgapLog.Errorf("couldn't be converted")
 		}
-		time.Sleep(2 * time.Second)
-	}
-}
+		if err := lbConn.Conn.Close(); err != nil {
+			logger.NgapLog.Error(err)
+		}
+		return true
+	})
 
-func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPConn, error) {
-	amfAddr, _ := context.GenSCTPAddr(amfIP, amfPort)
-	conn, err := sctp.DialSCTP("sctp", lbaddr, amfAddr)
-	if err != nil {
-		return nil, err
-	}
-	info, err := conn.GetDefaultSentParam()
-	if err != nil {
-		return nil, err
-	}
-	info.PPID = ngap.PPID
-	err = conn.SetDefaultSentParam(info)
-	if err != nil {
-		return nil, err
-	}
-	//setting this connection as the amf SCTPConn
-	return conn, nil
+	logger.NgapLog.Infof("SCTP server closed")
 }
-

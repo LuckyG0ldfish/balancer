@@ -1,22 +1,33 @@
 package context
 
-import(
-	"git.cs.nctu.edu.tw/calee/sctp"
+import (
+	"github.com/ishidawataru/sctp"
+	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/sirupsen/logrus"
 )
 
-const TypeIndetNotThere 	int	= 0
-const TypeIdentAMFConn 		int	= 1
-const TypeIdentGNBConn		int = 2
+const TypeIdNotThere 	int	= 0
+const TypeIdAMFConn 	int	= 1
+const TypeIdGNBConn		int = 2
 
+// universal type for all connections of the LB 
 type LBConn struct{
-	TypeID 		int 
-	ID 			int64 
-	Conn 		*sctp.SCTPConn
+	ID 			int64 				// internal AMF/GNB ID that is connected with Conn 
+	TypeID 		int 				// type identifier of the connected AMF/GNB 
+	Conn 		*sctp.SCTPConn		// actual connection to AMF/GNB 
+
+	RanPointer 	*LbGnb
+	AmfPointer 	*LbAmf
+	/* logger */
+	Log 			*logrus.Entry
 }
 
-func NewLBConn() (*LBConn){
+// creates, initializes and returns a new *LbConn
+// (only used when initializing a AMF/GNB)
+func newLBConn(id int64, typeID int) (*LBConn){
 	var lbConn LBConn
-	lbConn.TypeID = 0 
-	lbConn.ID = 0 
+	lbConn.ID = id
+	lbConn.TypeID = typeID 
+	lbConn.Log = logger.LbConnLog
 	return &lbConn
 }

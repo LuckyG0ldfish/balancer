@@ -1,821 +1,2285 @@
 package gnb_ngap
 
-import (
-	//"fmt"
-	// "context"
+// This handles messages incoming from GNB with the functions of the AMFs handler 
 
-	// "github.com/free5gc/aper"
-	// "github.com/free5gc/fsm"
-	"fmt"
+import (
+	"strconv"
 
 	"github.com/LuckyG0ldfish/balancer/context"
+	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap/ngapType"
-	// "github.com/sirupsen/logrus"
-	// "github.com/ishidawataru/sctp"
-	// "gitlab.lrz.de/lkn_free5gc/gnbsim/context"
-	// "gitlab.lrz.de/lkn_free5gc/gnbsim/gmm"
-	// "gitlab.lrz.de/lkn_free5gc/gnbsim/logger"
-	// gnb_nas "gitlab.lrz.de/lkn_free5gc/gnbsim/nas"
-	// ngap_message "gitlab.lrz.de/lkn_free5gc/gnbsim/ngap/message"
-	// RAN "gitlab.lrz.de/lkn_free5gc/gnbsim/util/ran_helper"
-	// "time"
+
+	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
 )
 
-// var NGAPLog *logrus.Entry
+var LB context.LBContext 
 
-// func init() {
-// 	NGAPLog = logger.NGAPLog
-// }
+//TODO
+func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var globalRANNodeID *ngapType.GlobalRANNodeID
+	var rANNodeName *ngapType.RANNodeName
+	var supportedTAList *ngapType.SupportedTAList
+	var pagingDRX *ngapType.PagingDRX
 
-func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	// NGAPLog.Infoln("[gNB] Handle NG Setup Response")
+	LB = *context.LB_Self()
+	var cause ngapType.Cause
 
-	LB := context.LB_Self()
-
-	// var amfName *ngapType.AMFName
-	var servedGUAMIList *ngapType.ServedGUAMIList
-	var plmnSupportList *ngapType.PLMNSupportList
-
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
-
+	if LbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
 	if message == nil {
-		// NGAPLog.Error("NGAP Message is nil")
+		LbConn.Log.Errorf("NGAP Message is nil")
 		return
 	}
-
-	successfulOutcome := message.SuccessfulOutcome
-	if successfulOutcome == nil {
-		// NGAPLog.Error("Successful Outcome is nil")
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		LbConn.Log.Errorf("Initiating Message is nil")
 		return
 	}
-
-	ngSetupResponse := successfulOutcome.Value.NGSetupResponse
-	if ngSetupResponse == nil {
-		// NGAPLog.Error("ngSetupResponse is nil")
+	nGSetupRequest := initiatingMessage.Value.NGSetupRequest
+	if nGSetupRequest == nil {
+		LbConn.Log.Errorf("NGSetupRequest is nil")
 		return
 	}
+	LbConn.Log.Infoln("Handle NG Setup request")
 
-	for _, ie := range ngSetupResponse.ProtocolIEs.List {
+	for i := 0; i < len(nGSetupRequest.ProtocolIEs.List); i++ {
+		ie := nGSetupRequest.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		// case ngapType.ProtocolIEIDAMFName:
-			// NGAPLog.Traceln("[NGAP] Decode IE AMFName")
-			// amfName = ie.Value.AMFName
-			// if amfName == nil {
-			// 	// NGAPLog.Errorf("AMFName is nil")
-			// 	item := buildCriticalityDiagnosticsIEItem(
-			// 		ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-			// 	iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-			// }
-		case ngapType.ProtocolIEIDServedGUAMIList:
-			// NGAPLog.Traceln("[NGAP] Decode IE ServedGUAMIList")
-			servedGUAMIList = ie.Value.ServedGUAMIList
-			if servedGUAMIList == nil {
-				// NGAPLog.Errorf("ServedGUAMIList is nil")
-				// item := buildCriticalityDiagnosticsIEItem(
-				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-				fmt.Println("plmnSupportList == nil")
+		case ngapType.ProtocolIEIDGlobalRANNodeID:
+			globalRANNodeID = ie.Value.GlobalRANNodeID
+			LbConn.Log.Traceln("Decode IE GlobalRANNodeID")
+			if globalRANNodeID == nil {
+				LbConn.Log.Errorf("GlobalRANNodeID is nil")
+				return
 			}
-			LB.ServedGuamiList = servedGUAMIList
-		case ngapType.ProtocolIEIDRelativeAMFCapacity:
-			// NGAPLog.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
-			//relativeAMFCapacity = ie.Value.RelativeAMFCapacity
-		case ngapType.ProtocolIEIDPLMNSupportList:
-			// NGAPLog.Traceln("[NGAP] Decode IE PLMNSupportList")
-			plmnSupportList = ie.Value.PLMNSupportList
-			if plmnSupportList == nil {
-				// NGAPLog.Errorf("PLMNSupportList is nil")
-				// item := buildCriticalityDiagnosticsIEItem(
-				// 	ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-				// iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-				fmt.Println("plmnSupportList == nil")
+		case ngapType.ProtocolIEIDSupportedTAList:
+			supportedTAList = ie.Value.SupportedTAList
+			LbConn.Log.Traceln("Decode IE SupportedTAList")
+			if supportedTAList == nil {
+				LbConn.Log.Errorf("SupportedTAList is nil")
+				return
 			}
-			LB.PlmnSupportList = plmnSupportList
-		// case ngapType.ProtocolIEIDCriticalityDiagnostics:
-			// NGAPLog.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
-			//criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		case ngapType.ProtocolIEIDRANNodeName:
+			rANNodeName = ie.Value.RANNodeName
+			LbConn.Log.Traceln("Decode IE RANNodeName")
+			if rANNodeName == nil {
+				LbConn.Log.Errorf("RANNodeName is nil")
+				return
+			}
+		case ngapType.ProtocolIEIDDefaultPagingDRX:
+			pagingDRX = ie.Value.DefaultPagingDRX
+			LbConn.Log.Traceln("Decode IE DefaultPagingDRX")
+			if pagingDRX == nil {
+				LbConn.Log.Errorf("DefaultPagingDRX is nil")
+				return
+			}
 		}
 	}
 
-	// if len(iesCriticalityDiagnostics.List) != 0 {
-	// 	// NGAPLog.Traceln("[NGAP] Sending error indication to AMF, because some mandatory IEs were not included")
+	if cause.Present == ngapType.CausePresentNothing {
+		ngap_message.SendNGSetupResponse(LbConn)
+	} else {
+		ngap_message.SendNGSetupFailure(LbConn, cause)
+	}
+} 
 
-	// 	cause := buildCause(ngapType.CausePresentProtocol, ngapType.CauseProtocolPresentAbstractSyntaxErrorReject)
-
-	// 	procedureCode := ngapType.ProcedureCodeNGSetup
-	// 	triggeringMessage := ngapType.TriggeringMessagePresentSuccessfulOutcome
-	// 	procedureCriticality := ngapType.CriticalityPresentReject
-
-	// 	criticalityDiagnostics := buildCriticalityDiagnostics(
-	// 		&procedureCode, &triggeringMessage, &procedureCriticality, &iesCriticalityDiagnostics)
-
-	// 	ngap_message.SendErrorIndicationWithSctpConn(lbConn, nil, nil, cause, &criticalityDiagnostics)
-
-	// 	return
-	// }
-
-	// amfInfo := n3iwfSelf.NewN3iwfAmf(sctpAddr, conn)
-
-}
-
-// TODO 
-func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-
-	LB := context.LB_Self()
-	// TODO: add NAS Registration Complete Message (or this maybe will be done by the nas_handler).
-
-	// NGAPLog.Infoln("[gNB] Handle Initial Context Setup Request")
-
+func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	// var ueSecurityCapabilities *ngapType.UESecurityCapabilities
-	// var securityKey *ngapType.SecurityKey
-	// var traceActivation *ngapType.TraceActivation
-	// var nasPDU *ngapType.NASPDU
-	// var emergencyFallbackIndicator *ngapType.EmergencyFallbackIndicator
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
-	// var ueCtx *RAN.UeContext
-	// var emulatorCtx = context.EmulatorSelf()
+	LB = *context.LB_Self()
 
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
 	if message == nil {
-		// NGAPLog.Error("NGAP Message is nil")
+		lbConn.Log.Errorf("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		// NGAPLog.Error("Initiating Message is nil")
+		lbConn.Log.Errorf("Initiating Message is nil")
 		return
 	}
 
-	initialContextSetupRequest := initiatingMessage.Value.InitialContextSetupRequest
-	if initialContextSetupRequest == nil {
-		// NGAPLog.Error("InitialContextSetupRequest is nil")
+	uplinkNasTransport := initiatingMessage.Value.UplinkNASTransport
+	if uplinkNasTransport == nil {
+		lbConn.Log.Errorf("UplinkNasTransport is nil")
 		return
 	}
 
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false 
+	lbConn.Log.Infoln("Handle Uplink Nas Transport")
 
-	for _, ie := range initialContextSetupRequest.ProtocolIEs.List {
+	
+	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
+		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
 			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
 				aMFUENGAPID = ie.Value.AMFUENGAPID
-				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
 				if aMFUENGAPID == nil {
-					// lbConn.Log.Error("AmfUeNgapID is nil")
-					fmt.Println("AmfUeNgapID is nil")
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					if ue.UeStateIdent == context.TypeIdRegist {
+						// TODO: 
+						// change ID to TypeIdRegular
+						// remove from registration AMF context 
+						// add to next regular AMF context
+						// find next regular amf 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+	
+			}
+	}
+}
+
+// TODO
+func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var cause *ngapType.Cause
+	var resetType *ngapType.ResetType
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	nGReset := initiatingMessage.Value.NGReset
+	if nGReset == nil {
+		lbConn.Log.Errorf("NGReset is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle NG Reset")
+
+	for _, ie := range nGReset.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDCause:
+			cause = ie.Value.Cause
+			lbConn.Log.Traceln("Decode IE Cause")
+			if cause == nil {
+				lbConn.Log.Errorf("Cause is nil")
+				return
+			}
+		case ngapType.ProtocolIEIDResetType:
+			resetType = ie.Value.ResetType
+			lbConn.Log.Traceln("Decode IE ResetType")
+			if resetType == nil {
+				lbConn.Log.Errorf("ResetType is nil")
+				return
+			}
+		}
+	}
+
+	printAndGetCause(lbConn, cause)
+
+	switch resetType.Present {
+	case ngapType.ResetTypePresentNGInterface:
+		lbConn.Log.Traceln("ResetType Present: NG Interface")
+		// lbConn.RemoveAllUeInRan()
+		// ngap_message.SendNGResetAcknowledge(lbConn, nil, nil)
+	case ngapType.ResetTypePresentPartOfNGInterface:
+		lbConn.Log.Traceln("ResetType Present: Part of NG Interface")
+		partOfNGInterface := resetType.PartOfNGInterface
+		if partOfNGInterface == nil {
+			lbConn.Log.Errorf("PartOfNGInterface is nil")
+			return
+		}
+	}
+}
+
+// TODO
+func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
+	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	nGResetAcknowledge := successfulOutcome.Value.NGResetAcknowledge
+	if nGResetAcknowledge == nil {
+		lbConn.Log.Errorf("NGResetAcknowledge is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle NG Reset Acknowledge")
+
+	for _, ie := range nGResetAcknowledge.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDUEAssociatedLogicalNGConnectionList:
+			uEAssociatedLogicalNGConnectionList = ie.Value.UEAssociatedLogicalNGConnectionList
+		case ngapType.ProtocolIEIDCriticalityDiagnostics:
+			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+		}
+	}
+
+	if uEAssociatedLogicalNGConnectionList != nil {
+		lbConn.Log.Traceln("%d UE association(s) has been reset", len(uEAssociatedLogicalNGConnectionList.List))
+		for _, item := range uEAssociatedLogicalNGConnectionList.List {
+			if item.AMFUENGAPID != nil && item.RANUENGAPID != nil {
+				// lbConn.Log.Traceln("%d: AmfUeNgapID[%d] RanUeNgapID[%d]", i+1, item.AMFUENGAPID.Value, item.RANUENGAPID.Value)
+			} else if item.AMFUENGAPID != nil {
+				// lbConn.Log.Traceln("%d: AmfUeNgapID[%d] RanUeNgapID[-1]", i+1, item.AMFUENGAPID.Value)
+			} else if item.RANUENGAPID != nil {
+				// lbConn.Log.Traceln("%d: AmfUeNgapID[-1] RanUeNgapID[%d]", i+1, item.RANUENGAPID.Value)
+			}
+		}
+	}
+
+	if criticalityDiagnostics != nil {
+		printCriticalityDiagnostics(lbConn, criticalityDiagnostics)
+	}
+}
+
+func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	uEContextReleaseComplete := successfulOutcome.Value.UEContextReleaseComplete
+	if uEContextReleaseComplete == nil {
+		lbConn.Log.Errorf("NGResetAcknowledge is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle UE Context Release Complete")
+
+	for _, ie := range uEContextReleaseComplete.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+					ue.RemoveUeEntirely()
+				}
+			}
+	}
+}
+
+func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	pDUSessionResourceReleaseResponse := successfulOutcome.Value.PDUSessionResourceReleaseResponse
+	if pDUSessionResourceReleaseResponse == nil {
+		lbConn.Log.Errorf("PDUSessionResourceReleaseResponse is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle PDU Session Resource Release Response")
+
+	for _, ie := range pDUSessionResourceReleaseResponse.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+	
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+
+	uERadioCapabilityCheckResponse := successfulOutcome.Value.UERadioCapabilityCheckResponse
+	if uERadioCapabilityCheckResponse == nil {
+		lbConn.Log.Errorf("UERadioCapabilityCheckResponse is nil")
+		return
+	}
+	lbConn.Log.Infoln("Handle UE Radio Capability Check Response")
+
+	for i := 0; i < len(uERadioCapabilityCheckResponse.ProtocolIEs.List); i++ {
+		ie := uERadioCapabilityCheckResponse.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				// lbConn.Log.Trace("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
-					// lbConn.Log.Error("RanUeNgapID is nil")
-					fmt.Println("RanUeNgapID is nil")
+					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
 					if !ok {
-						fmt.Print("AMF not registered")
+						lbConn.Log.Errorf("UE not registered")
 						return 
 					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						fmt.Print("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
-					LB.ForwardToGnb(lbConn, message, ue)
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
 				}
 			}
-		// case ngapType.ProtocolIEIDUESecurityCapabilities:
-		// 	NGAPLog.Traceln("[NGAP] Decode IE UESecurityCapabilities")
-		// 	ueSecurityCapabilities = ie.Value.UESecurityCapabilities
-		// 	if ueSecurityCapabilities == nil {
-		// 		NGAPLog.Errorf("UESecurityCapabilities is nil")
-		// 		item := buildCriticalityDiagnosticsIEItem(
-		// 			ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-		// 		iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-		// 	}
-		// case ngapType.ProtocolIEIDSecurityKey:
-		// 	NGAPLog.Traceln("[NGAP] Decode IE SecurityKey")
-		// 	securityKey = ie.Value.SecurityKey
-		// 	if securityKey == nil {
-		// 		NGAPLog.Errorf("SecurityKey is nil")
-		// 		item := buildCriticalityDiagnosticsIEItem(
-		// 			ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-		// 		iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-		// 	}
-		// case ngapType.ProtocolIEIDTraceActivation:
-		// 	NGAPLog.Traceln("[NGAP] Decode IE TraceActivation")
-		// 	traceActivation = ie.Value.TraceActivation
-		// 	if traceActivation != nil {
-		// 		NGAPLog.Warnln("Not Supported IE [TraceActivation]")
-		// 	}
-		// case ngapType.ProtocolIEIDNASPDU:
-		// 	NGAPLog.Traceln("[NGAP] Decode IE NAS PDU")
-		// 	nasPDU = ie.Value.NASPDU
-		// case ngapType.ProtocolIEIDEmergencyFallbackIndicator:
-		// 	NGAPLog.Traceln("[NGAP] Decode IE EmergencyFallbackIndicator")
-		// 	emergencyFallbackIndicator = ie.Value.EmergencyFallbackIndicator
-		// 	if emergencyFallbackIndicator != nil {
-		// 		NGAPLog.Warnln("Not Supported IE [EmergencyFallbackIndicator]")
-		// 	}
-		
+	}
+}
+
+func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	locationReportingFailureIndication := initiatingMessage.Value.LocationReportingFailureIndication
+	if locationReportingFailureIndication == nil {
+		lbConn.Log.Errorf("LocationReportingFailureIndication is nil")
+		return
 	}
 
-	// if lbConn.TypeID == context.TypeIdentGNBConn {
-	// 	gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
-	// 	UEs, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
-	// 	var ue *context.LbUe
-	// 	if !ok {
-	// 		fmt.Println("Ue not of type UE/not found")
-	// 	} else {
-	// 		ue2, empty := context.FindUeInSlice(UEs, aMFUENGAPID.Value)
-	// 		switch empty{
-	// 		case 0: 
-	// 			fmt.Println("no UE Found")
-	// 			return
-	// 		case 1: 
-	// 			fmt.Println("UE Found")
-	// 			ue = ue2
-	// 		case 2: 
-	// 			fmt.Println("UE Found") // 
-	// 			ue = ue2
-	// 		case 3: 
-	// 			fmt.Println("no matching UE Found")
-	// 			return 
-	// 		}
-	// 	}
-	// 	LB.ForwardToAmf(lbConn, m2, ue)
+	lbConn.Log.Infoln("Handle Location Reporting Failure Indication")
+
+	for i := 0; i < len(locationReportingFailureIndication.ProtocolIEs.List); i++ {
+		ie := locationReportingFailureIndication.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+//
+func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var rANUENGAPID *ngapType.RANUENGAPID
+	var nASPDU *ngapType.NASPDU
+
+	LB = *context.LB_Self()
+
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	initialUEMessage := initiatingMessage.Value.InitialUEMessage
+	if initialUEMessage == nil {
+		lbConn.Log.Errorf("InitialUEMessage is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Initial UE Message")
+
+	UeLbID := LB.IDGen.NextNumber()
+	var rANUENGAPIDInt int64
+
+	for _, ie := range initialUEMessage.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt = ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("InitialUEMessage: rANUENGAPID == nil")
+				return 
+			}
+			ie.Value.RANUENGAPID.Value = UeLbID
+		case ngapType.ProtocolIEIDNASPDU: // reject
+			nASPDU = ie.Value.NASPDU
+			lbConn.Log.Traceln("Decode IE NasPdu")
+			if nASPDU == nil {
+				lbConn.Log.Errorf("InitialUEMessage: nASPDU == nil")
+			}
+		}
+	}
+
+	if lbConn.TypeID == context.TypeIdGNBConn {
+		gnb := lbConn.RanPointer
+		ue := context.NewUE()		
+		ue.UeRanID = rANUENGAPIDInt
+		ue.UeLbID = UeLbID
+		ue.RanID = gnb.GnbID
+		gnb.Ues.Store(rANUENGAPIDInt, ue)
+		ue.RanPointer = gnb
+		context.ForwardToNextAmf(lbConn, message, ue)
+		lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
+		return
+	}
+}
+
+func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	pDUSessionResourceSetupResponse := successfulOutcome.Value.PDUSessionResourceSetupResponse
+	if pDUSessionResourceSetupResponse == nil {
+		lbConn.Log.Errorf("PDUSessionResourceSetupResponse is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle PDU Session Resource Setup Response")
+
+	for _, ie := range pDUSessionResourceSetupResponse.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	pDUSessionResourceModifyResponse := successfulOutcome.Value.PDUSessionResourceModifyResponse
+	if pDUSessionResourceModifyResponse == nil {
+		lbConn.Log.Errorf("PDUSessionResourceModifyResponse is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle PDU Session Resource Modify Response")
+
+	for _, ie := range pDUSessionResourceModifyResponse.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	PDUSessionResourceNotify := initiatingMessage.Value.PDUSessionResourceNotify
+	if PDUSessionResourceNotify == nil {
+		lbConn.Log.Errorf("PDUSessionResourceNotify is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle PDU Session Resource Notify")
+
+	for _, ie := range PDUSessionResourceNotify.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+		}
+}
+
+func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage // reject
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		// cause := ngapType.Cause{
+		// 	Present: ngapType.CausePresentProtocol,
+		// 	Protocol: &ngapType.CauseProtocol{
+		// 		Value: ngapType.CauseProtocolPresentAbstractSyntaxErrorReject,
+		// 	},
+		// }
+		// ngap_message.SendErrorIndication(lbConn, nil, nil, &cause, nil)
+		return
+	}
+	pDUSessionResourceModifyIndication := initiatingMessage.Value.PDUSessionResourceModifyIndication
+	if pDUSessionResourceModifyIndication == nil {
+		lbConn.Log.Errorf("PDUSessionResourceModifyIndication is nil")
+		// cause := ngapType.Cause{
+		// 	Present: ngapType.CausePresentProtocol,
+		// 	Protocol: &ngapType.CauseProtocol{
+		// 		Value: ngapType.CauseProtocolPresentAbstractSyntaxErrorReject,
+		// 	},
+		// }
+		// ngap_message.SendErrorIndication(lbConn, nil, nil, &cause, nil)
+		return
+	}
+
+	lbConn.Log.Infoln("Handle PDU Session Resource Modify Indication")
+
+	for _, ie := range pDUSessionResourceModifyIndication.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	initialContextSetupResponse := successfulOutcome.Value.InitialContextSetupResponse
+	if initialContextSetupResponse == nil {
+		lbConn.Log.Errorf("InitialContextSetupResponse is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Initial Context Setup Response")
+
+	for _, ie := range initialContextSetupResponse.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+	
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	unsuccessfulOutcome := message.UnsuccessfulOutcome
+	if unsuccessfulOutcome == nil {
+		lbConn.Log.Errorf("UnsuccessfulOutcome is nil")
+		return
+	}
+	initialContextSetupFailure := unsuccessfulOutcome.Value.InitialContextSetupFailure
+	if initialContextSetupFailure == nil {
+		lbConn.Log.Errorf("InitialContextSetupFailure is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Initial Context Setup Failure")
+
+	for _, ie := range initialContextSetupFailure.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	uEContextReleaseRequest := initiatingMessage.Value.UEContextReleaseRequest
+	if uEContextReleaseRequest == nil {
+		lbConn.Log.Errorf("UEContextReleaseRequest is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("UE Context Release Request")
+
+	for _, ie := range uEContextReleaseRequest.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+		}
+}
+
+func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	uEContextModificationResponse := successfulOutcome.Value.UEContextModificationResponse
+	if uEContextModificationResponse == nil {
+		lbConn.Log.Errorf("UEContextModificationResponse is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle UE Context Modification Response")
+
+	for _, ie := range uEContextModificationResponse.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+	
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	unsuccessfulOutcome := message.UnsuccessfulOutcome
+	if unsuccessfulOutcome == nil {
+		lbConn.Log.Errorf("UnsuccessfulOutcome is nil")
+		return
+	}
+	uEContextModificationFailure := unsuccessfulOutcome.Value.UEContextModificationFailure
+	if uEContextModificationFailure == nil {
+		lbConn.Log.Errorf("UEContextModificationFailure is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle UE Context Modification Failure")
+
+	for _, ie := range uEContextModificationFailure.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+	
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+
+	rRCInactiveTransitionReport := initiatingMessage.Value.RRCInactiveTransitionReport
+	if rRCInactiveTransitionReport == nil {
+		lbConn.Log.Errorf("RRCInactiveTransitionReport is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle RRC Inactive Transition Report")
+
+	for i := 0; i < len(rRCInactiveTransitionReport.ProtocolIEs.List); i++ {
+		ie := rRCInactiveTransitionReport.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	HandoverNotify := initiatingMessage.Value.HandoverNotify
+	if HandoverNotify == nil {
+		lbConn.Log.Errorf("HandoverNotify is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Handover notification")
+
+	for i := 0; i < len(HandoverNotify.ProtocolIEs.List); i++ {
+		ie := HandoverNotify.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+// TODO
+// TS 23.502 4.9.1
+func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var rANUENGAPID *ngapType.RANUENGAPID
+	var sourceAMFUENGAPID *ngapType.AMFUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	pathSwitchRequest := initiatingMessage.Value.PathSwitchRequest
+	if pathSwitchRequest == nil {
+		lbConn.Log.Errorf("PathSwitchRequest is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Path Switch Request")
+
+	UeLbID := LB.IDGen.NextNumber()
+
+	for _, ie := range pathSwitchRequest.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+				return
+			}
+			ie.Value.RANUENGAPID.Value = UeLbID
+		case ngapType.ProtocolIEIDSourceAMFUENGAPID: // reject
+			sourceAMFUENGAPID = ie.Value.SourceAMFUENGAPID
+			lbConn.Log.Traceln("Decode IE SourceAmfUeNgapID")
+			if sourceAMFUENGAPID == nil {
+				lbConn.Log.Errorf("SourceAmfUeNgapID is nil")
+				return
+			}
+	
+		}
+	}
+
+	//TODO
+
+	if lbConn.TypeID == context.TypeIdGNBConn {
+		gnb := lbConn.RanPointer
+		ue := context.NewUE()		
+		ue.UeRanID = rANUENGAPID.Value
+		ue.UeLbID = UeLbID
+		ue.RanID = gnb.GnbID
+		gnb.Ues.Store(rANUENGAPID.Value, ue)
+		ue.RanPointer = gnb
+		context.ForwardToNextAmf(lbConn, message, ue)
+	}
+}
+
+func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+	
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	handoverRequestAcknowledge := successfulOutcome.Value.HandoverRequestAcknowledge // reject
+	if handoverRequestAcknowledge == nil {
+		lbConn.Log.Errorf("HandoverRequestAcknowledge is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Handover Request Acknowledge")
+
+	for _, ie := range handoverRequestAcknowledge.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+//TODO
+func HandleHandoverFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	// var aMFUENGAPID *ngapType.AMFUENGAPID
+	// var cause *ngapType.Cause
+	// // var targetUe *context.RanUe
+	// var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+
+	LB = *context.LB_Self()
+
+	// if lbConn == nil {
+	// 	// logger.NgapLog.Error("ran is nil")
+	// 	return
+	// }
+	// if message == nil {
+	// 	// lbConn.Log.Error("NGAP Message is nil")
 	// 	return
 	// }
 
+	// unsuccessfulOutcome := message.UnsuccessfulOutcome // reject
+	// if unsuccessfulOutcome == nil {
+	// 	// lbConn.Log.Error("Unsuccessful Message is nil")
+	// 	return
+	// }
 
-	// if (amfUeNgapID != nil) && (ranUeNgapID != nil) {
-	// 	// Find UE context
-	// 	var ok bool
-	// 	ueCtx, ok = emulatorCtx.UePoolLoad(ranUeNgapID.Value)
-	// 	if !ok {
-	// 		NGAPLog.Errorf("Unknown local UE NGAP ID. RanUENGAPID: %d", ranUeNgapID.Value)
-	// 		// TODO: build cause and handle error
-	// 		// Cause: Unknown local UE NGAP ID
-	// 		return
-	// 	} else {
-	// 		if ueCtx.AmfUeNgapId != amfUeNgapID.Value {
-	// 			// TODO: build cause and handle error
-	// 			// Cause: Inconsistent remote UE NGAP ID
-	// 			return
-	// 		}
+	// handoverFailure := unsuccessfulOutcome.Value.HandoverFailure
+	// if handoverFailure == nil {
+	// 	// lbConn.Log.Error("HandoverFailure is nil")
+	// 	return
+	// }
+
+	// for _, ie := range handoverFailure.ProtocolIEs.List {
+	// 	switch ie.Id.Value {
+	// 	case ngapType.ProtocolIEIDAMFUENGAPID: // ignore
+	// 		aMFUENGAPID = ie.Value.AMFUENGAPID
+	// 		// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+	// 	case ngapType.ProtocolIEIDCause: // ignore
+	// 		cause = ie.Value.Cause
+	// 		// lbConn.Log.Trace("Decode IE Cause")
+	// 	case ngapType.ProtocolIEIDCriticalityDiagnostics: // ignore
+	// 		criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+	// 		// lbConn.Log.Trace("Decode IE CriticalityDiagnostics")
 	// 	}
 	// }
 
-	// ueCtx.AmfUeNgapId = amfUeNgapID.Value
-	// ueCtx.RanUeNgapId = ranUeNgapID.Value
+	// // causePresent := ngapType.CausePresentRadioNetwork
+	// // causeValue := ngapType.CauseRadioNetworkPresentHoFailureInTarget5GCNgranNodeOrTargetSystem
+	// // if cause != nil {
+	// // 	causePresent, causeValue = printAndGetCause(lbConn, cause)
+	// // }
 
-	// ngap_message.SendInitialContextSetupResponse(lbConn, ueCtx.AmfUeNgapId, ueCtx.RanUeNgapId)
-
-	// // TODO: The flow is as follows:
-	// // send NAS Registration Complete Msg
-	// // send NAS Deregistration Request (UE Originating)
-	// // TODO: Here I need a handler that will send the Registration Accept to the NAS handler, which in turn will put the UE to the Registered State.
-	// if nasPDU != nil {
-	// 	// TODO: Handle NAS Packet
-	// 	go gnb_nas.HandleNAS(ueCtx, ngapType.ProcedureCodeDownlinkNASTransport, nasPDU.Value)
+	// if criticalityDiagnostics != nil {
+	// 	printCriticalityDiagnostics(lbConn, criticalityDiagnostics)
 	// }
+
+	//TODO
+
+	// targetUe = context.AMF_Self().RanUeFindByAmfUeNgapID(aMFUENGAPID.Value)
+
+	// if targetUe == nil {
+	// 	lbConn.Log.Errorf("No UE Context[AmfUENGAPID: %d]", aMFUENGAPID.Value)
+	// 	cause := ngapType.Cause{
+	// 		Present: ngapType.CausePresentRadioNetwork,
+	// 		RadioNetwork: &ngapType.CauseRadioNetwork{
+	// 			Value: ngapType.CauseRadioNetworkPresentUnknownLocalUENGAPID,
+	// 		},
+	// 	}
+	// 	ngap_message.SendErrorIndication(lbConn, aMFUENGAPID, nil, &cause, nil)
+	// 	return
+	// }
+
+	// sourceUe := targetUe.SourceUe
+	// if sourceUe == nil {
+	// 	// TODO: handle N2 Handover between AMF
+	// 	lbConn.Log.Error("N2 Handover between AMF has not been implemented yet")
+	// } else {
+	// 	amfUe := targetUe.AmfUe
+	// 	if amfUe != nil {
+	// 		amfUe.SmContextList.Range(func(key, value interface{}) bool {
+	// 			pduSessionID := key.(int32)
+	// 			smContext := value.(*context.SmContext)
+	// 			causeAll := context.CauseAll{
+	// 				NgapCause: &models.NgApCause{
+	// 					Group: int32(causePresent),
+	// 					Value: int32(causeValue),
+	// 				},
+	// 			}
+	// 			_, _, _, err := consumer.SendUpdateSmContextN2HandoverCanceled(amfUe, smContext, causeAll)
+	// 			if err != nil {
+	// 				lbConn.Log.Errorf("Send UpdateSmContextN2HandoverCanceled Error for PduSessionId[%d]", pduSessionID)
+	// 			}
+	// 			return true
+	// 		})
+	// 	}
+	// 	ngap_message.SendHandoverPreparationFailure(sourceUe, *cause, criticalityDiagnostics)
+	// }
+
+	// ngap_message.SendUEContextReleaseCommand(targetUe, context.UeContextReleaseHandover, causePresent, causeValue)
 }
 
-func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	// NGAPLog.Infoln("[gNB] Handle UE Context Release Command")
+//TODO
+func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
 
-	// var ueNgapIDs *ngapType.UENGAPIDs
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	HandoverRequired := initiatingMessage.Value.HandoverRequired
+	if HandoverRequired == nil {
+		lbConn.Log.Errorf("HandoverRequired is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle HandoverRequired\n")
+
+	for i := 0; i < len(HandoverRequired.ProtocolIEs.List); i++ {
+		ie := HandoverRequired.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+//TODO
+func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	// var aMFUENGAPID *ngapType.AMFUENGAPID
+	// var rANUENGAPID *ngapType.RANUENGAPID
 	// var cause *ngapType.Cause
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
-	// var ueCtx *RAN.UeContext
-	// var lbCtx = context.LB_Self()
+	// LB = *context.LB_Self()
 
+	// if lbConn == nil {
+	// 	logger.NgapLog.Errorf("ran is nil")
+	// 	return
+	// }
 	// if message == nil {
-	// 	NGAPLog.Error("NGAP Message is nil")
+	// 	lbConn.Log.Errorf("NGAP Message is nil")
 	// 	return
 	// }
 
 	// initiatingMessage := message.InitiatingMessage
 	// if initiatingMessage == nil {
-	// 	NGAPLog.Error("Initiating Message is nil")
+	// 	lbConn.Log.Errorf("Initiating Message is nil")
+	// 	return
+	// }
+	// HandoverCancel := initiatingMessage.Value.HandoverCancel
+	// if HandoverCancel == nil {
+	// 	lbConn.Log.Errorf("Handover Cancel is nil")
 	// 	return
 	// }
 
-	// ueContextReleaseCommand := initiatingMessage.Value.UEContextReleaseCommand
-	// if ueContextReleaseCommand == nil {
-	// 	NGAPLog.Error("UEContextReleaseCommand is nil")
-	// 	return
-	// }
+	// lbConn.Log.Infoln("Handle Handover Cancel")
 
-	// for _, ie := range ueContextReleaseCommand.ProtocolIEs.List {
+	// for i := 0; i < len(HandoverCancel.ProtocolIEs.List); i++ {
+	// 	ie := HandoverCancel.ProtocolIEs.List[i]
 	// 	switch ie.Id.Value {
-	// 	case ngapType.ProtocolIEIDUENGAPIDs:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE UENGAPIDs")
-	// 		ueNgapIDs = ie.Value.UENGAPIDs
-	// 		if ueNgapIDs == nil {
-	// 			NGAPLog.Errorf("UENGAPIDs is nil")
-	// 			item := buildCriticalityDiagnosticsIEItem(
-	// 				ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-	// 			iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
+	// 	case ngapType.ProtocolIEIDAMFUENGAPID:
+	// 		aMFUENGAPID = ie.Value.AMFUENGAPID
+	// 		lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+	// 		if aMFUENGAPID == nil {
+	// 			lbConn.Log.Errorf("AMFUENGAPID is nil")
+	// 			return
+	// 		}
+	// 	case ngapType.ProtocolIEIDRANUENGAPID:
+	// 		rANUENGAPID = ie.Value.RANUENGAPID
+	// 		lbConn.Log.Traceln("Decode IE RanUeNgapID")
+	// 		if rANUENGAPID == nil {
+	// 			lbConn.Log.Errorf("RANUENGAPID is nil")
+	// 			return
 	// 		}
 	// 	case ngapType.ProtocolIEIDCause:
-	// 		NGAPLog.Traceln("[NGAP] Decode IE Cause")
 	// 		cause = ie.Value.Cause
-	// 	}
-	// }
-
-	// if len(iesCriticalityDiagnostics.List) > 0 {
-	// 	// TODO: send error indication
-	// 	return
-	// }
-
-	// switch ueNgapIDs.Present {
-	// case ngapType.UENGAPIDsPresentUENGAPIDPair:
-	// 	ueCtx, _ = lbCtx.UePoolLoad(ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value)
-	// case ngapType.UENGAPIDsPresentAMFUENGAPID:
-	// 	// TODO: find UE according to specific AMF
-	// 	// The implementation here may have error when N3IWF need to
-	// 	// connect multiple AMFs.
-	// 	// Use UEpool in AMF context can solve this problem
-	// 	// ueCtx = amf.FindUeByAmfUeNgapID(ueNgapIDs.AMFUENGAPID.Value)
-	// }
-
-	// if ueCtx == nil {
-	// 	// TODO: send error indication(unknown local ngap ue id)
-	// 	return
-	// }
-
-	// if cause != nil {
-	// 	printAndGetCause(cause)
-	// }
-
-	// ngap_message.SendUEContextReleaseComplete(lbConn, ueCtx.AmfUeNgapId, ueCtx.RanUeNgapId)
-
-	// ueCtx.DeregisrtationFinished = true
-	// ueCtx.TimestampT8 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
-
-
-	// if err := gmm.GmmFSM.SendEvent(ueCtx.State, gmm.DeregistrationAcceptEvent, fsm.ArgsType{
-	// 	gmm.ArgRanUe:         ueCtx,
-	// }); err != nil {
-	// 	logger.GmmLog.Errorln(err)
-	// }
-}
-
-// TODO 
-func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	// NGAPLog.Infoln("[gNB] Handle Downlink NAS Transport")
-
-	LB := context.LB_Self()
-
-	var aMFUENGAPID *ngapType.AMFUENGAPID
-	var rANUENGAPID *ngapType.RANUENGAPID
-	// var nasPDU *ngapType.NASPDU
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
-
-	// var ueCtx *RAN.UeContext
-	// var emulatorCtx = context.EmulatorSelf()
-
-	if message == nil {
-		// NGAPLog.Error("NGAP Message is nil")
-		return
-	}
-
-	initiatingMessage := message.InitiatingMessage
-	if initiatingMessage == nil {
-		// NGAPLog.Error("Initiating Message is nil")
-		return
-	}
-
-	downlinkNASTransport := initiatingMessage.Value.DownlinkNASTransport
-	if downlinkNASTransport == nil {
-		// NGAPLog.Error("DownlinkNASTransport is nil")
-		return
-	}
-
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false
-
-	for _, ie := range downlinkNASTransport.ProtocolIEs.List {
-		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					// lbConn.Log.Error("AmfUeNgapID is nil")
-					fmt.Println("AmfUeNgapID is nil")
-				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				// lbConn.Log.Trace("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					// lbConn.Log.Error("RanUeNgapID is nil")
-					fmt.Println("RanUeNgapID is nil")
-				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-					if !ok {
-						fmt.Print("Amf not registered")
-						return 
-					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						fmt.Print("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
-					LB.ForwardToGnb(lbConn, message, ue)
-				}
-		}	
-	}	
-
-		// case ngapType.ProtocolIEIDNASPDU:
-		// 	NGAPLog.Traceln("[NGAP] Decode IE NASPDU")
-		// 	nasPDU = ie.Value.NASPDU
-		// 	if nasPDU == nil {
-		// 		NGAPLog.Errorf("NASPDU is nil")
-		// 		item := buildCriticalityDiagnosticsIEItem(
-		// 			ngapType.CriticalityPresentReject, ie.Id.Value, ngapType.TypeOfErrorPresentMissing)
-		// 		iesCriticalityDiagnostics.List = append(iesCriticalityDiagnostics.List, item)
-		// 	}
-
-
-
-
-// if ranUeNgapID != nil {
-// 	var ok bool
-// 	ueCtx, ok = emulatorCtx.UePoolLoad(ranUeNgapID.Value)
-// 	//fmt.Println(ueCtx)
-// 	if !ok {
-// 		NGAPLog.Warnf("No UE Context[RanUeNgapID:%d]\n", ranUeNgapID.Value)
-// 		return
-// 	}
-// }
-
-// if amfUeNgapID != nil {
-// 	if ueCtx.AmfUeNgapId == 0 {
-// 		NGAPLog.Tracef("Create new logical UE-associated NG-connection")
-// 		ueCtx.AmfUeNgapId = amfUeNgapID.Value
-// 	} else {
-// 		if ueCtx.AmfUeNgapId != amfUeNgapID.Value {
-// 			NGAPLog.Warn("AMFUENGAPID unmatched")
-// 			return
-// 		}
-// 	}
-// }
-
-// if nasPDU != nil {
-// 	// TODO: Handle NAS Packet
-// 	go gnb_nas.HandleNAS(ueCtx, ngapType.ProcedureCodeDownlinkNASTransport, nasPDU.Value)
-// }
-	
-}
-
-// TODO 
-func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	// NGAPLog.Infoln("[gNB] Handle PDU Session Resource Setup Request")
-
-	LB := context.LB_Self()
-
-	var aMFUENGAPID *ngapType.AMFUENGAPID
-	var rANUENGAPID *ngapType.RANUENGAPID
-	// var nasPDU *ngapType.NASPDU
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
-	// var pduSessionResourceSetupListSUReq *ngapType.PDUSessionResourceSetupListSUReq
-
-	// var ueCtx *RAN.UeContext
-	// var emulatorCtx = context.EmulatorSelf()
-
-	if message == nil {
-		// NGAPLog.Error("NGAP Message is nil")
-		return
-	}
-
-	initiatingMessage := message.InitiatingMessage
-	if initiatingMessage == nil {
-		// NGAPLog.Error("Initiating Message is nil")
-		return
-	}
-
-	pduSessionResourceSetupRequest := initiatingMessage.Value.PDUSessionResourceSetupRequest
-	if pduSessionResourceSetupRequest == nil {
-		// NGAPLog.Error("PDUSessionResourceSetupRequest is nil")
-		return
-	}
-
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false
-
-	for _, ie := range pduSessionResourceSetupRequest.ProtocolIEs.List {
-		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					// lbConn.Log.Error("AmfUeNgapID is nil")
-					fmt.Println("AmfUeNgapID is nil")
-				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				// lbConn.Log.Trace("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					// lbConn.Log.Error("RanUeNgapID is nil")
-					fmt.Println("RanUeNgapID is nil")
-				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-					if !ok {
-						fmt.Print("AMF not registered")
-						return 
-					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						fmt.Print("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
-					LB.ForwardToGnb(lbConn, message, ue)
-				}
-		}
-	}
-
-	// if len(iesCriticalityDiagnostics.List) > 0 {
-	// 	// TODO: Send error indication to AMF
-	// 	NGAPLog.Errorln("Sending error indication to AMF")
-	// 	return
-	// }
-
-	// if (amfUeNgapID != nil) && (ranUeNgapID != nil) {
-	// 	// Find UE context
-	// 	var ok bool
-	// 	ueCtx, ok = emulatorCtx.UePoolLoad(ranUeNgapID.Value)
-	// 	if !ok {
-	// 		NGAPLog.Errorf("Unknown local UE NGAP ID. RanUENGAPID: %d", ranUeNgapID.Value)
-	// 		// TODO: build cause and handle error
-	// 		// Cause: Unknown local UE NGAP ID
-	// 		return
-	// 	} else {
-	// 		if ueCtx.AmfUeNgapId != amfUeNgapID.Value {
-	// 			// TODO: build cause and handle error
-	// 			NGAPLog.Warn("AMFUENGAPID unmatched")
+	// 		lbConn.Log.Traceln("Decode IE Cause")
+	// 		if cause == nil {
+	// 			// lbConn.Log.Errorf(cause, "cause is nil")
 	// 			return
 	// 		}
 	// 	}
 	// }
-	// ngap_message.SendPDUSessionResourceSetupResponse(lbConn, ueCtx.AmfUeNgapId, ueCtx.RanUeNgapId, ueCtx.PduSessionID, emulatorCtx.GNBIPAddress)
 
-	// if pduSessionResourceSetupListSUReq != nil {
-	// 	for _, item := range pduSessionResourceSetupListSUReq.List {
-	// 		//pduSessionID := item.PDUSessionID.Value
-	// 		pduSessionNasPdu := item.PDUSessionNASPDU.Value
-	// 		//snssai := item.SNSSAI
-	// 		// TODO: procedure Code may need to be changed...
-	// 		dummyProcedureCode := int64(16)
-	// 		go gnb_nas.HandleNAS(ueCtx, dummyProcedureCode, pduSessionNasPdu)
+	// if lbConn.TypeID == context.TypeIdAMFConn {
+	// 	amf, _ := LB.LbAmfFindByConn(lbConn.Conn)
+	// 	lbConn.Log.Traceln("AMF Found")
+	// 	UE, _ := amf.FindUeByUeID(rANUENGAPID.Value)
+	// 	context.ForwardToGnb(message, UE)
+	// 	return
+	// }
+	// if lbConn.TypeID == context.TypeIdGNBConn {
+	// 	gnb, _ := LB.LbGnbFindByConn(lbConn.Conn)
+	// 	UE, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
+	// 	if !ok {
+	// 		lbConn.Log.Errorf("UE not found")
+	// 		return 
 	// 	}
+	// 	context.ForwardToAmf(message, UE)
+	// 	return
 	// }
 }
 
-// TODO
-func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	// NGAPLog.Infoln("[gNB] Handle PDU Session Resource Release Command")
-	
-	LB := context.LB_Self()
-	
+func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	// var nasPDU *ngapType.NASPDU
-	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
-	// var pDUSessionResourceToReleaseListRelCmd *ngapType.PDUSessionResourceToReleaseListRelCmd
 
-	// var ueCtx *RAN.UeContext
-	// var emulatorCtx = context.EmulatorSelf()
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage // ignore
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	uplinkRanStatusTransfer := initiatingMessage.Value.UplinkRANStatusTransfer
+	if uplinkRanStatusTransfer == nil {
+		lbConn.Log.Errorf("UplinkRanStatusTransfer is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Uplink Ran Status Transfer")
+
+	for _, ie := range uplinkRanStatusTransfer.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	nASNonDeliveryIndication := initiatingMessage.Value.NASNonDeliveryIndication
+	if nASNonDeliveryIndication == nil {
+		lbConn.Log.Errorf("NASNonDeliveryIndication is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Nas Non Delivery Indication")
+
+	for _, ie := range nASNonDeliveryIndication.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+		}
+}
+
+//Todo
+func HandleRanConfigurationUpdate(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var rANNodeName *ngapType.RANNodeName
+	var supportedTAList *ngapType.SupportedTAList
+	var pagingDRX *ngapType.PagingDRX
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
 
 	if message == nil {
-		// NGAPLog.Error("NGAP Message is nil")
+		lbConn.Log.Errorf("NGAP Message is nil")
 		return
 	}
 
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
-		// NGAPLog.Error("Initiating Message is nil")
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	rANConfigurationUpdate := initiatingMessage.Value.RANConfigurationUpdate
+	if rANConfigurationUpdate == nil {
+		lbConn.Log.Errorf("RAN Configuration is nil")
+		return
+	}
+	lbConn.Log.Infoln("Handle Ran Configuration Update")
+
+	for i := 0; i < len(rANConfigurationUpdate.ProtocolIEs.List); i++ {
+		ie := rANConfigurationUpdate.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDRANNodeName:
+			rANNodeName = ie.Value.RANNodeName
+			if rANNodeName == nil {
+				lbConn.Log.Errorf("RAN Node Name is nil")
+				return
+			}
+			lbConn.Log.Traceln("Decode IE RANNodeName = [%s]", rANNodeName.Value)
+		case ngapType.ProtocolIEIDSupportedTAList:
+			supportedTAList = ie.Value.SupportedTAList
+			lbConn.Log.Traceln("Decode IE SupportedTAList")
+			if supportedTAList == nil {
+				lbConn.Log.Errorf("Supported TA List is nil")
+				return
+			}
+		case ngapType.ProtocolIEIDDefaultPagingDRX:
+			pagingDRX = ie.Value.DefaultPagingDRX
+			if pagingDRX == nil {
+				lbConn.Log.Errorf("PagingDRX is nil")
+				return
+			}
+			lbConn.Log.Traceln("Decode IE PagingDRX = [%d]", pagingDRX.Value)
+		}
+	}
+}
+
+//TODO
+func HandleUplinkRanConfigurationTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var sONConfigurationTransferUL *ngapType.SONConfigurationTransfer
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	uplinkRANConfigurationTransfer := initiatingMessage.Value.UplinkRANConfigurationTransfer
+	if uplinkRANConfigurationTransfer == nil {
+		lbConn.Log.Errorf("ErrorIndication is nil")
 		return
 	}
 
-	pDUSessionResourceReleaseCommand := initiatingMessage.Value.PDUSessionResourceReleaseCommand
-	if pDUSessionResourceReleaseCommand == nil {
-		// NGAPLog.Error("pDUSessionResourceReleaseCommand is nil")
+	for _, ie := range uplinkRANConfigurationTransfer.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDSONConfigurationTransferUL: // optional, ignore
+			sONConfigurationTransferUL = ie.Value.SONConfigurationTransferUL
+			lbConn.Log.Traceln("Decode IE SONConfigurationTransferUL")
+			if sONConfigurationTransferUL == nil {
+				lbConn.Log.Warnf("sONConfigurationTransferUL is nil")
+			}
+		}
+	}
+}
+
+func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	uplinkUEAssociatedNRPPaTransport := initiatingMessage.Value.UplinkUEAssociatedNRPPaTransport
+	if uplinkUEAssociatedNRPPaTransport == nil {
+		lbConn.Log.Errorf("uplinkUEAssociatedNRPPaTransport is nil")
 		return
 	}
 
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false
+	lbConn.Log.Infoln("Handle Uplink UE Associated NRPPA Transpor")
 
-	for _, ie := range pDUSessionResourceReleaseCommand.ProtocolIEs.List {
+	for _, ie := range uplinkUEAssociatedNRPPaTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
 			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
 				aMFUENGAPID = ie.Value.AMFUENGAPID
-				// lbConn.Log.Trace("Decode IE AmfUeNgapID")
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
 				if aMFUENGAPID == nil {
-					// lbConn.Log.Error("AmfUeNgapID is nil")
-					fmt.Println("AmfUeNgapID is nil")
-				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				// lbConn.Log.Trace("Decode IE RanUeNgapID")
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
 				if rANUENGAPID == nil {
-					// lbConn.Log.Error("RanUeNgapID is nil")
-					fmt.Println("RanUeNgapID is nil")
+					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
-					amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
 					if !ok {
-						fmt.Print("Amf not registered")
+						lbConn.Log.Errorf("UE not registered")
 						return 
 					}
-					ue, ok := amf.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						fmt.Print("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-					}
-					LB.ForwardToGnb(lbConn, message, ue)
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
 				}
+			}
+	}
+}
+
+// TODO
+func HandleUplinkNonUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var routingID *ngapType.RoutingID
+	var nRPPaPDU *ngapType.NRPPaPDU
+
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	uplinkNonUEAssociatedNRPPATransport := initiatingMessage.Value.UplinkNonUEAssociatedNRPPaTransport
+	if uplinkNonUEAssociatedNRPPATransport == nil {
+		lbConn.Log.Errorf("Uplink Non UE Associated NRPPA Transport is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Uplink Non UE Associated NRPPA Transport")
+
+	for i := 0; i < len(uplinkNonUEAssociatedNRPPATransport.ProtocolIEs.List); i++ {
+		ie := uplinkNonUEAssociatedNRPPATransport.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDRoutingID:
+			routingID = ie.Value.RoutingID
+			lbConn.Log.Traceln("Decode IE RoutingID")
+
+		case ngapType.ProtocolIEIDNRPPaPDU:
+			nRPPaPDU = ie.Value.NRPPaPDU
+			lbConn.Log.Traceln("Decode IE NRPPaPDU")
 		}
 	}
 
-	// if len(iesCriticalityDiagnostics.List) > 0 {
-	// 	procudureCode := ngapType.ProcedureCodePDUSessionResourceRelease
-	// 	trigger := ngapType.TriggeringMessagePresentInitiatingMessage
-	// 	criticality := ngapType.CriticalityPresentReject
-	// 	criticalityDiagnostics := buildCriticalityDiagnostics(
-	// 		&procudureCode, &trigger, &criticality, &iesCriticalityDiagnostics)
-	// 	ngap_message.SendErrorIndicationWithSctpConn(lbConn, nil, nil, nil, &criticalityDiagnostics)
-	// 	return
-	// }
+	if routingID == nil {
+		lbConn.Log.Errorf("RoutingID is nil")
+		return
+	}
+	// Forward routingID to LMF
+	// Described in (23.502 4.13.5.6)
 
-	// ueCtx, ok := emulatorCtx.UePoolLoad(ranUeNgapID.Value)
-	// if !ok {
-	// 	NGAPLog.Errorf("Unknown local UE NGAP ID. RanUENGAPID: %d", ranUeNgapID.Value)
-	// 	cause := buildCause(ngapType.CausePresentRadioNetwork, ngapType.CauseRadioNetworkPresentUnknownLocalUENGAPID)
-	// 	ngap_message.SendErrorIndicationWithSctpConn(lbConn, nil, nil, cause, nil)
-	// 	return
-	// }
-
-	// if ueCtx.AmfUeNgapId != amfUeNgapID.Value {
-	// 	NGAPLog.Errorf("Inconsistent remote UE NGAP ID, AMFUENGAPID: %d, ue.AmfUeNgapId: %d",
-	// 		amfUeNgapID.Value, ueCtx.AmfUeNgapId)
-	// 	cause := buildCause(ngapType.CausePresentRadioNetwork,
-	// 		ngapType.CauseRadioNetworkPresentInconsistentRemoteUENGAPID)
-	// 	ngap_message.SendErrorIndicationWithSctpConn(lbConn, nil, &ranUeNgapID.Value, cause, nil)
-	// 	return
-	// }
-
-	// for _, item := range pDUSessionResourceToReleaseListRelCmd.List {
-	// 	pduSessionId := item.PDUSessionID.Value
-	// 	transfer := ngapType.PDUSessionResourceReleaseCommandTransfer{}
-	// 	err := aper.UnmarshalWithParams(item.PDUSessionResourceReleaseCommandTransfer, &transfer, "valueExt")
-	// 	if err != nil {
-	// 		NGAPLog.Warnf("[PDUSessionID: %d] PDUSessionResourceReleaseCommandTransfer Decode Error: %+v\n", pduSessionId, err)
-	// 	} else {
-	// 		printAndGetCause(&transfer.Cause)
-	// 	}
-	// 	NGAPLog.Tracef("Release PDU Session Id[%d] due to PDU Session Resource Release Command", pduSessionId)
-	// 	//delete(ueCtx.PduSessionList, pduSessionId)
-	// }
-
-	// if nasPDU != nil {
-	// 	dummyProcedureCore := ngapType.ProcedureCodeDownlinkNASTransport
-	// 	go gnb_nas.HandleNAS(ueCtx, dummyProcedureCore, nasPDU.Value)
-	// }
-	// ngap_message.SendPDUSessionResourceReleaseResponse(lbConn, ueCtx.AmfUeNgapId, ueCtx.RanUeNgapId, ueCtx.PduSessionID)
+	if nRPPaPDU == nil {
+		lbConn.Log.Errorf("NRPPaPDU is nil")
+		return
+	}
+	// TODO: Forward NRPPaPDU to LMF
 }
 
-// func buildCriticalityDiagnosticsIEItem(ieCriticality aper.Enumerated, ieID int64, typeOfErr aper.Enumerated) (
-// 	item ngapType.CriticalityDiagnosticsIEItem) {
+func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
 
-// 	item = ngapType.CriticalityDiagnosticsIEItem{
-// 		IECriticality: ngapType.Criticality{
-// 			Value: ieCriticality,
-// 		},
-// 		IEID: ngapType.ProtocolIEID{
-// 			Value: ieID,
-// 		},
-// 		TypeOfError: ngapType.TypeOfError{
-// 			Value: typeOfErr,
-// 		},
-// 	}
+	LB = *context.LB_Self()
 
-// 	return item
-// }
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	locationReport := initiatingMessage.Value.LocationReport
+	if locationReport == nil {
+		lbConn.Log.Errorf("LocationReport is nil")
+		return
+	}
 
-// func buildCause(present int, value aper.Enumerated) (cause *ngapType.Cause) {
-// 	cause = new(ngapType.Cause)
-// 	cause.Present = present
+	lbConn.Log.Infoln("Handle Location Report")
 
-// 	switch present {
-// 	case ngapType.CausePresentRadioNetwork:
-// 		cause.RadioNetwork = new(ngapType.CauseRadioNetwork)
-// 		cause.RadioNetwork.Value = value
-// 	case ngapType.CausePresentTransport:
-// 		cause.Transport = new(ngapType.CauseTransport)
-// 		cause.Transport.Value = value
-// 	case ngapType.CausePresentNas:
-// 		cause.Nas = new(ngapType.CauseNas)
-// 		cause.Nas.Value = value
-// 	case ngapType.CausePresentProtocol:
-// 		cause.Protocol = new(ngapType.CauseProtocol)
-// 		cause.Protocol.Value = value
-// 	case ngapType.CausePresentMisc:
-// 		cause.Misc = new(ngapType.CauseMisc)
-// 		cause.Misc.Value = value
-// 	case ngapType.CausePresentNothing:
-// 	}
+	for _, ie := range locationReport.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
 
-// 	return
-// }
+func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
 
-// func buildCriticalityDiagnostics(
-// 	procedureCode *int64,
-// 	triggeringMessage *aper.Enumerated,
-// 	procedureCriticality *aper.Enumerated,
-// 	iesCriticalityDiagnostics *ngapType.CriticalityDiagnosticsIEList) (
-// 	criticalityDiagnostics ngapType.CriticalityDiagnostics) {
+	LB = *context.LB_Self()
 
-// 	if procedureCode != nil {
-// 		criticalityDiagnostics.ProcedureCode = new(ngapType.ProcedureCode)
-// 		criticalityDiagnostics.ProcedureCode.Value = *procedureCode
-// 	}
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("Initiating Message is nil")
+		return
+	}
+	uERadioCapabilityInfoIndication := initiatingMessage.Value.UERadioCapabilityInfoIndication
+	if uERadioCapabilityInfoIndication == nil {
+		lbConn.Log.Errorf("UERadioCapabilityInfoIndication is nil")
+		return
+	}
 
-// 	if triggeringMessage != nil {
-// 		criticalityDiagnostics.TriggeringMessage = new(ngapType.TriggeringMessage)
-// 		criticalityDiagnostics.TriggeringMessage.Value = *triggeringMessage
-// 	}
+	lbConn.Log.Infoln("Handle UE Radio Capability Info Indication")
 
-// 	if procedureCriticality != nil {
-// 		criticalityDiagnostics.ProcedureCriticality = new(ngapType.Criticality)
-// 		criticalityDiagnostics.ProcedureCriticality.Value = *procedureCriticality
-// 	}
+	for i := 0; i < len(uERadioCapabilityInfoIndication.ProtocolIEs.List); i++ {
+		ie := uERadioCapabilityInfoIndication.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
 
-// 	if iesCriticalityDiagnostics != nil {
-// 		criticalityDiagnostics.IEsCriticalityDiagnostics = iesCriticalityDiagnostics
-// 	}
+//TODO
+func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var cause *ngapType.Cause
+	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	
+	LB = *context.LB_Self()
+	
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	unsuccessfulOutcome := message.UnsuccessfulOutcome
+	if unsuccessfulOutcome == nil {
+		lbConn.Log.Errorf("Unsuccessful Message is nil")
+		return
+	}
 
-// 	return criticalityDiagnostics
-// }
+	AMFconfigurationUpdateFailure := unsuccessfulOutcome.Value.AMFConfigurationUpdateFailure
+	if AMFconfigurationUpdateFailure == nil {
+		lbConn.Log.Errorf("AMFConfigurationUpdateFailure is nil")
+		return
+	}
 
+	lbConn.Log.Infoln("Handle AMF Confioguration Update Failure")
 
-// func printAndGetCause(cause *ngapType.Cause) (present int, value aper.Enumerated) {
+	for _, ie := range AMFconfigurationUpdateFailure.ProtocolIEs.List {
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDCause:
+			cause = ie.Value.Cause
+			lbConn.Log.Traceln("Decode IE Cause")
+			if cause == nil {
+				lbConn.Log.Errorf("Cause is nil")
+				return
+			}
+		case ngapType.ProtocolIEIDCriticalityDiagnostics:
+			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+			lbConn.Log.Traceln("Decode IE CriticalityDiagnostics")
+		}
+	}
 
-// 	present = cause.Present
-// 	switch cause.Present {
-// 	case ngapType.CausePresentRadioNetwork:
-// 		NGAPLog.Warnf("Cause RadioNetwork[%d]", cause.RadioNetwork.Value)
-// 		value = cause.RadioNetwork.Value
-// 	case ngapType.CausePresentTransport:
-// 		NGAPLog.Warnf("Cause Transport[%d]", cause.Transport.Value)
-// 		value = cause.Transport.Value
-// 	case ngapType.CausePresentProtocol:
-// 		NGAPLog.Warnf("Cause Protocol[%d]", cause.Protocol.Value)
-// 		value = cause.Protocol.Value
-// 	case ngapType.CausePresentNas:
-// 		NGAPLog.Warnf("Cause Nas[%d]", cause.Nas.Value)
-// 		value = cause.Nas.Value
-// 	case ngapType.CausePresentMisc:
-// 		NGAPLog.Warnf("Cause Misc[%d]", cause.Misc.Value)
-// 		value = cause.Misc.Value
-// 	default:
-// 		NGAPLog.Errorf("Invalid Cause group[%d]", cause.Present)
-// 	}
-// 	return
-// }
+	//	TODO: Time To Wait
+
+	if criticalityDiagnostics != nil {
+		printCriticalityDiagnostics(lbConn, criticalityDiagnostics)
+	}
+}
+
+//TODO
+func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFTNLAssociationSetupList *ngapType.AMFTNLAssociationSetupList
+	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
+	var aMFTNLAssociationFailedToSetupList *ngapType.TNLAssociationList
+	
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	successfulOutcome := message.SuccessfulOutcome
+	if successfulOutcome == nil {
+		lbConn.Log.Errorf("SuccessfulOutcome is nil")
+		return
+	}
+	aMFConfigurationUpdateAcknowledge := successfulOutcome.Value.AMFConfigurationUpdateAcknowledge
+	if aMFConfigurationUpdateAcknowledge == nil {
+		lbConn.Log.Errorf("AMFConfigurationUpdateAcknowledge is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle AMF Configuration Update Acknowledge")
+
+	for i := 0; i < len(aMFConfigurationUpdateAcknowledge.ProtocolIEs.List); i++ {
+		ie := aMFConfigurationUpdateAcknowledge.ProtocolIEs.List[i]
+		switch ie.Id.Value {
+		case ngapType.ProtocolIEIDAMFTNLAssociationSetupList:
+			aMFTNLAssociationSetupList = ie.Value.AMFTNLAssociationSetupList
+			lbConn.Log.Traceln("Decode IE AMFTNLAssociationSetupList")
+			if aMFTNLAssociationSetupList == nil {
+				lbConn.Log.Errorf("AMFTNLAssociationSetupList is nil")
+				return
+			}
+		case ngapType.ProtocolIEIDCriticalityDiagnostics:
+			criticalityDiagnostics = ie.Value.CriticalityDiagnostics
+			lbConn.Log.Traceln("Decode IE Criticality Diagnostics")
+
+		case ngapType.ProtocolIEIDAMFTNLAssociationFailedToSetupList:
+			aMFTNLAssociationFailedToSetupList = ie.Value.AMFTNLAssociationFailedToSetupList
+			lbConn.Log.Traceln("Decode IE AMFTNLAssociationFailedToSetupList")
+			if aMFTNLAssociationFailedToSetupList == nil {
+				lbConn.Log.Errorf("AMFTNLAssociationFailedToSetupList is nil")
+				return
+			}
+		}
+	}
+
+	if criticalityDiagnostics != nil {
+		printCriticalityDiagnostics(lbConn, criticalityDiagnostics)
+	}
+}
+
+func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+	
+	LB = *context.LB_Self()
+
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	errorIndication := initiatingMessage.Value.ErrorIndication
+	if errorIndication == nil {
+		lbConn.Log.Errorf("ErrorIndication is nil")
+		return
+	}
+
+	for _, ie := range errorIndication.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+	var aMFUENGAPID *ngapType.AMFUENGAPID
+	var rANUENGAPID *ngapType.RANUENGAPID
+
+	LB = *context.LB_Self()
+	
+	if lbConn == nil {
+		logger.NgapLog.Errorf("ran is nil")
+		return
+	}
+	if message == nil {
+		lbConn.Log.Errorf("NGAP Message is nil")
+		return
+	}
+	initiatingMessage := message.InitiatingMessage // ignore
+	if initiatingMessage == nil {
+		lbConn.Log.Errorf("InitiatingMessage is nil")
+		return
+	}
+	cellTrafficTrace := initiatingMessage.Value.CellTrafficTrace
+	if cellTrafficTrace == nil {
+		lbConn.Log.Errorf("CellTrafficTrace is nil")
+		return
+	}
+
+	lbConn.Log.Infoln("Handle Cell Traffic Trace")
+
+	for _, ie := range cellTrafficTrace.ProtocolIEs.List {
+		switch ie.Id.Value {
+			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				aMFUENGAPID = ie.Value.AMFUENGAPID
+				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+				if aMFUENGAPID == nil {
+					lbConn.Log.Errorf("AmfUeNgapID is nil")
+				}
+			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				rANUENGAPID = ie.Value.RANUENGAPID
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+				lbConn.Log.Traceln("Decode IE RanUeNgapID")
+				if rANUENGAPID == nil {
+					lbConn.Log.Errorf("RanUeNgapID is nil")
+				} else {
+					gnb := lbConn.RanPointer
+					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					if !ok {
+						lbConn.Log.Errorf("UE not registered")
+						return 
+					}
+					ie.Value.RANUENGAPID.Value = ue.UeLbID
+					context.ForwardToAmf(message, ue)
+				}
+			}
+	}
+}
+
+func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
+	present = cause.Present
+	switch cause.Present {
+	case ngapType.CausePresentRadioNetwork:
+		lbConn.Log.Warnf("Cause RadioNetwork[%d]", cause.RadioNetwork.Value)
+		value = cause.RadioNetwork.Value
+	case ngapType.CausePresentTransport:
+		lbConn.Log.Warnf("Cause Transport[%d]", cause.Transport.Value)
+		value = cause.Transport.Value
+	case ngapType.CausePresentProtocol:
+		lbConn.Log.Warnf("Cause Protocol[%d]", cause.Protocol.Value)
+		value = cause.Protocol.Value
+	case ngapType.CausePresentNas:
+		lbConn.Log.Warnf("Cause Nas[%d]", cause.Nas.Value)
+		value = cause.Nas.Value
+	case ngapType.CausePresentMisc:
+		lbConn.Log.Warnf("Cause Misc[%d]", cause.Misc.Value)
+		value = cause.Misc.Value
+	default:
+		lbConn.Log.Errorf("Invalid Cause group[%d]", cause.Present)
+	}
+	return
+}
+
+func printCriticalityDiagnostics(lbConn *context.LBConn, criticalityDiagnostics *ngapType.CriticalityDiagnostics) {
+	lbConn.Log.Trace("Criticality Diagnostics")
+
+	if criticalityDiagnostics.ProcedureCriticality != nil {
+		switch criticalityDiagnostics.ProcedureCriticality.Value {
+		case ngapType.CriticalityPresentReject:
+			lbConn.Log.Trace("Procedure Criticality: Reject")
+		case ngapType.CriticalityPresentIgnore:
+			lbConn.Log.Trace("Procedure Criticality: Ignore")
+		case ngapType.CriticalityPresentNotify:
+			lbConn.Log.Trace("Procedure Criticality: Notify")
+		}
+	}
+
+	if criticalityDiagnostics.IEsCriticalityDiagnostics != nil {
+		for _, ieCriticalityDiagnostics := range criticalityDiagnostics.IEsCriticalityDiagnostics.List {
+			lbConn.Log.Tracef("IE ID: %d", ieCriticalityDiagnostics.IEID.Value)
+
+			switch ieCriticalityDiagnostics.IECriticality.Value {
+			case ngapType.CriticalityPresentReject:
+				lbConn.Log.Trace("Criticality Reject")
+			case ngapType.CriticalityPresentNotify:
+				lbConn.Log.Trace("Criticality Notify")
+			}
+
+			switch ieCriticalityDiagnostics.TypeOfError.Value {
+			case ngapType.TypeOfErrorPresentNotUnderstood:
+				lbConn.Log.Trace("Type of error: Not understood")
+			case ngapType.TypeOfErrorPresentMissing:
+				lbConn.Log.Trace("Type of error: Missing")
+			}
+		}
+	}
+}
+
+func buildCriticalityDiagnostics(
+	procedureCode *int64,
+	triggeringMessage *aper.Enumerated,
+	procedureCriticality *aper.Enumerated,
+	iesCriticalityDiagnostics *ngapType.CriticalityDiagnosticsIEList) (
+	criticalityDiagnostics ngapType.CriticalityDiagnostics) {
+	if procedureCode != nil {
+		criticalityDiagnostics.ProcedureCode = new(ngapType.ProcedureCode)
+		criticalityDiagnostics.ProcedureCode.Value = *procedureCode
+	}
+
+	if triggeringMessage != nil {
+		criticalityDiagnostics.TriggeringMessage = new(ngapType.TriggeringMessage)
+		criticalityDiagnostics.TriggeringMessage.Value = *triggeringMessage
+	}
+
+	if procedureCriticality != nil {
+		criticalityDiagnostics.ProcedureCriticality = new(ngapType.Criticality)
+		criticalityDiagnostics.ProcedureCriticality.Value = *procedureCriticality
+	}
+
+	if iesCriticalityDiagnostics != nil {
+		criticalityDiagnostics.IEsCriticalityDiagnostics = iesCriticalityDiagnostics
+	}
+
+	return criticalityDiagnostics
+}
+
+func buildCriticalityDiagnosticsIEItem(ieCriticality aper.Enumerated, ieID int64, typeOfErr aper.Enumerated) (
+	item ngapType.CriticalityDiagnosticsIEItem) {
+	item = ngapType.CriticalityDiagnosticsIEItem{
+		IECriticality: ngapType.Criticality{
+			Value: ieCriticality,
+		},
+		IEID: ngapType.ProtocolIEID{
+			Value: ieID,
+		},
+		TypeOfError: ngapType.TypeOfError{
+			Value: typeOfErr,
+		},
+	}
+
+	return item
+}
