@@ -145,10 +145,6 @@ func (Lb *Load) Start() {
 	}()
 }
 
-
-
-
-
 // Used in LB planned removal procedure
 func (Lb *Load) Terminate() {
 	logger.InitLog.Infof("Terminating LB...")
@@ -156,6 +152,7 @@ func (Lb *Load) Terminate() {
 
 	lbSelf.Running = false 
 	ngap_service.Stop()
+	lbSelf.Table.Print()
 
 	logger.InitLog.Infof("LB terminated")
 }

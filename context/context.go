@@ -6,7 +6,7 @@ import (
 	"github.com/ishidawataru/sctp"
 	"github.com/sirupsen/logrus"
 	
-	// "github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/metrics"
 	"github.com/LuckyG0ldfish/balancer/factory"
 	
 	"github.com/free5gc/openapi/models"
@@ -51,7 +51,10 @@ type LBContext struct {
 	ServedGuamiList 	[]models.Guami
 
 	/* logger */
-	Log 	*logrus.Entry
+	Log 				*logrus.Entry
+
+	/* metrics */
+	Table 				*metrics.Routing_Table
 }
 
 // Creates and returns a new *LBContext

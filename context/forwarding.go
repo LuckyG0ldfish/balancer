@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/metrics"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
 )
@@ -40,8 +41,11 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 	logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	
+	// Adding new Trace to the routing table 
+	go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, metrics.TypeAmf)
+
 	// Selecting AMF that will be used for the next new UE
-	lb.SelectNextAmf()
+	go lb.SelectNextAmf()
 }
 
 // Used to forward registered UE's messages to an AMF
@@ -66,6 +70,10 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 	} else {
 		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	}
+
+	// Adding new Trace to the routing table 
+	lb := LB_Self()
+	go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, metrics.TypeAmf)
 }
 
 // Used to forward registered UE's messages to an GNB
@@ -90,4 +98,8 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
 	} else {
 		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	}
+
+	// Adding new Trace to the routing table 
+	lb := LB_Self()
+	go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, metrics.TypeGnb)
 }
