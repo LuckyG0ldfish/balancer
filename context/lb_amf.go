@@ -50,7 +50,7 @@ func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
 		if !okTemp {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}
-		if ueTemp.UeAmfId == id{
+		if ueTemp.UeAmfID == id{
 			ue = ueTemp
 			ok = true 
 		}

@@ -91,8 +91,8 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 		return
 	}
 
-	var aMFUENGAPIDInt int64
-	var amfIDPresent bool = false 
+	// var aMFUENGAPIDInt int64
+	// var amfIDPresent bool = false 
 
 	for _, ie := range initialContextSetupRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
@@ -102,8 +102,8 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-					aMFUENGAPIDInt = aMFUENGAPID.Value
-					amfIDPresent = true
+					// aMFUENGAPIDInt = aMFUENGAPID.Value
+					// amfIDPresent = true
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
@@ -119,10 +119,10 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					if amfIDPresent {
-						ue.UeAmfId = aMFUENGAPIDInt
-						lbConn.Log.Traceln("UeAmfID set")
-					}
+					// if amfIDPresent {
+					// 	ue.UeAmfId = aMFUENGAPIDInt
+					// 	lbConn.Log.Warnln("UeAmfID set")
+					// }
 					context.ForwardToGnb(message, ue)
 				}
 		}
@@ -221,8 +221,8 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		return
 	}
 
-	// var aMFUENGAPIDInt int64
-	// var amfIDPresent bool = false
+	var aMFUENGAPIDInt int64
+	var amfIDPresent bool = false
 
 	for _, ie := range downlinkNASTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
@@ -232,8 +232,8 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-				// aMFUENGAPIDInt = aMFUENGAPID.Value
-				// amfIDPresent = true
+				aMFUENGAPIDInt = aMFUENGAPID.Value
+				amfIDPresent = true
 				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
@@ -249,10 +249,10 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					// if amfIDPresent {
-					// 	ue.UeAmfId = aMFUENGAPIDInt
-					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
-					// }
+					if amfIDPresent && ue.UeAmfID == 0 {
+						ue.UeAmfID = aMFUENGAPIDInt
+						lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
+					}
 					context.ForwardToGnb(message, ue)
 				}
 		}	

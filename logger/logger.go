@@ -20,6 +20,7 @@ var (
 	LbConnLog     *logrus.Entry
 	AMFLog        *logrus.Entry
 	GNBLog        *logrus.Entry
+	UELog         *logrus.Entry
 )
 
 const (
@@ -41,17 +42,18 @@ func init() {
 		FieldsOrder:     []string{"component", "category", FieldRanAddr, FieldAmfAddr, FieldLbUeNgapID, FieldSupi},
 	}
 
-	AppLog = log.WithFields(logrus.Fields{"component": "LB", "category": "App"})
-	InitLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Init"})
-	CfgLog = log.WithFields(logrus.Fields{"component": "LB", "category": "CFG"})
-	ContextLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Context"})
-	NgapLog = log.WithFields(logrus.Fields{"component": "LB", "category": "NGAP"})
-	AMFHandlerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "AMFHandler"})
-	GNBHandlerLog = log.WithFields(logrus.Fields{"component": "LB", "category": "GNBHandler"})
-	UtilLog = log.WithFields(logrus.Fields{"component": "LB", "category": "Util"})
-	LbConnLog = log.WithFields(logrus.Fields{"component": "LB", "category": "LBConn"})
-	AMFLog = log.WithFields(logrus.Fields{"component": "LB", "category": "AMF"})
-	GNBLog = log.WithFields(logrus.Fields{"component": "LB", "category": "GNB"})
+	AppLog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "App"})
+	InitLog 		= log.WithFields(logrus.Fields{"component": "LB", "category": "Init"})
+	CfgLog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "CFG"})
+	ContextLog 		= log.WithFields(logrus.Fields{"component": "LB", "category": "Context"})
+	NgapLog 		= log.WithFields(logrus.Fields{"component": "LB", "category": "NGAP"})
+	AMFHandlerLog 	= log.WithFields(logrus.Fields{"component": "LB", "category": "AMFHandler"})
+	GNBHandlerLog 	= log.WithFields(logrus.Fields{"component": "LB", "category": "GNBHandler"})
+	UtilLog 		= log.WithFields(logrus.Fields{"component": "LB", "category": "Util"})
+	LbConnLog 		= log.WithFields(logrus.Fields{"component": "LB", "category": "LBConn"})
+	AMFLog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "AMF"})
+	GNBLog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "GNB"})
+	UELog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "UE"})
 }
 
 func SetLogLevel(level logrus.Level) {

@@ -2,7 +2,6 @@ package context
 
 import (
 	"encoding/hex"
-	"strconv"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"
@@ -39,8 +38,8 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	next.NumberOfConnectedUEs += 1
 	logger.NgapLog.Tracef("Forward to nextAMF:")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
-
+	logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
+	
 	// Selecting AMF that will be used for the next new UE
 	lb.SelectNextAmf()
 }
@@ -62,7 +61,11 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 	SendByteToConn(amf.LbConn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to AMF")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
+	if ue.UeAmfID != 0 {
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d | UeAmfID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID), uint64(ue.UeAmfID))
+	} else {
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
+	}
 }
 
 // Used to forward registered UE's messages to an GNB
@@ -82,6 +85,9 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
 	SendByteToConn(gnb.LbConn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to GNB")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-	logger.NgapLog.Tracef("UeLbID: " + strconv.FormatInt(ue.UeLbID, 10) + " | UeRanID: " + strconv.FormatInt(ue.UeRanID, 10))
-
+	if ue.UeAmfID != 0 {
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d | UeAmfID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID), uint64(ue.UeAmfID))
+	} else {
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
+	}
 }

@@ -1,6 +1,7 @@
-package context 
+package context
 
 import (
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -10,7 +11,7 @@ type LbUe struct{
 
 	UeRanID 		int64		// ID given to the UE by GNB/RAN
 	UeLbID 			int64		// ID given to the UE by LB
-	UeAmfId 		int64		// ID given to the UE by AMF -> set but unused atm 
+	UeAmfID 		int64		// ID given to the UE by AMF
 	
 	RanID			int64		// LB-internal ID of GNB that issued the UE 
 	RanPointer 		*LbGnb
@@ -26,6 +27,7 @@ type LbUe struct{
 func NewUE() (*LbUe){
 	var ue LbUe
 	ue.UeStateIdent = TypeIdRegist
+	ue.Log = logger.UELog
 	return &ue
 }
 
@@ -42,6 +44,7 @@ func (ue *LbUe) RemoveUeFromAMF() {
 		ue.AmfPointer.Log.Traceln("UE context removed from AMF")
 		ue.AmfPointer = nil 
 		ue.AmfID = 0 
+		ue.UeAmfID = 0 
 	}
 }
 
