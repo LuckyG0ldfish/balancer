@@ -144,6 +144,8 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 						// remove from registration AMF context 
 						// add to next regular AMF context
 						// find next regular amf 
+						ue.UeStateIdent = context.TypeIdRegular
+						// State Change
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
 					context.ForwardToAmf(message, ue)

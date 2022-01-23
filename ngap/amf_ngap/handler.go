@@ -194,6 +194,8 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		}
 		ue = ueTemp
 	}
+	ue.UeStateIdent = context.TypeIdDeregist
+	// State Change
 	context.ForwardToGnb(message, ue)
 }
 
@@ -251,7 +253,12 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
 					if amfIDPresent && ue.UeAmfID == 0 {
 						ue.UeAmfID = aMFUENGAPIDInt
-						lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
+						// lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
+					}
+					if ue.UeStateIdent == context.TypeIdRegist {
+						ue.UeStateIdent = context.TypeIdRegular
+						// State Change
+						// lbConn.Log.Errorf("UeState set to Regular")
 					}
 					context.ForwardToGnb(message, ue)
 				}
