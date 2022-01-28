@@ -89,6 +89,8 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	// var nASPDU *ngapType.NASPDU
+	var ue *context.LbUe
 
 	LB = *context.LB_Self()
 
@@ -148,11 +150,15 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 						// State Change
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
+					
 				}
-	
+			case ngapType.ProtocolIEIDNASPDU:
+				// nASPDU = ie.Value.NASPDU
+				// nASPDU
+				
 			}
 	}
+	context.ForwardToAmf(message, ue)
 }
 
 // TODO
