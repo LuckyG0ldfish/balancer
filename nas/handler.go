@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/LuckyG0ldfish/balancer/context"
-	// "github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/logger"
 
 	"github.com/free5gc/nas"
 )
@@ -16,18 +16,18 @@ const MsgTypeOther int = 4
 
 func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 	if ue == nil {
-		// logger.NasLog.Error("RanUe is nil")
+		logger.NASLog.Error("RanUe is nil")
 		return
 	}
 
 	if nasPdu == nil {
-		ue.Log.Error("nasPdu is nil")
+		logger.NASLog.Error("nasPdu is nil")
 		return
 	}
 
 	err := IdentMsgType(ue, nasPdu)
 	if err != nil { 
-		// ue.AmfUe.NASLog.Errorln(err)
+		logger.NASLog.Errorln(err)
 		return
 	}
 }

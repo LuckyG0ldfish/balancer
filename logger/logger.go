@@ -21,6 +21,7 @@ var (
 	AMFLog        *logrus.Entry
 	GNBLog        *logrus.Entry
 	UELog         *logrus.Entry
+	NASLog		  *logrus.Entry
 )
 
 const (
@@ -54,6 +55,7 @@ func init() {
 	AMFLog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "AMF"})
 	GNBLog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "GNB"})
 	UELog 			= log.WithFields(logrus.Fields{"component": "LB", "category": "UE"})
+	NASLog			= log.WithFields(logrus.Fields{"component": "LB", "category": "NAS"})
 }
 
 func SetLogLevel(level logrus.Level) {
