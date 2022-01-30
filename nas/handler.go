@@ -2,11 +2,13 @@ package nas
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
-
+	"github.com/free5gc/openapi/models"
 	"github.com/free5gc/nas"
+	"github.com/free5gc/nas/security"
 )
 
 const MsgTypeMsgTypeRegistrationComplete int = 1 
@@ -25,7 +27,8 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 		return
 	}
 
-	err := IdentMsgType(ue, nasPdu)
+	var accessType models.AccessType // TODO
+	err := IdentMsgType(ue, accessType, nasPdu)
 	if err != nil { 
 		logger.NASLog.Errorln(err)
 		return
@@ -36,7 +39,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 payload either a security protected 5GS NAS message or a plain 5GS NAS message which
 format is followed TS 24.501 9.1.1
 */
-func IdentMsgType(ue *context.LbUe, payload []byte) (error) {
+func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte) (error) {
 	if ue == nil {
 		return fmt.Errorf("amfUe is nil")
 	}
@@ -93,7 +96,7 @@ func IdentMsgType(ue *context.LbUe, payload []byte) (error) {
 			// }
 			} 
 		} else {
-			// ue.MacFailed = false
+			ue.MacFailed = false
 			err := msg.PlainNasDecode(&payload)
 			return err
 		}
@@ -143,10 +146,10 @@ func IdentMsgType(ue *context.LbUe, payload []byte) (error) {
 	
 		if !reflect.DeepEqual(mac32, receivedMac32) {
 			logger.NASLog.Warnf("NAS MAC verification failed(received: 0x%08x, expected: 0x%08x)", receivedMac32, mac32)
-			// ue.MacFailed = true
+			ue.MacFailed = true
 		} else {
 			logger.NASLog.Tracef("cmac value: 0x%08x", mac32)
-			// ue.MacFailed = false
+			ue.MacFailed = false
 		}
 	
 		if ciphered {
@@ -165,15 +168,16 @@ func IdentMsgType(ue *context.LbUe, payload []byte) (error) {
 		return err
 		}
 	// }
-	return fmt.Errorf("nas payload is not in plain")
+	// return fmt.Errorf("nas payload is not in plain")
 }
 
-// func GetBearerType(accessType models.AccessType) uint8 {
-// 	if accessType == models.AccessType__3_GPP_ACCESS {
-// 		return security.Bearer3GPP
-// 	} else if accessType == models.AccessType_NON_3_GPP_ACCESS {
-// 		return security.BearerNon3GPP
-// 	} else {
-// 		return security.OnlyOneBearer
-// 	}
-// }
+func GetBearerType(accessType models.AccessType) uint8 {
+	if accessType == models.AccessType__3_GPP_ACCESS {
+		return security.Bearer3GPP
+	} else if accessType == models.AccessType_NON_3_GPP_ACCESS {
+		return security.BearerNon3GPP
+	} else {
+		return security.OnlyOneBearer
+	}
+}
+

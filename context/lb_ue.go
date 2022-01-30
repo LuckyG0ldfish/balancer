@@ -1,12 +1,15 @@
 package context
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"regexp"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/free5gc/openapi/models"
+	"github.com/free5gc/nas/nasType"
 	"github.com/free5gc/nas/security"
 	"github.com/free5gc/UeauCommon"
 )
@@ -25,15 +28,25 @@ type LbUe struct{
 	AmfID		 	int64		// LB-internal ID of AMF that processes the UE  
 	AmfPointer		*LbAmf
 
+	/* nas decrypt */
 	RRCECause 		string
 	ULCount			security.Count 	//TODO amf_ue L728 | gmm HandleRegist HandleServiceRequest (only get())
-	Kamf            string			//TODO
-	Kgnb            []uint8			//TODO	// 32 byte
-	Kn3iwf          []uint8   		//TODO	// 32 byte
-	CipheringAlg    uint8			//TODO	gmm (only used in encrypt/build here )
-	IntegrityAlg    uint8			//TODO	
-	KnasInt         [16]uint8 		//TODO	// 16 byte WHERE SET? gmm (only used in encrypt/build here)
-	KnasEnc         [16]uint8 		//TODO	// 16 byte WHERE SET? gmm (only used in encrypt/build here)
+	DLCount			security.Count	// TODO set in CopyDataFromUeContextModel | .AddOne() in nas Encode()
+	Kamf            string	
+	Kgnb            []uint8			// TODO	// 32 byte
+	Kn3iwf          []uint8   		// TODO	// 32 byte
+	CipheringAlg    uint8			// set in CopyDataFromUeContextModel | gmm (only used in encrypt/build)
+	IntegrityAlg    uint8			// set in CopyDataFromUeContextModel | gmm (only used in encrypt/build)
+	KnasInt         [16]uint8 		// TODO	// 16 byte WHERE SET? gmm (only used in encrypt/build)
+	KnasEnc         [16]uint8 		// TODO	// 16 byte WHERE SET? gmm (only used in encrypt/build)
+	Supi            string			// needed ? set in CopyDataFromUeContextModel + GMM HandleAuthenticationResponse
+	ABBA            []uint8			// TODO ue.ABBA = []uint8{0x00, 0x00} -> set in GMM AuthenticationProcedure + AuthenticationFailure
+	// set ABBA value as described at TS 33.501 Annex A.7.1
+	Kseaf           string			// TODO set in GMM HandleAuthenticationResponse
+	UESecurityCapability     nasType.UESecurityCapability // for security command
+	// set in CopyDataFromUeContextModel + GMM HandleRegistrationRequest + NGAP HandlePathSwitchRequest
+	MacFailed       bool      // set to true if the integrity check of current NAS message is failed
+
 
 	/* logger */
 	Log 			*logrus.Entry
@@ -79,6 +92,36 @@ func (ue *LbUe) AddUeToAmf(next *LbAmf) {
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
 	next.Ues.Store(ue.UeLbID, ue)
+}
+
+// TODO
+// Kamf Derivation function defined in TS 33.501 Annex A.7
+// gmm handler HandleAuthenticationResponse L1943 + 1978
+func (ue *LbUe) DerivateKamf() {
+	supiRegexp, err := regexp.Compile("(?:imsi|supi)-([0-9]{5,15})")
+	if err != nil {
+		logger.ContextLog.Error(err)
+		return
+	}
+	// could probably be solved differently 
+	groups := supiRegexp.FindStringSubmatch(ue.Supi)
+	if groups == nil {
+		logger.NASLog.Errorln("supi is not correct")
+		return
+	}
+
+	P0 := []byte(groups[1])
+	L0 := UeauCommon.KDFLen(P0)
+	P1 := ue.ABBA
+	L1 := UeauCommon.KDFLen(P1)
+
+	KseafDecode, err := hex.DecodeString(ue.Kseaf)
+	if err != nil {
+		logger.ContextLog.Error(err)
+		return
+	}
+	KamfBytes := UeauCommon.GetKDFValue(KseafDecode, UeauCommon.FC_FOR_KAMF_DERIVATION, P0, L0, P1, L1)
+	ue.Kamf = hex.EncodeToString(KamfBytes)
 }
 
 // TODO
@@ -178,127 +221,9 @@ func (ue *LbUe) SelectSecurityAlg(intOrder, encOrder []uint8) {
 }
 
 // TODO
-func (ue *AmfUe) CopyDataFromUeContextModel(ueContext models.UeContext) {
+func (ue *LbUe) CopyDataFromUeContextModel(ueContext models.UeContext) {
 	if ueContext.Supi != "" {
 		ue.Supi = ueContext.Supi
-		ue.UnauthenticatedSupi = ueContext.SupiUnauthInd
-	}
-
-	if ueContext.Pei != "" {
-		ue.Pei = ueContext.Pei
-	}
-
-	if ueContext.UdmGroupId != "" {
-		ue.UdmGroupId = ueContext.UdmGroupId
-	}
-
-	if ueContext.AusfGroupId != "" {
-		ue.AusfGroupId = ueContext.AusfGroupId
-	}
-
-	if ueContext.RoutingIndicator != "" {
-		ue.RoutingIndicator = ueContext.RoutingIndicator
-	}
-
-	if ueContext.SubUeAmbr != nil {
-		if ue.AccessAndMobilitySubscriptionData == nil {
-			ue.AccessAndMobilitySubscriptionData = new(models.AccessAndMobilitySubscriptionData)
-		}
-		if ue.AccessAndMobilitySubscriptionData.SubscribedUeAmbr == nil {
-			ue.AccessAndMobilitySubscriptionData.SubscribedUeAmbr = new(models.AmbrRm)
-		}
-
-		subAmbr := ue.AccessAndMobilitySubscriptionData.SubscribedUeAmbr
-		subAmbr.Uplink = ueContext.SubUeAmbr.Uplink
-		subAmbr.Downlink = ueContext.SubUeAmbr.Downlink
-	}
-
-	if ueContext.SubRfsp != 0 {
-		if ue.AccessAndMobilitySubscriptionData == nil {
-			ue.AccessAndMobilitySubscriptionData = new(models.AccessAndMobilitySubscriptionData)
-		}
-		ue.AccessAndMobilitySubscriptionData.RfspIndex = ueContext.SubRfsp
-	}
-
-	if len(ueContext.RestrictedRatList) > 0 {
-		if ue.AccessAndMobilitySubscriptionData == nil {
-			ue.AccessAndMobilitySubscriptionData = new(models.AccessAndMobilitySubscriptionData)
-		}
-		ue.AccessAndMobilitySubscriptionData.RatRestrictions = ueContext.RestrictedRatList
-	}
-
-	if len(ueContext.ForbiddenAreaList) > 0 {
-		if ue.AccessAndMobilitySubscriptionData == nil {
-			ue.AccessAndMobilitySubscriptionData = new(models.AccessAndMobilitySubscriptionData)
-		}
-		ue.AccessAndMobilitySubscriptionData.ForbiddenAreas = ueContext.ForbiddenAreaList
-	}
-
-	if ueContext.ServiceAreaRestriction != nil {
-		if ue.AccessAndMobilitySubscriptionData == nil {
-			ue.AccessAndMobilitySubscriptionData = new(models.AccessAndMobilitySubscriptionData)
-		}
-		ue.AccessAndMobilitySubscriptionData.ServiceAreaRestriction = ueContext.ServiceAreaRestriction
-	}
-
-	if ueContext.SeafData != nil {
-		seafData := ueContext.SeafData
-
-		ue.NgKsi = *seafData.NgKsi
-		if seafData.KeyAmf != nil {
-			if seafData.KeyAmf.KeyType == models.KeyAmfType_KAMF {
-				ue.Kamf = seafData.KeyAmf.KeyVal
-			}
-		}
-		if nh, err := hex.DecodeString(seafData.Nh); err != nil {
-			logger.ContextLog.Error(err)
-			return
-		} else {
-			ue.NH = nh
-		}
-		ue.NCC = uint8(seafData.Ncc)
-	}
-
-	if ueContext.PcfId != "" {
-		ue.PcfId = ueContext.PcfId
-	}
-
-	if ueContext.PcfAmPolicyUri != "" {
-		ue.AmPolicyUri = ueContext.PcfAmPolicyUri
-	}
-
-	if len(ueContext.AmPolicyReqTriggerList) > 0 {
-		if ue.AmPolicyAssociation == nil {
-			ue.AmPolicyAssociation = new(models.PolicyAssociation)
-		}
-		for _, trigger := range ueContext.AmPolicyReqTriggerList {
-			switch trigger {
-			case models.AmPolicyReqTrigger_LOCATION_CHANGE:
-				ue.AmPolicyAssociation.Triggers = append(ue.AmPolicyAssociation.Triggers, models.RequestTrigger_LOC_CH)
-			case models.AmPolicyReqTrigger_PRA_CHANGE:
-				ue.AmPolicyAssociation.Triggers = append(ue.AmPolicyAssociation.Triggers, models.RequestTrigger_PRA_CH)
-			case models.AmPolicyReqTrigger_SARI_CHANGE:
-				ue.AmPolicyAssociation.Triggers = append(ue.AmPolicyAssociation.Triggers, models.RequestTrigger_SERV_AREA_CH)
-			case models.AmPolicyReqTrigger_RFSP_INDEX_CHANGE:
-				ue.AmPolicyAssociation.Triggers = append(ue.AmPolicyAssociation.Triggers, models.RequestTrigger_RFSP_CH)
-			}
-		}
-	}
-
-	if len(ueContext.SessionContextList) > 0 {
-		for _, pduSessionContext := range ueContext.SessionContextList {
-			smContext := SmContext{
-				pduSessionID: pduSessionContext.PduSessionId,
-				smContextRef: pduSessionContext.SmContextRef,
-				snssai:       *pduSessionContext.SNssai,
-				dnn:          pduSessionContext.Dnn,
-				accessType:   pduSessionContext.AccessType,
-				hSmfID:       pduSessionContext.HsmfId,
-				vSmfID:       pduSessionContext.VsmfId,
-				nsInstance:   pduSessionContext.NsInstance,
-			}
-			ue.StoreSmContext(pduSessionContext.PduSessionId, &smContext)
-		}
 	}
 
 	if len(ueContext.MmContextList) > 0 {
@@ -352,18 +277,6 @@ func (ue *AmfUe) CopyDataFromUeContextModel(ueContext models.UeContext) {
 					}
 				}
 			}
-
-			if mmContext.AllowedNssai != nil {
-				for _, snssai := range mmContext.AllowedNssai {
-					allowedSnssai := models.AllowedSnssai{
-						AllowedSnssai: &snssai,
-					}
-					ue.AllowedNssai[mmContext.AccessType] = append(ue.AllowedNssai[mmContext.AccessType], allowedSnssai)
-				}
-			}
 		}
-	}
-	if ueContext.TraceData != nil {
-		ue.TraceData = ueContext.TraceData
 	}
 }
