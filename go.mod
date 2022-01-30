@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/free5gc/UeauCommon v1.0.0
+	github.com/free5gc/amf v1.3.0
 	github.com/free5gc/aper v1.0.1
 	github.com/free5gc/logger_util v1.0.0
 	github.com/free5gc/nas v1.0.5
