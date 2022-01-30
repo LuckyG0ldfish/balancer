@@ -31,9 +31,9 @@ configuration:
 #   # ReportCaller: enable the caller report or not, value: true or false
 logger:
   AMF:
-    debugLevel: trace
+    debugLevel: debug
     ReportCaller: false
   NGAP:
-    debugLevel: trace
+    debugLevel: debug
     ReportCaller: false
 

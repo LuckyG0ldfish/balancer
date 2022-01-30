@@ -14,7 +14,7 @@ import (
 	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
 )
 
-var LB context.LBContext 
+var LB context.LBContext
 
 //TODO
 func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -85,12 +85,12 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	} else {
 		ngap_message.SendNGSetupFailure(LbConn, cause)
 	}
-} 
+}
 
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	// var nASPDU *ngapType.NASPDU
+	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
 
 	LB = *context.LB_Self()
@@ -118,37 +118,38 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 
 	lbConn.Log.Infoln("Handle Uplink Nas Transport")
 
-	
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					var ok bool 
-					ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-				}
-			case ngapType.ProtocolIEIDNASPDU:
-				nASPDU := ie.Value.NASPDU
-				nas.HandleNAS(ue, nASPDU.Value)
-				
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				var ok bool
+				ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+			}
+		case ngapType.ProtocolIEIDNASPDU:
+			nASPDU = ie.Value.NASPDU
+			
+		}
+	}
+	if nASPDU != nil {
+		nas.HandleNAS(ue, nASPDU.Value)
 	}
 	if ue != nil {
 		context.ForwardToAmf(message, ue)
@@ -303,30 +304,30 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 
 	for _, ie := range uEContextReleaseComplete.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-					ue.RemoveUeEntirely()
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+				ue.RemoveUeEntirely()
+			}
+		}
 	}
 }
 
@@ -359,36 +360,35 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 
 	for _, ie := range pDUSessionResourceReleaseResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
 func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
 
 	LB = *context.LB_Self()
 
@@ -416,29 +416,29 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 	for i := 0; i < len(uERadioCapabilityCheckResponse.ProtocolIEs.List); i++ {
 		ie := uERadioCapabilityCheckResponse.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				// lbConn.Log.Trace("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			// lbConn.Log.Trace("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -472,29 +472,29 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	for i := 0; i < len(locationReportingFailureIndication.ProtocolIEs.List); i++ {
 		ie := locationReportingFailureIndication.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -502,6 +502,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
+	var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
 
 	LB = *context.LB_Self()
 
@@ -534,7 +535,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			lbConn.Log.Traceln("Decode IE RanUeNgapID")
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("InitialUEMessage: rANUENGAPID == nil")
-				return 
+				return
 			}
 			ie.Value.RANUENGAPID.Value = UeLbID
 		case ngapType.ProtocolIEIDNASPDU: // reject
@@ -543,15 +544,24 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			if nASPDU == nil {
 				lbConn.Log.Errorf("InitialUEMessage: nASPDU == nil")
 			}
+		case ngapType.ProtocolIEIDRRCEstablishmentCause: // ignore
+			rRCEstablishmentCause = ie.Value.RRCEstablishmentCause
+			lbConn.Log.Traceln("Decode IE RRCEstablishmentCause")
 		}
 	}
 
 	if lbConn.TypeID == context.TypeIdGNBConn {
 		gnb := lbConn.RanPointer
-		ue := context.NewUE()		
+		ue := context.NewUE()
 		ue.UeRanID = rANUENGAPIDInt
 		ue.UeLbID = UeLbID
 		ue.RanID = gnb.GnbID
+		if rRCEstablishmentCause != nil {
+			logger.NgapLog.Tracef("[Initial UE Message] RRC Establishment Cause[%d]", rRCEstablishmentCause.Value)
+			ue.RRCECause = strconv.Itoa(int(rRCEstablishmentCause.Value))
+		} else {
+			ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
+		}
 		gnb.Ues.Store(rANUENGAPIDInt, ue)
 		ue.RanPointer = gnb
 		context.ForwardToNextAmf(lbConn, message, ue)
@@ -589,29 +599,29 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 
 	for _, ie := range pDUSessionResourceSetupResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -644,29 +654,29 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 
 	for _, ie := range pDUSessionResourceModifyResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -699,30 +709,30 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 
 	for _, ie := range PDUSessionResourceNotify.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
+			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
 				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
 			}
 		}
+	}
 }
 
 func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -768,29 +778,29 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 
 	for _, ie := range pDUSessionResourceModifyIndication.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -823,36 +833,36 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 
 	for _, ie := range initialContextSetupResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
 func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
+
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -878,29 +888,29 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 
 	for _, ie := range initialContextSetupFailure.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -933,30 +943,30 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 
 	for _, ie := range uEContextReleaseRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
+			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
 				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
 			}
 		}
+	}
 }
 
 func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -988,36 +998,36 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 
 	for _, ie := range uEContextModificationResponse.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
 func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
+
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1043,36 +1053,36 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 
 	for _, ie := range uEContextModificationFailure.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
 func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
+
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1101,29 +1111,29 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 	for i := 0; i < len(rRCInactiveTransitionReport.ProtocolIEs.List); i++ {
 		ie := rRCInactiveTransitionReport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1158,29 +1168,29 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	for i := 0; i < len(HandoverNotify.ProtocolIEs.List); i++ {
 		ie := HandoverNotify.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1220,7 +1230,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
 			rANUENGAPID = ie.Value.RANUENGAPID
 			lbConn.Log.Traceln("Decode IE RanUeNgapID")
-			
+
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 				return
@@ -1233,7 +1243,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 				lbConn.Log.Errorf("SourceAmfUeNgapID is nil")
 				return
 			}
-	
+
 		}
 	}
 
@@ -1241,7 +1251,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 
 	if lbConn.TypeID == context.TypeIdGNBConn {
 		gnb := lbConn.RanPointer
-		ue := context.NewUE()		
+		ue := context.NewUE()
 		ue.UeRanID = rANUENGAPID.Value
 		ue.UeLbID = UeLbID
 		ue.RanID = gnb.GnbID
@@ -1254,7 +1264,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) 
 func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
+
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1280,29 +1290,29 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 
 	for _, ie := range handoverRequestAcknowledge.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1437,29 +1447,29 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	for i := 0; i < len(HandoverRequired.ProtocolIEs.List); i++ {
 		ie := HandoverRequired.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1532,7 +1542,7 @@ func HandleHandoverCancel(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	// 	UE, ok := gnb.FindUeByUeRanID(rANUENGAPID.Value)
 	// 	if !ok {
 	// 		lbConn.Log.Errorf("UE not found")
-	// 		return 
+	// 		return
 	// 	}
 	// 	context.ForwardToAmf(message, UE)
 	// 	return
@@ -1568,29 +1578,29 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 
 	for _, ie := range uplinkRanStatusTransfer.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1623,30 +1633,30 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 
 	for _, ie := range nASNonDeliveryIndication.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
+			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
 				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
 			}
 		}
+	}
 }
 
 //Todo
@@ -1773,29 +1783,29 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 
 	for _, ie := range uplinkUEAssociatedNRPPaTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1883,29 +1893,29 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	for _, ie := range locationReport.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1939,29 +1949,29 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 	for i := 0; i < len(uERadioCapabilityInfoIndication.ProtocolIEs.List); i++ {
 		ie := uERadioCapabilityInfoIndication.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -1969,9 +1979,9 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 func HandleAMFconfigurationUpdateFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
-	
+
 	LB = *context.LB_Self()
-	
+
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -2021,7 +2031,7 @@ func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ng
 	var aMFTNLAssociationSetupList *ngapType.AMFTNLAssociationSetupList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 	var aMFTNLAssociationFailedToSetupList *ngapType.TNLAssociationList
-	
+
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -2077,7 +2087,7 @@ func HandleAMFconfigurationUpdateAcknowledge(lbConn *context.LBConn, message *ng
 func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
+
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -2101,29 +2111,29 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	for _, ie := range errorIndication.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 
@@ -2132,7 +2142,7 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 
 	LB = *context.LB_Self()
-	
+
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -2156,29 +2166,29 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 
 	for _, ie := range cellTrafficTrace.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				}
-			case ngapType.ProtocolIEIDRANUENGAPID: // reject
-				rANUENGAPID = ie.Value.RANUENGAPID
-				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				lbConn.Log.Traceln("Decode IE RanUeNgapID")
-				if rANUENGAPID == nil {
-					lbConn.Log.Errorf("RanUeNgapID is nil")
-				} else {
-					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
-					if !ok {
-						lbConn.Log.Errorf("UE not registered")
-						return 
-					}
-					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
-				}
+		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			aMFUENGAPID = ie.Value.AMFUENGAPID
+			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
+			if aMFUENGAPID == nil {
+				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			rANUENGAPID = ie.Value.RANUENGAPID
+			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
+			lbConn.Log.Traceln("Decode IE RanUeNgapID")
+			if rANUENGAPID == nil {
+				lbConn.Log.Errorf("RanUeNgapID is nil")
+			} else {
+				gnb := lbConn.RanPointer
+				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				if !ok {
+					lbConn.Log.Errorf("UE not registered")
+					return
+				}
+				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				context.ForwardToAmf(message, ue)
+			}
+		}
 	}
 }
 

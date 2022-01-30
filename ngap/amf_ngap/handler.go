@@ -205,6 +205,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
 	
 
@@ -256,18 +257,14 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
 					if amfIDPresent && ue.UeAmfID == 0 {
 						ue.UeAmfID = aMFUENGAPIDInt
-						// lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
-					}
-					if ue.UeStateIdent == context.TypeIdRegist {
-						ue.UeStateIdent = context.TypeIdRegular
-						// State Change
-						// lbConn.Log.Errorf("UeState set to Regular")
 					}
 				}
 			case ngapType.ProtocolIEIDNASPDU:
-				nASPDU := ie.Value.NASPDU
-				nas.HandleNAS(ue, nASPDU.Value)
+				nASPDU = ie.Value.NASPDU
 		}	
+	}
+	if nASPDU != nil {
+		nas.HandleNAS(ue, nASPDU.Value)
 	}
 	if ue != nil {
 		context.ForwardToGnb(message, ue)
