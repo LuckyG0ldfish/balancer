@@ -1,6 +1,6 @@
 package amf_ngap
 
-// This handles messages incoming from AMF with the functions of the GNBs handler 
+// This handles messages incoming from AMF with the functions of the GNBs handler
 
 import (
 	"github.com/LuckyG0ldfish/balancer/context"
