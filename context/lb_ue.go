@@ -33,18 +33,17 @@ type LbUe struct{
 	ULCount			security.Count 	//TODO amf_ue L728 | gmm HandleRegist HandleServiceRequest (only get())
 	DLCount			security.Count	// TODO set in CopyDataFromUeContextModel | .AddOne() in nas Encode()
 	Kamf            string	
-	Kgnb            []uint8			// TODO	// 32 byte
-	Kn3iwf          []uint8   		// TODO	// 32 byte
-	CipheringAlg    uint8			// set in CopyDataFromUeContextModel | gmm (only used in encrypt/build)
-	IntegrityAlg    uint8			// set in CopyDataFromUeContextModel | gmm (only used in encrypt/build)
-	KnasInt         [16]uint8 		// TODO	// 16 byte WHERE SET? gmm (only used in encrypt/build)
-	KnasEnc         [16]uint8 		// TODO	// 16 byte WHERE SET? gmm (only used in encrypt/build)
-	Supi            string			// needed ? set in CopyDataFromUeContextModel + GMM HandleAuthenticationResponse
-	ABBA            []uint8			// TODO ue.ABBA = []uint8{0x00, 0x00} -> set in GMM AuthenticationProcedure + AuthenticationFailure
-	// set ABBA value as described at TS 33.501 Annex A.7.1
-	Kseaf           string			// TODO set in GMM HandleAuthenticationResponse
+	Kgnb            []uint8			// 32 byte
+	Kn3iwf          []uint8   		// 32 byte
+	CipheringAlg    uint8			 
+	IntegrityAlg    uint8			
+	KnasInt         [16]uint8 		// 16 byte 
+	KnasEnc         [16]uint8 		// 16 byte 
+	Supi            string			
+	ABBA            []uint8			
+	Kseaf           string		
 	UESecurityCapability     nasType.UESecurityCapability // for security command
-	// set in CopyDataFromUeContextModel + GMM HandleRegistrationRequest + NGAP HandlePathSwitchRequest
+	// TODO set in NGAP HandlePathSwitchRequest
 	MacFailed       bool      // set to true if the integrity check of current NAS message is failed
 
 
@@ -57,6 +56,8 @@ func NewUE() (*LbUe){
 	var ue LbUe
 	ue.UeStateIdent = TypeIdRegist
 	ue.Log = logger.UELog
+	// set ABBA value as described at TS 33.501 Annex A.7.1
+	ue.ABBA = []uint8{0x00, 0x00} // set in GMM AuthenticationProcedure + AuthenticationFailure
 	return &ue
 }
 

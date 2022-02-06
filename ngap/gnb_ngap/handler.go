@@ -148,7 +148,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 			
 		}
 	}
-	if nASPDU != nil {
+	if nASPDU != nil && ue != nil {
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
 	if ue != nil {

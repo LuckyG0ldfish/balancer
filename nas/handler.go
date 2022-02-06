@@ -5,10 +5,11 @@ import (
 	"reflect"
 
 	"github.com/LuckyG0ldfish/balancer/context"
+	// "github.com/LuckyG0ldfish/balancer/gmm"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	"github.com/free5gc/openapi/models"
 	"github.com/free5gc/nas"
 	"github.com/free5gc/nas/security"
+	"github.com/free5gc/openapi/models"
 )
 
 const MsgTypeMsgTypeRegistrationComplete int = 1 
@@ -27,27 +28,56 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 		return
 	}
 
+	// self := context.LB_Self()
 	var accessType models.AccessType // TODO
-	err := IdentMsgType(ue, accessType, nasPdu)
+	msgType, err := IdentMsgType(ue, accessType, nasPdu)
 	if err != nil { 
 		logger.NASLog.Errorln(err)
 		return
 	}
+
+	switch msgType {
+	case nas.MsgTypeRegistrationComplete:
+		ue.UeStateIdent = context.TypeIdRegular
+		logger.NASLog.Error("MsgTypeRegistrationComplete")
+		// next := self.Next_Regular_Amf
+		// ue.RemoveUeFromAMF()
+		// ue.AddUeToAmf(next)
+		// go context.SelectNextRegularAmf()
+		return
+	case nas.MsgTypeDeregistrationRequestUEOriginatingDeregistration:
+		ue.UeStateIdent = context.TypeIdDeregist
+		logger.NASLog.Error("MsgTypeDeregistrationRequestUEOriginatingDeregistration")
+		// next := self.Next_Deregist_Amf
+		// ue.RemoveUeFromAMF()
+		// ue.AddUeToAmf(next)
+		// go context.SelectNextDeregistAmf()
+		return
+	case nas.MsgTypeDeregistrationAcceptUETerminatedDeregistration:
+		ue.UeStateIdent = context.TypeIdDeregist
+		logger.NASLog.Error("MsgTypeDeregistrationAcceptUETerminatedDeregistration")
+		// next := self.Next_Deregist_Amf
+		// ue.RemoveUeFromAMF()
+		// ue.AddUeToAmf(next)
+		// go context.SelectNextDeregistAmf()
+		return	
+	} 
+	return 
 }
 
 /*
 payload either a security protected 5GS NAS message or a plain 5GS NAS message which
 format is followed TS 24.501 9.1.1
 */
-func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte) (error) {
+func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte) (uint8, error) {
 	if ue == nil {
-		return fmt.Errorf("amfUe is nil")
+		return 0, fmt.Errorf("amfUe is nil")
 	}
 	if payload == nil {
-		return fmt.Errorf("nas payload is empty")
+		return 0, fmt.Errorf("nas payload is empty")
 	}
 
-	// self := context.LB_Self()
+	
 
 	msg := new(nas.Message)
 	msg.SecurityHeaderType = nas.GetSecurityHeaderType(payload) & 0x0f
@@ -55,50 +85,34 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 		logger.NASLog.Error("SecurityHeaderType == nas.SecurityHeaderTypePlainNas")
 		if ue.RRCECause != "0" { // ue.SecurityContextAvailable && 
 			if err := msg.PlainNasDecode(&payload); err != nil {
-				return fmt.Errorf("failed to decode")
+				return 0, fmt.Errorf("failed to decode")
 			}
 
 			if msg.GmmMessage == nil {
-				return fmt.Errorf("gmm Message is nil")
+				return 0, fmt.Errorf("gmm Message is nil")
 			}
 
 			test := msg.GmmHeader.GetMessageType()
 
 			switch test {
-			case nas.MsgTypeRegistrationComplete:
-				ue.UeStateIdent = context.TypeIdRegular
-				logger.NASLog.Error("MsgTypeRegistrationComplete")
-				// next := self.Next_Regular_Amf
-				// ue.RemoveUeFromAMF()
-				// ue.AddUeToAmf(next)
-				// go context.SelectNextRegularAmf()
-				return nil
-			case nas.MsgTypeDeregistrationRequestUEOriginatingDeregistration:
-				ue.UeStateIdent = context.TypeIdDeregist
-				logger.NASLog.Error("MsgTypeDeregistrationRequestUEOriginatingDeregistration")
-				// next := self.Next_Deregist_Amf
-				// ue.RemoveUeFromAMF()
-				// ue.AddUeToAmf(next)
-				// go context.SelectNextDeregistAmf()
-				return nil
-			case nas.MsgTypeDeregistrationAcceptUETerminatedDeregistration:
-				ue.UeStateIdent = context.TypeIdDeregist
-				logger.NASLog.Error("MsgTypeDeregistrationAcceptUETerminatedDeregistration")
-				// next := self.Next_Deregist_Amf
-				// ue.RemoveUeFromAMF()
-				// ue.AddUeToAmf(next)
-				// go context.SelectNextDeregistAmf()
-				return nil
+			case nas.MsgTypeAuthenticationResponse:
+				logger.NASLog.Error("MsgTypeAuthenticationResponse")
+				// gmm.HandleAuthenticationResponse()
+				return nas.MsgTypeAuthenticationResponse, nil
+			case nas.MsgTypeRegistrationRequest:
+				logger.NASLog.Error("MsgTypeRegistrationRequest")
+				// gmm.HandleRegistrationRequest()
+				return nas.MsgTypeRegistrationRequest, nil
 			default:
 				logger.NASLog.Warnf("%d", test)
-				return nil
+				return 0, nil
 				// fmt.Errorf("UE can not send plain nas for non-emergency service when there is a valid security context")
 			// }
 			} 
 		} else {
 			ue.MacFailed = false
 			err := msg.PlainNasDecode(&payload)
-			return err
+			return 0, err
 		}
 	
 	} else { 
@@ -125,7 +139,7 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 			ciphered = true
 				ue.ULCount.Set(0, 0)
 		default:
-			return fmt.Errorf("Wrong security header type: 0x%0x", msg.SecurityHeader.SecurityHeaderType)
+			return 0, fmt.Errorf("Wrong security header type: 0x%0x", msg.SecurityHeader.SecurityHeaderType)
 		}
 	
 
@@ -141,7 +155,7 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 		mac32, err := security.NASMacCalculate(ue.IntegrityAlg, ue.KnasInt, ue.ULCount.Get(),
 			GetBearerType(accessType), security.DirectionUplink, payload)
 		if err != nil {
-			return fmt.Errorf("MAC calcuate error: %+v", err)
+			return 0, fmt.Errorf("MAC calcuate error: %+v", err)
 		}
 	
 		if !reflect.DeepEqual(mac32, receivedMac32) {
@@ -158,14 +172,14 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 			// decrypt payload without sequence number (payload[1])
 			if err = security.NASEncrypt(ue.CipheringAlg, ue.KnasEnc, ue.ULCount.Get(), GetBearerType(accessType),
 				security.DirectionUplink, payload[1:]); err != nil {
-				return fmt.Errorf("Encrypt error: %+v", err)
+				return 0, fmt.Errorf("Encrypt error: %+v", err)
 			}
 		}
 	
 		// remove sequece Number
 		payload = payload[1:]
 		err = msg.PlainNasDecode(&payload)
-		return err
+		return msg.GmmHeader.GetMessageType(), err
 		}
 	// }
 	// return fmt.Errorf("nas payload is not in plain")

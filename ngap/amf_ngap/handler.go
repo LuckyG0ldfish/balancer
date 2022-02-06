@@ -263,7 +263,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				nASPDU = ie.Value.NASPDU
 		}	
 	}
-	if nASPDU != nil {
+	if nASPDU != nil && ue != nil {
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
 	if ue != nil {
