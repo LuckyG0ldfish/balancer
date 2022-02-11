@@ -40,10 +40,10 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 	logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	
-	// Adding new Trace to the routing table 
-	go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
-	go lb.Table.incrementAmfIndividualUEs(next)
-	go lb.Table.incrementAmfTraffic(next)
+	// // Adding new Trace to the routing table 
+	// go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
+	// go lb.Table.incrementAmfIndividualUEs(next)
+	// go lb.Table.incrementAmfTraffic(next)
 	
 	// Selecting AMF that will be used for the next new UE
 	go lb.SelectNextAmf()
@@ -72,10 +72,13 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	}
 
+	// Check if registration is done and switch UE-State accordingly 
+	go ue.RegistrationComplete()
+
 	// Adding new Trace to the routing table 
-	lb := LB_Self()
-	go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
-	go lb.Table.incrementAmfTraffic(amf)
+	// lb := LB_Self()
+	// go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
+	// go lb.Table.incrementAmfTraffic(amf)
 }
 
 // Used to forward registered UE's messages to an GNB
@@ -101,7 +104,7 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
 		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	}
 
-	// Adding new Trace to the routing table 
-	lb := LB_Self()
-	go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent)
+	// // Adding new Trace to the routing table 
+	// lb := LB_Self()
+	// go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent)
 }

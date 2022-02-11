@@ -64,7 +64,7 @@ func CreateAndAddAmfToLB() *LbAmf{
 	self := LB_Self()
 	amf := newLbAmf()
 	self.LbAmfPool.Store(amf.LbConn.Conn, amf)
-	self.Table.addAmfCounter(amf)
+	// self.Table.addAmfCounter(amf)
 	return amf
 }
 

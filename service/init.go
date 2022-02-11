@@ -152,7 +152,7 @@ func (Lb *Load) Terminate() {
 
 	lbSelf.Running = false 
 	ngap_service.Stop()
-	lbSelf.Table.Print()
+	// lbSelf.Table.Print()
 
 	logger.InitLog.Infof("LB terminated")
 }

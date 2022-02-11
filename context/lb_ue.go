@@ -28,6 +28,10 @@ type LbUe struct{
 	AmfID		 	int64		// LB-internal ID of AMF that processes the UE  
 	AmfPointer		*LbAmf
 
+	UplinkFlag		bool 		// set true when Uplink-NAS-RegistrationComplete is done
+	ResponseFlag	bool		// set true when InitialContextSetupResponse is done
+	// DeregFlag		bool		// set true when Uplink-NAS-RegistrationComplete 
+
 	/* nas decrypt */
 	RRCECause 		string
 	ULCount			security.Count 	//TODO amf_ue L728 | gmm HandleRegist HandleServiceRequest (only get())
@@ -58,6 +62,8 @@ func NewUE() (*LbUe){
 	ue.Log = logger.UELog
 	// set ABBA value as described at TS 33.501 Annex A.7.1
 	ue.ABBA = []uint8{0x00, 0x00} // set in GMM AuthenticationProcedure + AuthenticationFailure
+	ue.UplinkFlag = false 
+	ue.ResponseFlag = false 
 	return &ue
 }
 
@@ -94,6 +100,16 @@ func (ue *LbUe) AddUeToAmf(next *LbAmf) {
 	ue.AmfPointer = next
 	next.Ues.Store(ue.UeLbID, ue)
 }
+
+func (ue *LbUe) RegistrationComplete() {
+	if ue.UeStateIdent == TypeIdRegist && ue.ResponseFlag && ue.UplinkFlag {
+		ue.UeStateIdent = TypeIdRegular
+		// next := self.Next_Regular_Amf
+		// ue.RemoveUeFromAMF()
+		// ue.AddUeToAmf(next)
+		// go context.SelectNextRegularAmf()			
+	}
+}	
 
 // TODO
 // Kamf Derivation function defined in TS 33.501 Annex A.7

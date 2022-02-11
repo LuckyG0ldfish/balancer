@@ -7,7 +7,7 @@ import (
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	"github.com/LuckyG0ldfish/balancer/nas"
+	// "github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap/ngapType"
 
@@ -148,11 +148,15 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 			
 		}
 	}
-	if nASPDU != nil && ue != nil {
-		nas.HandleNAS(ue, nASPDU.Value)
-	}
 	if ue != nil {
+		// var regDone bool 
+		if nASPDU != nil {
+			// regDone = nas.HandleNAS(ue, nASPDU.Value)
+		}
 		context.ForwardToAmf(message, ue)
+		// if regDone {
+		// 	ue.UplinkFlag = true 
+		// }
 	}
 }
 
@@ -807,6 +811,7 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	var ue *context.LbUe
 
 	LB = *context.LB_Self()
 
@@ -841,22 +846,24 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 			}
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
 			rANUENGAPID = ie.Value.RANUENGAPID
-			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 			lbConn.Log.Traceln("Decode IE RanUeNgapID")
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
+				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				var ok bool 
+				ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue)
 			}
 		}
 	}
+	context.ForwardToAmf(message, ue)
+	ue.ResponseFlag = true 
 }
 
 func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU) {

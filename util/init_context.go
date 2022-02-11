@@ -54,7 +54,7 @@ func InitLbContext(self *context.LBContext) {
 	self.PlmnSupportList = configuration.PlmnSupportList
 	self.Running = true
 	self.IDGen = context.NewUniqueNumberGen(1) // internal LbUe.ID for the first UE 
-	self.Table = context.NewTable()
+	// self.Table = context.NewTable()
 
 	// adding AMFs 
 	if configuration.AmfNgapIpList != nil {

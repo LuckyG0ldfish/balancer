@@ -17,15 +17,15 @@ const MsgTypeDeregistrationRequestUEOriginatingDeregistration int = 2
 const MsgTypeDeregistrationAcceptUETerminatedDeregistration int = 3
 const MsgTypeOther int = 4
 
-func HandleNAS(ue *context.LbUe, nasPdu []byte) {
+func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 	if ue == nil {
 		logger.NASLog.Error("RanUe is nil")
-		return
+		return false 
 	}
 
 	if nasPdu == nil {
 		logger.NASLog.Error("nasPdu is nil")
-		return
+		return false 
 	}
 
 	// self := context.LB_Self()
@@ -33,18 +33,13 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 	msgType, err := IdentMsgType(ue, accessType, nasPdu)
 	if err != nil { 
 		logger.NASLog.Errorln(err)
-		return
+		return false 
 	}
 
 	switch msgType {
 	case nas.MsgTypeRegistrationComplete:
-		ue.UeStateIdent = context.TypeIdRegular
 		logger.NASLog.Traceln("MsgTypeRegistrationComplete")
-		// next := self.Next_Regular_Amf
-		// ue.RemoveUeFromAMF()
-		// ue.AddUeToAmf(next)
-		// go context.SelectNextRegularAmf()
-		return
+		return true  
 	case nas.MsgTypeDeregistrationRequestUEOriginatingDeregistration:
 		ue.UeStateIdent = context.TypeIdDeregist
 		logger.NASLog.Traceln("MsgTypeDeregistrationRequestUEOriginatingDeregistration")
@@ -52,7 +47,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 		// ue.RemoveUeFromAMF()
 		// ue.AddUeToAmf(next)
 		// go context.SelectNextDeregistAmf()
-		return
+		return false 
 	case nas.MsgTypeDeregistrationAcceptUETerminatedDeregistration:
 		ue.UeStateIdent = context.TypeIdDeregist
 		logger.NASLog.Traceln("MsgTypeDeregistrationAcceptUETerminatedDeregistration")
@@ -60,9 +55,9 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) {
 		// ue.RemoveUeFromAMF()
 		// ue.AddUeToAmf(next)
 		// go context.SelectNextDeregistAmf()
-		return	
+		return	false 
 	} 
-	return 
+	return  false 
 }
 
 /*
