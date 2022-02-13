@@ -32,8 +32,9 @@ configuration:
 #   # ReportCaller: enable the caller report or not, value: true or false
 logger:
   LB:
-    debugLevel: error
+    debugLevel: trace
     ReportCaller: false
+    
   # AMF:
   #   debugLevel: trace
   #   ReportCaller: false

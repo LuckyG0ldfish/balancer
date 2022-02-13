@@ -25,7 +25,7 @@ import (
 )
 
 type Load struct{
-	LbContext 	*context.LBContext
+	// LbContext 	*context.LBContext
 }
 
 type (
@@ -38,10 +38,10 @@ type (
 var config Config
 
 var lbCLi = []cli.Flag{
-	cli.StringFlag{
-		Name:  "free5gccfg",
-		Usage: "common config file",
-	},
+	// cli.StringFlag{
+	// 	Name:  "free5gccfg",
+	// 	Usage: "common config file",
+	// },
 	cli.StringFlag{
 		Name:  "lbcfg",
 		Usage: "lb config file",
@@ -58,7 +58,7 @@ func (*Load) GetCliCmd() (flags []cli.Flag) {
 	return lbCLi
 }
 
-func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
+func (Lb *Load) Initialize(c *cli.Context) error { // c *cli.Context) error {
 	config = Config{
 		lbcfg: c.String("lbcfg"),
 	}

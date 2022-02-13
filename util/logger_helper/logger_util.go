@@ -3,17 +3,17 @@ package logger_helper
 type Logger struct {
 	LB   			*LogSetting `yaml:"LB"`
 	
-	AMF   			*LogSetting `yaml:"AMF"`
+	// AMF   			*LogSetting `yaml:"AMF"`
 
-	GNB				*LogSetting `yaml:"GNB"`
+	// GNB				*LogSetting `yaml:"GNB"`
 	
-	NGAP            *LogSetting `yaml:"NGAP"`
-	AMFHandler 		*LogSetting `yaml:"AMFHandler"`
-	GNBHandler		*LogSetting `yaml:"GNBHandler"`
+	// NGAP            *LogSetting `yaml:"NGAP"`
+	// AMFHandler 		*LogSetting `yaml:"AMFHandler"`
+	// GNBHandler		*LogSetting `yaml:"GNBHandler"`
 	
-	NAS             *LogSetting `yaml:"NAS"`
+	// NAS             *LogSetting `yaml:"NAS"`
 	
-	UELog 			*LogSetting `yaml:"UE"`
+	// UELog 			*LogSetting `yaml:"UE"`
 }
 
 type LogSetting struct {
