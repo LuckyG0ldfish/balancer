@@ -32,7 +32,7 @@ configuration:
 #   # ReportCaller: enable the caller report or not, value: true or false
 logger:
   LB:
-    debugLevel: trace
+    debugLevel: info
     ReportCaller: false
   NGAP:
     debugLevel: trace

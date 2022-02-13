@@ -5,9 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
-
 	"fmt"
 
+	"github.com/free5gc/path_util"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
@@ -68,7 +68,10 @@ func (Lb *Load) Initialize(c *cli.Context) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("Config is empty")
+		DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
+		if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
+			return err
+		}
 	}
 	Lb.setLogLevel()
 	if err := factory.CheckConfigVersion(); err != nil {
