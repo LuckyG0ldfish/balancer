@@ -1,10 +1,8 @@
 package main
 
 import (
-	// "fmt"
-	"os"
-
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"

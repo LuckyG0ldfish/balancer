@@ -10,7 +10,7 @@ import (
 
 func InitLbContext(self *context.LBContext) {
 	config := factory.LbConfig
-	logger.UtilLog.Infof("amfconfig Info: Version[%s] Description[%s]", config.Info.Version, config.Info.Description)
+	logger.UtilLog.Infof("lbconfig Info: Version[%s] Description[%s]", config.Info.Version, config.Info.Description)
 	configuration := config.Configuration
 	
 	// LB Settings 

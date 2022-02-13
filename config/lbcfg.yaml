@@ -34,14 +34,14 @@ logger:
   LB:
     debugLevel: trace
     ReportCaller: false
-    
+  NGAP:
+    debugLevel: trace
+    ReportCaller: false  
+  
   # AMF:
   #   debugLevel: trace
   #   ReportCaller: false
   # GNB:
-  #   debugLevel: trace
-  #   ReportCaller: false
-  # NGAP:
   #   debugLevel: trace
   #   ReportCaller: false
   # AMFHandler:
