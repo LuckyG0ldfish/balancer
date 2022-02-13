@@ -2,7 +2,7 @@ package nas
 
 import (
 	"fmt"
-	"reflect"
+	// "reflect"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	// "github.com/LuckyG0ldfish/balancer/gmm"
@@ -72,8 +72,6 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 		return 0, fmt.Errorf("nas payload is empty")
 	}
 
-	
-
 	msg := new(nas.Message)
 	msg.SecurityHeaderType = nas.GetSecurityHeaderType(payload) & 0x0f
 	if msg.SecurityHeaderType == nas.SecurityHeaderTypePlainNas {
@@ -117,7 +115,7 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 		sequenceNumber := payload[6]
 		logger.NASLog.Traceln("sequenceNumber", sequenceNumber)
 	
-		receivedMac32 := securityHeader[2:]
+		// receivedMac32 := securityHeader[2:]
 		// remove security Header except for sequece Number
 		payload = payload[6:]
 	
@@ -147,33 +145,33 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 	
 		logger.NASLog.Debugf("Calculate NAS MAC (algorithm: %+v, ULCount: 0x%0x)", ue.IntegrityAlg, ue.ULCount.Get())
 		logger.NASLog.Tracef("NAS integrity key0x: %0x", ue.KnasInt)
-		mac32, err := security.NASMacCalculate(ue.IntegrityAlg, ue.KnasInt, ue.ULCount.Get(),
-			GetBearerType(accessType), security.DirectionUplink, payload)
-		if err != nil {
-			return 0, fmt.Errorf("MAC calcuate error: %+v", err)
-		}
+		// mac32, err := security.NASMacCalculate(ue.IntegrityAlg, ue.KnasInt, ue.ULCount.Get(),
+		// 	GetBearerType(accessType), security.DirectionUplink, payload)
+		// if err != nil {
+		// 	return 0, fmt.Errorf("MAC calcuate error: %+v", err)
+		// }
 	
-		if !reflect.DeepEqual(mac32, receivedMac32) {
-			logger.NASLog.Tracef("NAS MAC verification failed(received: 0x%08x, expected: 0x%08x)", receivedMac32, mac32)
-			ue.MacFailed = true
-		} else {
-			logger.NASLog.Tracef("cmac value: 0x%08x", mac32)
-			ue.MacFailed = false
-		}
+		// if !reflect.DeepEqual(mac32, receivedMac32) {
+		// 	logger.NASLog.Tracef("NAS MAC verification failed(received: 0x%08x, expected: 0x%08x)", receivedMac32, mac32)
+		// 	ue.MacFailed = true
+		// } else {
+		// 	logger.NASLog.Tracef("cmac value: 0x%08x", mac32)
+		// 	ue.MacFailed = false
+		// }
 	
 		if ciphered {
 			logger.NASLog.Debugf("Decrypt NAS message (algorithm: %+v, ULCount: 0x%0x)", ue.CipheringAlg, ue.ULCount.Get())
 			logger.NASLog.Tracef("NAS ciphering key: %0x", ue.KnasEnc)
 			// decrypt payload without sequence number (payload[1])
-			if err = security.NASEncrypt(ue.CipheringAlg, ue.KnasEnc, ue.ULCount.Get(), GetBearerType(accessType),
-				security.DirectionUplink, payload[1:]); err != nil {
-				return 0, fmt.Errorf("Encrypt error: %+v", err)
-			}
+			// if err = security.NASEncrypt(ue.CipheringAlg, ue.KnasEnc, ue.ULCount.Get(), GetBearerType(accessType),
+			// 	security.DirectionUplink, payload[1:]); err != nil {
+			// 	return 0, fmt.Errorf("Encrypt error: %+v", err)
+			// }
 		}
 	
 		// remove sequece Number
 		payload = payload[1:]
-		err = msg.PlainNasDecode(&payload)
+		err := msg.PlainNasDecode(&payload)
 		return msg.GmmHeader.GetMessageType(), err
 		}
 	// }

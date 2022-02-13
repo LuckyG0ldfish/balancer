@@ -36,6 +36,8 @@ func InitLbContext(self *context.LBContext) {
 		self.LbToAmfPort = 23232 // default Port
 		logger.CfgLog.Warnf("Default LbToAmf-Port selected")
 	}
+	self.Metrics = configuration.Metrics
+
 	addr, err := context.GenSCTPAddr(self.LbIP, self.LbListenPort)
 	if err == nil {
 		self.LbListenAddr = addr
@@ -52,9 +54,13 @@ func InitLbContext(self *context.LBContext) {
 	}
 	self.ServedGuamiList = configuration.ServedGumaiList
 	self.PlmnSupportList = configuration.PlmnSupportList
+	
 	self.Running = true
 	self.IDGen = context.NewUniqueNumberGen(1) // internal LbUe.ID for the first UE 
-	// self.Table = context.NewTable()
+
+	/* Metrics */
+	self.Table = context.NewTable()
+	
 
 	// adding AMFs 
 	if configuration.AmfNgapIpList != nil {

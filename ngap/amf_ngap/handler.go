@@ -5,7 +5,7 @@ package amf_ngap
 import (
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	// "github.com/LuckyG0ldfish/balancer/nas"
+	"github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/ngap/ngapType"
 )
 
@@ -201,7 +201,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	// var nASPDU *ngapType.NASPDU
+	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
 	
 
@@ -256,12 +256,12 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					}
 				}
 			case ngapType.ProtocolIEIDNASPDU:
-				// nASPDU = ie.Value.NASPDU
+				nASPDU = ie.Value.NASPDU
 		}	
 	}
-	// if nASPDU != nil && ue != nil {
-	// 	nas.HandleNAS(ue, nASPDU.Value)
-	// }
+	if nASPDU != nil && ue != nil {
+		nas.HandleNAS(ue, nASPDU.Value)
+	}
 	if ue != nil {
 		context.ForwardToGnb(message, ue)
 	}

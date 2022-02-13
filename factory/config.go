@@ -1,12 +1,12 @@
 /*
- * AMF Configuration Factory
+ * LB Configuration Factory
  */
 
  package factory
 
  import (
-	 "github.com/free5gc/logger_util" 
-	 "github.com/free5gc/openapi/models"
+	"github.com/LuckyG0ldfish/balancer/util"
+	"github.com/free5gc/openapi/models"
  )
  
  const (
@@ -30,8 +30,9 @@
 	 NgapListenPort					 int						`yaml:"ngapListenPort,omitempty"`
 	 NgapLbToAmfPort				 int						`yaml:"ngapLbToAmfPort,omitempty"`
 	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
-	 ServedGumaiList                 []models.Guami            `yaml:"servedGuamiList,omitempty"`
-	 PlmnSupportList                 []PlmnSupportItem         `yaml:"plmnSupportList,omitempty"`
+	 ServedGumaiList                 []models.Guami            	`yaml:"servedGuamiList,omitempty"`
+	 PlmnSupportList                 []PlmnSupportItem         	`yaml:"plmnSupportList,omitempty"`
+	 Metrics 						 bool 						`yaml:"metrics,omitempty"`
  }
 
  type PlmnSupportItem struct {

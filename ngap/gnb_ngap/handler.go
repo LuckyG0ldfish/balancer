@@ -7,7 +7,7 @@ import (
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
-	// "github.com/LuckyG0ldfish/balancer/nas"
+	"github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap/ngapType"
 
@@ -149,14 +149,14 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 		}
 	}
 	if ue != nil {
-		// var regDone bool 
+		var regDone bool 
 		if nASPDU != nil {
-			// regDone = nas.HandleNAS(ue, nASPDU.Value)
+			regDone = nas.HandleNAS(ue, nASPDU.Value)
 		}
 		context.ForwardToAmf(message, ue)
-		// if regDone {
-		// 	ue.UplinkFlag = true 
-		// }
+		if regDone {
+			ue.UplinkFlag = true 
+		}
 	}
 }
 
@@ -282,6 +282,7 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	var ue *context.LbUe
 
 	LB = *context.LB_Self()
 
@@ -321,17 +322,21 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
+				var ok bool 
 				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue)
-				ue.RemoveUeEntirely()
 			}
 		}
+	}
+
+	if ue != nil {
+		context.ForwardToAmf(message, ue)
+		// go ue.RemoveUeEntirely()
 	}
 }
 

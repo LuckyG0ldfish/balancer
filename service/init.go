@@ -22,9 +22,6 @@ import (
 	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 
 	"github.com/LuckyG0ldfish/balancer/util"
-
-	"github.com/free5gc/path_util"
-
 )
 
 type Load struct{
@@ -71,10 +68,7 @@ func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
 			return err
 		}
 	} else {
-		DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
-		if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
-			return err
-		}
+		return fmt.Errorf("Config is empty")
 	}
 	Lb.setLogLevel()
 	if err := factory.CheckConfigVersion(); err != nil {
@@ -152,7 +146,11 @@ func (Lb *Load) Terminate() {
 
 	lbSelf.Running = false 
 	ngap_service.Stop()
-	// lbSelf.Table.Print()
+
+	/* Metrics */
+	if lbSelf.Metrics {
+	lbSelf.Table.Print()
+	}
 
 	logger.InitLog.Infof("LB terminated")
 }

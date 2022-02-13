@@ -30,7 +30,7 @@ type LbAmf struct {
 func (amf *LbAmf) FindUeByUeID(id int64) (*LbUe, bool){
 	ue, ok := amf.Ues.Load(id)
 	if !ok {
-		amf.Log.Errorf("UE is not registered to this AMF")
+		amf.Log.Errorf("UE is not registered to this AMF %d", id)
 		return nil, false 
 	}
 	ue2, ok :=  ue.(*LbUe)

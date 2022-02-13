@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/ishidawataru/sctp"
 
@@ -101,6 +102,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
 			go handler.HandleMessage(lbConn, buf[:n])
 		}
+		time.Sleep(1 * time.Millisecond)
 	}
 }
 

@@ -53,7 +53,8 @@ type LBContext struct {
 	Log 				*logrus.Entry
 
 	/* metrics */
-	// Table 				*Routing_Table
+	Metrics 			bool
+	Table 				*Routing_Table
 }
 
 // Creates and returns a new *LBContext

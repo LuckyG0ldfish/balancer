@@ -5,13 +5,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"regexp"
+	"time"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
-	"github.com/sirupsen/logrus"
-	"github.com/free5gc/openapi/models"
+	"github.com/free5gc/UeauCommon"
 	"github.com/free5gc/nas/nasType"
 	"github.com/free5gc/nas/security"
-	"github.com/free5gc/UeauCommon"
+	"github.com/free5gc/openapi/models"
+	"github.com/sirupsen/logrus"
 )
 
 // Type, that stores all relevant information of UEs
@@ -69,6 +70,7 @@ func NewUE() (*LbUe){
 
 // Removes LbUe from AMF and RAN Context withing LB  
 func (ue *LbUe) RemoveUeEntirely() {
+	time.Sleep(10 * time.Millisecond)
 	ue.RemoveUeFromAMF()
 	ue.RemoveUeFromGNB()
 }
