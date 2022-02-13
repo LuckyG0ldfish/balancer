@@ -83,11 +83,11 @@ func (lb *Load) setLogLevel() {
 		return
 	}
 
-	if factory.LbConfig.Logger.AMF != nil {
-		if factory.LbConfig.Logger.AMF.DebugLevel != "" {
-			if level, err := logrus.ParseLevel(factory.LbConfig.Logger.AMF.DebugLevel); err != nil {
+	if factory.LbConfig.Logger.LB != nil {
+		if factory.LbConfig.Logger.LB.DebugLevel != "" {
+			if level, err := logrus.ParseLevel(factory.LbConfig.Logger.LB.DebugLevel); err != nil {
 				initLog.Warnf("AMF Log level [%s] is invalid, set to [info] level",
-					factory.LbConfig.Logger.AMF.DebugLevel)
+					factory.LbConfig.Logger.LB.DebugLevel)
 				logger.SetLogLevel(logrus.InfoLevel)
 			} else {
 				initLog.Infof("AMF Log level is set to [%s] level", level)
@@ -97,7 +97,7 @@ func (lb *Load) setLogLevel() {
 			initLog.Warnln("AMF Log level not set. Default set to [info] level")
 			logger.SetLogLevel(logrus.InfoLevel)
 		}
-		logger.SetReportCaller(factory.LbConfig.Logger.AMF.ReportCaller)
+		logger.SetReportCaller(factory.LbConfig.Logger.LB.ReportCaller)
 	}
 
 	

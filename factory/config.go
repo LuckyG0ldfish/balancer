@@ -5,7 +5,7 @@
  package factory
 
  import (
-	"github.com/LuckyG0ldfish/balancer/util"
+	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/openapi/models"
  )
  
@@ -16,7 +16,7 @@
  type Config struct {
 	 Info          *Info               `yaml:"info"`
 	 Configuration *Configuration      `yaml:"configuration"`
-	 Logger        *logger_util.Logger `yaml:"logger"`
+	 Logger        *logger.Logger `yaml:"logger"`
  }
  
  type Info struct {

@@ -1,5 +1,4 @@
-package util
-
+package logger
 
 type Logger struct {
 	LB   *LogSetting `yaml:"AMF"`
