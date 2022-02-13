@@ -31,10 +31,28 @@ configuration:
 #   # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
 #   # ReportCaller: enable the caller report or not, value: true or false
 logger:
-  AMF:
+  LB:
     debugLevel: error
     ReportCaller: false
-  NGAP:
-    debugLevel: trace
-    ReportCaller: false
+  # AMF:
+  #   debugLevel: trace
+  #   ReportCaller: false
+  # GNB:
+  #   debugLevel: trace
+  #   ReportCaller: false
+  # NGAP:
+  #   debugLevel: trace
+  #   ReportCaller: false
+  # AMFHandler:
+  #   debugLevel: trace
+  #   ReportCaller: false
+  # GNBHandler:
+  #   debugLevel: trace
+  #   ReportCaller: false
+  # NAS:
+  #   debugLevel: trace
+  #   ReportCaller: false
+  # UELog:
+  #   debugLevel: trace
+  #   ReportCaller: false
 

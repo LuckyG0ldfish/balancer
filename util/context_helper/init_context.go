@@ -1,4 +1,4 @@
-package util
+package context_helper
 
 import (
 	"github.com/google/uuid"

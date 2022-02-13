@@ -5,7 +5,7 @@
  package factory
 
  import (
-	"github.com/LuckyG0ldfish/balancer/logger"
+	logger "github.com/LuckyG0ldfish/balancer/util/logger_helper"
 	"github.com/free5gc/openapi/models"
  )
  
