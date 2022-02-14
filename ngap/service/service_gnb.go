@@ -65,15 +65,15 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 			logger.NgapLog.Debugln("Subscribe SCTP event[DATA_IO, SHUTDOWN_EVENT, ASSOCIATION_CHANGE]")
 		}
 
-		if err := newConn.SetReadBuffer(int(readBufSize)); err != nil {
-			logger.NgapLog.Errorf("Set read buffer error: %+v, accept failed", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			logger.NgapLog.Infof("Set read buffer to %d bytes", readBufSize)
-		}
+		// if err := newConn.SetReadBuffer(int(readBufSize)); err != nil {
+		// 	logger.NgapLog.Errorf("Set read buffer error: %+v, accept failed", err)
+		// 	if err = newConn.Close(); err != nil {
+		// 		logger.NgapLog.Errorf("Close error: %+v", err)
+		// 	}
+		// 	continue
+		// } else {
+		// 	logger.NgapLog.Infof("Set read buffer to %d bytes", readBufSize)
+		// }
 
 		if err := newConn.SetReadTimeout(readTimeout); err != nil {
 			logger.NgapLog.Errorf("Set read timeout error: %+v, accept failed", err)

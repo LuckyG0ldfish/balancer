@@ -20,7 +20,7 @@ type NGAPHandler struct {
 	HandleNotification func(conn *sctp.SCTPConn, notification sctp.Notification)
 }
 
-const readBufSize uint32 = 8192
+const readBufSize uint32 = 256 // 8192
 const amfPort int = 38412
 
 // set default read timeout to 2 seconds
