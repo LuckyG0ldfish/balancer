@@ -28,6 +28,7 @@ func InitAmfs(ngapHandler NGAPHandler) {
 			self.NewAmfIpList = []string{}
 			self.NewAmf = false
 		}
+		time.Sleep(2 * time.Second)
 	}
 }
 
