@@ -26,6 +26,7 @@ configuration:
         - sst: 1 # Slice/Service Type (uinteger, range: 0~255)
           sd: 112233 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
   metrics: false # true enables LB internal tracking of UE states and routings 
+  continuesAmfRegistration: false # true for continues accepting AMFs for registration
 
 # # the kind of log output
 #   # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
@@ -34,26 +35,4 @@ logger:
   LB:
     debugLevel: info
     ReportCaller: false
-  NGAP:
-    debugLevel: trace
-    ReportCaller: false  
-  
-  # AMF:
-  #   debugLevel: trace
-  #   ReportCaller: false
-  # GNB:
-  #   debugLevel: trace
-  #   ReportCaller: false
-  # AMFHandler:
-  #   debugLevel: trace
-  #   ReportCaller: false
-  # GNBHandler:
-  #   debugLevel: trace
-  #   ReportCaller: false
-  # NAS:
-  #   debugLevel: trace
-  #   ReportCaller: false
-  # UELog:
-  #   debugLevel: trace
-  #   ReportCaller: false
 

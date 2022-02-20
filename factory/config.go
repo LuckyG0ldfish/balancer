@@ -33,6 +33,7 @@
 	 ServedGumaiList                 []models.Guami            	`yaml:"servedGuamiList,omitempty"`
 	 PlmnSupportList                 []PlmnSupportItem         	`yaml:"plmnSupportList,omitempty"`
 	 Metrics 						 bool 						`yaml:"metrics,omitempty"`
+	 ContinuesAmfRegistration 		 bool 						`yaml:"continuesAmfRegistration,omitempty"`
  }
 
  type PlmnSupportItem struct {

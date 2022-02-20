@@ -119,32 +119,33 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 		// remove security Header except for sequece Number
 		payload = payload[6:]
 	
-		// a security protected NAS message must be integrity protected, and ciphering is optional
-		ciphered := false
-		switch msg.SecurityHeaderType {
-		case nas.SecurityHeaderTypeIntegrityProtected:
-			logger.NASLog.Debugln("Security header type: Integrity Protected")
-		case nas.SecurityHeaderTypeIntegrityProtectedAndCiphered:
-			logger.NASLog.Debugln("Security header type: Integrity Protected And Ciphered")
-			ciphered = true
-		case nas.SecurityHeaderTypeIntegrityProtectedAndCipheredWithNew5gNasSecurityContext:
-			logger.NASLog.Debugln("Security header type: Integrity Protected And Ciphered With New 5G Security Context")
-			ciphered = true
-				ue.ULCount.Set(0, 0)
-		default:
-			return 0, fmt.Errorf("Wrong security header type: 0x%0x", msg.SecurityHeader.SecurityHeaderType)
-		}
+		// // a security protected NAS message must be integrity protected, and ciphering is optional
+		// ciphered := false
+		// switch msg.SecurityHeaderType {
+		// case nas.SecurityHeaderTypeIntegrityProtected:
+		// 	logger.NASLog.Debugln("Security header type: Integrity Protected")
+		// case nas.SecurityHeaderTypeIntegrityProtectedAndCiphered:
+		// 	logger.NASLog.Debugln("Security header type: Integrity Protected And Ciphered")
+		// 	ciphered = true
+		// case nas.SecurityHeaderTypeIntegrityProtectedAndCipheredWithNew5gNasSecurityContext:
+		// 	logger.NASLog.Debugln("Security header type: Integrity Protected And Ciphered With New 5G Security Context")
+		// 	ciphered = true
+		// 		ue.ULCount.Set(0, 0)
+		// default:
+		// 	return 0, fmt.Errorf("Wrong security header type: 0x%0x", msg.SecurityHeader.SecurityHeaderType)
+		// // Authentication request
+		// }
 	
 
 		// TODO
-		if ue.ULCount.SQN() > sequenceNumber {
-			logger.NASLog.Debugf("set ULCount overflow")
-			ue.ULCount.SetOverflow(ue.ULCount.Overflow() + 1)
-		}
-		ue.ULCount.SetSQN(sequenceNumber)
+		// if ue.ULCount.SQN() > sequenceNumber {
+		// 	logger.NASLog.Debugf("set ULCount overflow")
+		// 	ue.ULCount.SetOverflow(ue.ULCount.Overflow() + 1)
+		// }
+		// ue.ULCount.SetSQN(sequenceNumber)
 	
-		logger.NASLog.Debugf("Calculate NAS MAC (algorithm: %+v, ULCount: 0x%0x)", ue.IntegrityAlg, ue.ULCount.Get())
-		logger.NASLog.Tracef("NAS integrity key0x: %0x", ue.KnasInt)
+		// logger.NASLog.Debugf("Calculate NAS MAC (algorithm: %+v, ULCount: 0x%0x)", ue.IntegrityAlg, ue.ULCount.Get())
+		// logger.NASLog.Tracef("NAS integrity key0x: %0x", ue.KnasInt)
 		// mac32, err := security.NASMacCalculate(ue.IntegrityAlg, ue.KnasInt, ue.ULCount.Get(),
 		// 	GetBearerType(accessType), security.DirectionUplink, payload)
 		// if err != nil {
@@ -159,15 +160,15 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 		// 	ue.MacFailed = false
 		// }
 	
-		if ciphered {
-			logger.NASLog.Debugf("Decrypt NAS message (algorithm: %+v, ULCount: 0x%0x)", ue.CipheringAlg, ue.ULCount.Get())
-			logger.NASLog.Tracef("NAS ciphering key: %0x", ue.KnasEnc)
-			// decrypt payload without sequence number (payload[1])
-			// if err = security.NASEncrypt(ue.CipheringAlg, ue.KnasEnc, ue.ULCount.Get(), GetBearerType(accessType),
-			// 	security.DirectionUplink, payload[1:]); err != nil {
-			// 	return 0, fmt.Errorf("Encrypt error: %+v", err)
-			// }
-		}
+		// if ciphered {
+		// 	logger.NASLog.Debugf("Decrypt NAS message (algorithm: %+v, ULCount: 0x%0x)", ue.CipheringAlg, ue.ULCount.Get())
+		// 	logger.NASLog.Tracef("NAS ciphering key: %0x", ue.KnasEnc)
+		// 	// decrypt payload without sequence number (payload[1])
+		// 	// if err = security.NASEncrypt(ue.CipheringAlg, ue.KnasEnc, ue.ULCount.Get(), GetBearerType(accessType),
+		// 	// 	security.DirectionUplink, payload[1:]); err != nil {
+		// 	// 	return 0, fmt.Errorf("Encrypt error: %+v", err)
+		// 	// }
+		// }
 	
 		// remove sequece Number
 		payload = payload[1:]

@@ -21,12 +21,17 @@ func InitAmfs(ngapHandler NGAPHandler) {
 			// starting connections to each individual AMF 
 			for i := 0; i < len(self.NewAmfIpList); i++  {
 				ip := self.NewAmfIpList[i]
-				logger.NgapLog.Tracef("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
+				logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
 				go CreateAndStartAmf(ip, amfPort, ngapHandler)
+			}
+			if !self.ContinuesAmfRegistration {
+				logger.NgapLog.Tracef("No further AMFs to accept")
+				return 
 			}
 			// Resets to accept more 
 			self.NewAmfIpList = []string{}
 			self.NewAmf = false
+			logger.NgapLog.Tracef("Waiting for new Amfs")
 		}
 		time.Sleep(2 * time.Second)
 	}

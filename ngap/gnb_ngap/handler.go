@@ -336,7 +336,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 
 	if ue != nil {
 		context.ForwardToAmf(message, ue)
-		// go ue.RemoveUeEntirely()
+		go ue.RemoveUeEntirely()
 	}
 }
 

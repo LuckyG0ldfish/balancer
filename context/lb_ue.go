@@ -70,9 +70,10 @@ func NewUE() (*LbUe){
 
 // Removes LbUe from AMF and RAN Context withing LB  
 func (ue *LbUe) RemoveUeEntirely() {
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 	ue.RemoveUeFromAMF()
 	ue.RemoveUeFromGNB()
+	ue = nil 
 }
 
 // Removes LbUe from AMF Context withing LB 
@@ -102,6 +103,7 @@ func (ue *LbUe) AddUeToAmf(next *LbAmf) {
 	ue.AmfPointer = next
 	next.Ues.Store(ue.UeLbID, ue)
 }
+
 
 func (ue *LbUe) RegistrationComplete() {
 	if ue.UeStateIdent == TypeIdRegist && ue.ResponseFlag && ue.UplinkFlag {

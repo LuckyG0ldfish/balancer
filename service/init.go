@@ -102,25 +102,6 @@ func (lb *Load) setLogLevel() {
 		}
 		logger.SetReportCaller(factory.LbConfig.Logger.LB.ReportCaller)
 	}
-
-	// if factory.LbConfig.Logger.NGAP != nil {
-	// 	if factory.LbConfig.Logger.NGAP.DebugLevel != "" {
-	// 		if level, err := logrus.ParseLevel(factory.LbConfig.Logger.NGAP.DebugLevel); err != nil {
-	// 			initLog.Warnf("AMF Log level [%s] is invalid, set to [info] level",
-	// 				factory.LbConfig.Logger.NGAP.DebugLevel)
-	// 			logger.SetLogLevel(logrus.InfoLevel)
-	// 		} else {
-	// 			initLog.Infof("AMF Log level is set to [%s] level", level)
-	// 			logger.SetLogLevel(level)
-	// 		}
-	// 	} else {
-	// 		initLog.Warnln("AMF Log level not set. Default set to [info] level")
-	// 		logger.SetLogLevel(logrus.InfoLevel)
-	// 	}
-	// 	logger.SetReportCaller(factory.LbConfig.Logger.NGAP.ReportCaller)
-	// }
-
-	
 }
 
 func (amf *Load) FilterCli(c *cli.Context) (args []string) {

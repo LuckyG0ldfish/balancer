@@ -37,6 +37,7 @@ func InitLbContext(self *context.LBContext) {
 		logger.CfgLog.Warnf("Default LbToAmf-Port selected")
 	}
 	self.Metrics = configuration.Metrics
+	self.ContinuesAmfRegistration = configuration.ContinuesAmfRegistration
 
 	addr, err := context.GenSCTPAddr(self.LbIP, self.LbListenPort)
 	if err == nil {
