@@ -133,7 +133,7 @@ func (Lb *Load) Start() {
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-	go func() {
+	func() {
 		<-signalChannel
 		Lb.Terminate()
 		os.Exit(0)
@@ -148,7 +148,7 @@ func (Lb *Load) Terminate() {
 	ngap_service.Stop()
 
 	/* Metrics */
-	if lbSelf.Metrics > 0 {
+	if lbSelf.MetricsLevel > 0 {
 		lbSelf.Table.Print()
 	}
 

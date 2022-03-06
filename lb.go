@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
+	// "time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -34,9 +34,9 @@ func main() {
 		return
 	}
 	
-	for{
-		time.Sleep(1 *time.Hour)
-	}
+	// for{
+	// 	time.Sleep(1 *time.Hour)
+	// }
 }
 
 func action(c *cli.Context) error {

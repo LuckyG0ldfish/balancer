@@ -63,6 +63,7 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			self.Next_Regist_Amf = amf
 			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
+			self.Table.AddAmfCounter(amf)
 			return 
 		}
 		time.Sleep(2 * time.Second)

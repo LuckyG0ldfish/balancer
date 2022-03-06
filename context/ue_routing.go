@@ -1,7 +1,6 @@
 package context
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -42,10 +41,10 @@ type metricsUE struct {
 
 func (r *Routing_Table) Print() {
 	self := LB_Self()
-	if self.Metrics > 1{
+	if self.MetricsLevel == 2 {
 		printRouting(r)
 		return 
-	} else if self.Metrics == 1 {
+	} else if self.MetricsLevel == 1 {
 		printUETimings(r)
 		return 
 	}
@@ -56,6 +55,7 @@ func (r *Routing_Table) Print() {
 func printUETimings(r *Routing_Table) {
 	start := time.Now()
 	var ueList sync.Map
+	
 	for i := 0; i < len(r.traces); i++ {
 		temp := r.traces[i]
 		ex, ok := ueList.Load(temp.ueID)
@@ -63,8 +63,8 @@ func printUETimings(r *Routing_Table) {
 			ue := newMetricsUE(temp.ueID, start.Add(temp.time))
 			ueList.Store(ue.id, ue)
 		} else {
-			mUE, ok := ex.(metricsUE)
-			if !ok {
+			mUE, test := ex.(*metricsUE)
+			if !test {
 				logger.ContextLog.Error("ue timings print failed")
 				return 
 			}
@@ -72,20 +72,22 @@ func printUETimings(r *Routing_Table) {
 		}
 	}
 
-	var output string
+	var output string = "UE-delay:"
 
 	ueList.Range(func(key, value interface{}) bool {
-		ue, ok := value.(metricsUE)
+		ue, ok := value.(*metricsUE)
 		if !ok {
-			logger.NgapLog.Errorf("ue timings print failed")
+			logger.ContextLog.Errorf("ue timings print failed")
 			return false 
 		}
 		duration := ue.time.Sub(start)
 		dur := duration.String()
 		id := strconv.Itoa(int(ue.id))
-		output = output + " (" + id + ": " + dur + ")"
+		output = output + " (LbUeId: " + id + ": " + dur + ")"
 		return true
 	})
+
+	logger.ContextLog.Info(output)
 }
 
 func newMetricsUE(id int64, time time.Time) (*metricsUE){
@@ -107,16 +109,16 @@ func printRouting(r *Routing_Table) {
 			s = "Deregistration"
 		}
 		if p.d_type == TypeAmf {
-			fmt.Printf("LbUeID: %d | GNB: %d -> AMF: %d || %s \n", uint64(p.ueID), uint64(p.origin), uint64(p.destination), s)
+			logger.ContextLog.Infof("LbUeID: %d | GNB: %d -> AMF: %d || %s \n", uint64(p.ueID), uint64(p.origin), uint64(p.destination), s)
 		} else if p.d_type == TypeGnb {
-			fmt.Printf("LbUeID: %d | GNB: %d <- AMF: %d || %s \n", uint64(p.ueID), uint64(p.destination), uint64(p.origin), s)
+			logger.ContextLog.Infof("LbUeID: %d | GNB: %d <- AMF: %d || %s \n", uint64(p.ueID), uint64(p.destination), uint64(p.origin), s)
 		}	
 	}
 
 	for i := 0; i < len(r.amfs); i++ {
 		amfC := r.amfs[i]
 		id := amfC.Amf.AmfID
-		fmt.Printf("AMF %d : | individuel UEs %d | total traffic %d \n", uint64(id), amfC.IndivUE, amfC.Traffic)
+		logger.ContextLog.Infof("AMF %d : | individuel UEs %d | total traffic %d \n", uint64(id), amfC.IndivUE, amfC.Traffic)
 	}
 }
 
@@ -144,7 +146,7 @@ func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	
 	return &t
 }
 
-func (r *Routing_Table) addAmfCounter(amf *LbAmf) {
+func (r *Routing_Table) AddAmfCounter(amf *LbAmf) {
 	r.amfs = append(r.amfs, newAmfCounter(amf))
 }
 

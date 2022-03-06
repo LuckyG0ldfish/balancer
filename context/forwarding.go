@@ -43,7 +43,7 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, start
 	
 	/* Metrics */
 	// Adding new Trace to the routing table 
-	if lb.Metrics > 0{
+	if lb.MetricsLevel > 0{
 		duration := time.Since(startTime)
 		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, duration)
 		go lb.Table.incrementAmfIndividualUEs(next)
@@ -80,7 +80,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	/* Metrics */
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
-	if lb.Metrics > 0 {
+	if lb.MetricsLevel > 0 {
 		duration := time.Since(startTime)
 		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, duration)
 		go lb.Table.incrementAmfTraffic(amf)
@@ -113,7 +113,7 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	/* Metrics */
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
-	if lb.Metrics > 0 {
+	if lb.MetricsLevel > 0 {
 		duration := time.Since(startTime) 
 		go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent, duration)
 	}
