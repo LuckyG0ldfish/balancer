@@ -48,7 +48,7 @@ func (gnb *LbGnb) FindUeByUeRanID(id int64) (*LbUe, bool){
 		gnb.Log.Errorf("UE is not registered to this RAN")
 		return nil, false 
 	}
-	ue2, ok :=  ue.(*LbUe)
+	ue2, ok := ue.(*LbUe)
 	if !ok {
 		gnb.Log.Errorf("couldn't be converted")
 		return nil, false 

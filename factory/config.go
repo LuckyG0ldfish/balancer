@@ -32,7 +32,7 @@
 	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
 	 ServedGumaiList                 []models.Guami            	`yaml:"servedGuamiList,omitempty"`
 	 PlmnSupportList                 []PlmnSupportItem         	`yaml:"plmnSupportList,omitempty"`
-	 Metrics 						 bool 						`yaml:"metrics,omitempty"`
+	 Metrics 						 int 						`yaml:"metrics,omitempty"`
 	 ContinuesAmfRegistration 		 bool 						`yaml:"continuesAmfRegistration,omitempty"`
  }
 

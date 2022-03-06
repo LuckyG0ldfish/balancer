@@ -145,13 +145,14 @@ func (Lb *Load) Terminate() {
 	logger.InitLog.Infof("Terminating LB...")
 	lbSelf := context.LB_Self()
 
-	lbSelf.Running = false 
 	ngap_service.Stop()
 
 	/* Metrics */
-	if lbSelf.Metrics {
-	lbSelf.Table.Print()
+	if lbSelf.Metrics > 0 {
+		lbSelf.Table.Print()
 	}
+
+	lbSelf.Running = false 
 
 	logger.InitLog.Infof("LB terminated")
 }

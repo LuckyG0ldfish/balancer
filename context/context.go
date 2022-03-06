@@ -54,7 +54,7 @@ type LBContext struct {
 	Log 				*logrus.Entry
 
 	/* metrics */
-	Metrics 			bool
+	Metrics 			int 
 	Table 				*Routing_Table
 }
 

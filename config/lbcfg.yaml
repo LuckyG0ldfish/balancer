@@ -25,7 +25,11 @@ configuration:
           sd: 010203 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
         - sst: 1 # Slice/Service Type (uinteger, range: 0~255)
           sd: 112233 # Slice Differentiator (3 bytes hex string, range: 000000~FFFFFF)
-  metrics: false # true enables LB internal tracking of UE states and routings 
+  metricsLevel: 0 # levels (make sure to be on debugLevel info or lower): 
+    # 0 (no metrics), 
+    # 1 (time lost due to LB per UE), 
+    # 2 (routing: enables LB internal tracking of UE states, routings, and message specific timings)   
+    # 3 (1 and 2)
   continuesAmfRegistration: false # true for continues accepting AMFs for registration
 
 # # the kind of log output

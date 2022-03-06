@@ -2,6 +2,7 @@ package context
 
 import (
 	"encoding/hex"
+	"time"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/ngap"
@@ -9,7 +10,7 @@ import (
 )
 
 // Used to forward unregistered UEs to an preselected AMF
-func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
+func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	lb := LB_Self()
 	if lb.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
@@ -42,8 +43,9 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	
 	/* Metrics */
 	// Adding new Trace to the routing table 
-	if lb.Metrics {
-		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
+	if lb.Metrics > 0{
+		duration := time.Since(startTime)
+		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, duration)
 		go lb.Table.incrementAmfIndividualUEs(next)
 		go lb.Table.incrementAmfTraffic(next)
 	}
@@ -53,7 +55,7 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 }
 
 // Used to forward registered UE's messages to an AMF
-func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
+func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	// finding the correct AMF by the in UE stored AMF-Pointer
 	amf := ue.AmfPointer
 
@@ -75,20 +77,18 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	}
 
-	// Check if registration is done and switch UE-State accordingly 
-	go ue.RegistrationComplete()
-
 	/* Metrics */
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
-	if lb.Metrics {
-		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
+	if lb.Metrics > 0 {
+		duration := time.Since(startTime)
+		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, duration)
 		go lb.Table.incrementAmfTraffic(amf)
 	}
 }
 
 // Used to forward registered UE's messages to an GNB
-func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
+func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.RanPointer
 
@@ -113,8 +113,9 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe) {
 	/* Metrics */
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
-	if lb.Metrics {
-		go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent)
+	if lb.Metrics > 0 {
+		duration := time.Since(startTime) 
+		go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent, duration)
 	}
 	
 }

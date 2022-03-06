@@ -2,6 +2,11 @@ package context
 
 import (
 	"fmt"
+	"strconv"
+	"sync"
+	"time"
+
+	"github.com/LuckyG0ldfish/balancer/logger"
 ) 
 
 const TypeAmf int = 0 
@@ -21,6 +26,7 @@ type trace struct {
 	destination int64
 	d_type 		int 
 	ue_State	int
+	time 		time.Duration
 }
 
 type AmfCounter struct {
@@ -29,8 +35,67 @@ type AmfCounter struct {
 	Traffic		int
 }
 
+type metricsUE struct {
+	id 			int64 
+	time 		time.Time
+}
 
 func (r *Routing_Table) Print() {
+	self := LB_Self()
+	if self.Metrics > 1{
+		printRouting(r)
+		return 
+	} else if self.Metrics == 1 {
+		printUETimings(r)
+		return 
+	}
+	printRouting(r)
+	printUETimings(r)
+}
+
+func printUETimings(r *Routing_Table) {
+	start := time.Now()
+	var ueList sync.Map
+	for i := 0; i < len(r.traces); i++ {
+		temp := r.traces[i]
+		ex, ok := ueList.Load(temp.ueID)
+		if !ok {
+			ue := newMetricsUE(temp.ueID, start.Add(temp.time))
+			ueList.Store(ue.id, ue)
+		} else {
+			mUE, ok := ex.(metricsUE)
+			if !ok {
+				logger.ContextLog.Error("ue timings print failed")
+				return 
+			}
+			mUE.time.Add(temp.time)
+		}
+	}
+
+	var output string
+
+	ueList.Range(func(key, value interface{}) bool {
+		ue, ok := value.(metricsUE)
+		if !ok {
+			logger.NgapLog.Errorf("ue timings print failed")
+			return false 
+		}
+		duration := ue.time.Sub(start)
+		dur := duration.String()
+		id := strconv.Itoa(int(ue.id))
+		output = output + " (" + id + ": " + dur + ")"
+		return true
+	})
+}
+
+func newMetricsUE(id int64, time time.Time) (*metricsUE){
+	var ue metricsUE
+	ue.id = id
+	ue.time = time 
+	return &ue
+}
+
+func printRouting(r *Routing_Table) {
 	for i := 0; i < len(r.traces); i++ {
 		p := r.traces[i]
 		var s string
@@ -55,8 +120,8 @@ func (r *Routing_Table) Print() {
 	}
 }
 
-func (r *Routing_Table) AddRouting_Element(origin int64, ueID int64, destination int64, d_type int, ue_State int) {
-	trace := newTrace(origin, ueID, destination, d_type, ue_State)
+func (r *Routing_Table) AddRouting_Element(origin int64, ueID int64, destination int64, d_type int, ue_State int, time time.Duration) {
+	trace := newTrace(origin, ueID, destination, d_type, ue_State, time)
 	r.traces = append(r.traces, trace)
 }
 
@@ -66,7 +131,7 @@ func NewTable() (*Routing_Table){
 	return &t
 }
 
-func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int) (*trace){
+func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int, time time.Duration) (*trace){
 	var t trace
 	t.id = trafficNum
 	trafficNum ++
@@ -75,6 +140,7 @@ func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	
 	t.destination = destination
 	t.d_type = d_type
 	t.ue_State = ue_State
+	t.time = time
 	return &t
 }
 

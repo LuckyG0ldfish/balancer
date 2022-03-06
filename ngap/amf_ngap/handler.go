@@ -3,13 +3,15 @@ package amf_ngap
 // This handles messages incoming from AMF with the functions of the GNBs handler
 
 import (
+	"time"
+
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/ngap/ngapType"
 )
 
-func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle NG Setup Response")
 
 	LB := context.LB_Self()
@@ -69,7 +71,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Initial Context Setup Request")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -124,14 +126,14 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Warnln("UeAmfID set")
 					// }
-					context.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
 }
 
 // TODO 
-func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle UE Context Release Command TODO")
 
 	var ueNgapIDs *ngapType.UENGAPIDs
@@ -193,10 +195,10 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		}
 		ue = ueTemp
 	}
-	context.ForwardToGnb(message, ue)
+	context.ForwardToGnb(message, ue, startTime)
 }
 
-func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Downlink NAS Transport")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -263,11 +265,11 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
 	if ue != nil {
-		context.ForwardToGnb(message, ue)
+		context.ForwardToGnb(message, ue, startTime)
 	}
 }
 
-func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Setup Request")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -322,14 +324,14 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
-					context.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
 }
 
 // TODO
-func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Release Command")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -384,7 +386,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
-					context.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
