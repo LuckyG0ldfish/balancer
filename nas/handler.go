@@ -12,11 +12,6 @@ import (
 	"github.com/free5gc/openapi/models"
 )
 
-const MsgTypeMsgTypeRegistrationComplete int = 1 
-const MsgTypeDeregistrationRequestUEOriginatingDeregistration int = 2 
-const MsgTypeDeregistrationAcceptUETerminatedDeregistration int = 3
-const MsgTypeOther int = 4
-
 func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 	if ue == nil {
 		logger.NASLog.Error("RanUe is nil")
