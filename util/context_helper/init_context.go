@@ -38,7 +38,7 @@ func InitLbContext(self *context.LBContext) {
 	}
 	self.MetricsLevel = configuration.MetricsLevel
 	logger.CfgLog.Warnf("metrics: %d", self.MetricsLevel)
-	self.ContinuesAmfRegistration = configuration.ContinuesAmfRegistration
+	
 
 	addr, err := context.GenSCTPAddr(self.LbIP, self.LbListenPort)
 	if err == nil {
@@ -63,15 +63,33 @@ func InitLbContext(self *context.LBContext) {
 	/* Metrics */
 	self.Table = context.NewTable()
 
-	
+	self.DifferentAmfTypes = configuration.DifferentAmfTypes
+	self.ContinuesAmfRegistration = configuration.ContinuesAmfRegistration
 
 	// adding AMFs 
-	if configuration.AmfNgapIpList != nil {
-		self.NewAmfIpList = configuration.AmfNgapIpList
+	if configuration.RegistrationAmfNgapIpList != nil {
+		self.NewRegistAmfIpList = configuration.RegistrationAmfNgapIpList
 		self.NewAmf = true
 	} else {
-		self.NewAmfIpList = []string{"127.0.0.1"} // default localhost
-		logger.CfgLog.Warnf("Default AMF-list selected")
-		self.NewAmf = false
+		self.NewRegistAmfIpList = []string{"127.0.0.1"} // default localhost
+		logger.CfgLog.Warnf("Default Registration-AMF-list selected")
+	}
+	if self.DifferentAmfTypes == 3 {
+		if configuration.RegularAmfNgapIpList != nil {
+			self.NewRegularAmfIpList = configuration.RegularAmfNgapIpList
+			self.NewAmf = true
+		} else {
+			self.NewRegularAmfIpList = []string{"127.0.0.1"} // default localhost
+			logger.CfgLog.Warnf("Default Regular-AMF-list selected")
+		}
+	}
+	if self.DifferentAmfTypes >= 2 {
+		if configuration.DeregistrationAmfNgapIpList != nil {
+			self.NewDeregistAmfIpList = configuration.DeregistrationAmfNgapIpList
+			self.NewAmf = true
+		} else {
+			self.NewDeregistAmfIpList = []string{"127.0.0.1"} // default localhost
+			logger.CfgLog.Warnf("Default Deregistration-AMF-list selected")
+		}
 	}
 }

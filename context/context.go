@@ -31,8 +31,12 @@ type LBContext struct {
 
 	Running 			bool 	// true while the LB is not beeing terminated 
 
-	NewAmf				bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
-	NewAmfIpList 		[]string 
+	NewAmf						bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
+	NewRegistAmfIpList 			[]string 
+	NewRegularAmfIpList 		[]string 
+	NewDeregistAmfIpList 		[]string 
+	
+	DifferentAmfTypes			int 
 	ContinuesAmfRegistration	bool // true for continues accepting AMFs for registration 
 	
 	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB

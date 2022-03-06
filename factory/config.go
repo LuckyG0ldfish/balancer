@@ -29,7 +29,10 @@
 	 NgapIp                      	 string                  	`yaml:"ngapIp,omitempty"`
 	 NgapListenPort					 int						`yaml:"ngapListenPort,omitempty"`
 	 NgapLbToAmfPort				 int						`yaml:"ngapLbToAmfPort,omitempty"`
-	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
+	 DifferentAmfTypes 				 int 						`yaml:"differentAmfTypes,omitempty"`
+	 RegistrationAmfNgapIpList		 []string					`yaml:"registrationAmfNgapIpList,omitempty"`
+	 DeregistrationAmfNgapIpList	 []string					`yaml:"deregistrationAmfNgapIpList,omitempty"`
+	 RegularAmfNgapIpList			 []string					`yaml:"regularAmfNgapIpList,omitempty"`
 	 ServedGumaiList                 []models.Guami            	`yaml:"servedGuamiList,omitempty"`
 	 PlmnSupportList                 []PlmnSupportItem         	`yaml:"plmnSupportList,omitempty"`
 	 MetricsLevel 					 int 						`yaml:"metricsLevel,omitempty"`

@@ -60,16 +60,16 @@ func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
 }
 
 // 
-func CreateAndAddAmfToLB() *LbAmf{
+func CreateAndAddAmfToLB(amfType int) *LbAmf{
 	self := LB_Self()
-	amf := newLbAmf()
+	amf := newLbAmf(amfType)
 	self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 	// self.Table.addAmfCounter(amf)
 	return amf
 }
 
 // Creates, initializes and returns a new *LbAmf
-func newLbAmf() *LbAmf {
+func newLbAmf(amfType int) *LbAmf {
 	var amf LbAmf
 	amf.AmfID = nextAmfID
 	amf.LbConn = newLBConn(nextAmfID, TypeIdAMFConn)
@@ -77,6 +77,7 @@ func newLbAmf() *LbAmf {
 	amf.Log = logger.AMFLog
 	amf.RelativeCapacity = 0 
 	amf.NumberOfConnectedUEs = 0 
+	amf.AmfTypeIdent = amfType
 	nextAmfID++
 	return &amf
 }

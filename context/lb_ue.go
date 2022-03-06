@@ -107,11 +107,21 @@ func (ue *LbUe) AddUeToAmf(next *LbAmf) {
 
 func (ue *LbUe) RegistrationComplete() {
 	if ue.UeStateIdent == TypeIdRegist && ue.ResponseFlag && ue.UplinkFlag {
-		ue.UeStateIdent = TypeIdRegular
-		// next := self.Next_Regular_Amf
-		// ue.RemoveUeFromAMF()
-		// ue.AddUeToAmf(next)
-		// go context.SelectNextRegularAmf()			
+		self := LB_Self()
+		if self.DifferentAmfTypes == 3 {
+			ue.UeStateIdent = TypeIdRegular
+			next := self.Next_Regular_Amf
+			ue.RemoveUeFromAMF()
+			ue.AddUeToAmf(next)
+			go SelectNextRegularAmf()
+			return 
+		} else if self.DifferentAmfTypes == 2 {
+			next := self.Next_Deregist_Amf
+			ue.RemoveUeFromAMF()
+			ue.AddUeToAmf(next)
+			go SelectNextDeregistAmf()
+		}
+					
 	}
 }	
 

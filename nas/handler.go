@@ -13,6 +13,7 @@ import (
 )
 
 func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
+	self := context.LB_Self()
 	if ue == nil {
 		logger.NASLog.Error("RanUe is nil")
 		return false 
@@ -38,18 +39,22 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 	case nas.MsgTypeDeregistrationRequestUEOriginatingDeregistration:
 		ue.UeStateIdent = context.TypeIdDeregist
 		logger.NASLog.Traceln("MsgTypeDeregistrationRequestUEOriginatingDeregistration")
-		// next := self.Next_Deregist_Amf
-		// ue.RemoveUeFromAMF()
-		// ue.AddUeToAmf(next)
-		// go context.SelectNextDeregistAmf()
+		if self.DifferentAmfTypes == 2 {
+			next := self.Next_Deregist_Amf
+			ue.RemoveUeFromAMF()
+			ue.AddUeToAmf(next)
+			go context.SelectNextDeregistAmf()
+		}
 		return false 
 	case nas.MsgTypeDeregistrationAcceptUETerminatedDeregistration:
 		ue.UeStateIdent = context.TypeIdDeregist
 		logger.NASLog.Traceln("MsgTypeDeregistrationAcceptUETerminatedDeregistration")
-		// next := self.Next_Deregist_Amf
-		// ue.RemoveUeFromAMF()
-		// ue.AddUeToAmf(next)
-		// go context.SelectNextDeregistAmf()
+		if self.DifferentAmfTypes == 2 {
+			next := self.Next_Deregist_Amf
+			ue.RemoveUeFromAMF()
+			ue.AddUeToAmf(next)
+			go context.SelectNextDeregistAmf()
+		}
 		return	false 
 	} 
 	return  false 

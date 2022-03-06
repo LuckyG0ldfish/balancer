@@ -19,17 +19,31 @@ func InitAmfs(ngapHandler NGAPHandler) {
 		if !self.Running { return }
 		if self.NewAmf {
 			// starting connections to each individual AMF 
-			for i := 0; i < len(self.NewAmfIpList); i++  {
-				ip := self.NewAmfIpList[i]
+			for i := 0; i < len(self.NewRegistAmfIpList); i++  {
+				ip := self.NewRegistAmfIpList[i]
 				logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
-				go CreateAndStartAmf(ip, amfPort, ngapHandler)
+				go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdRegist)
+			}
+			if self.DifferentAmfTypes == 3 {
+				for i := 0; i < len(self.NewRegularAmfIpList); i++  {
+					ip := self.NewRegistAmfIpList[i]
+					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
+					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdRegular)
+				}
+			}
+			if self.DifferentAmfTypes >= 2 {
+				for i := 0; i < len(self.NewDeregistAmfIpList); i++  {
+					ip := self.NewRegistAmfIpList[i]
+					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
+					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdDeregist)
+				}
 			}
 			if !self.ContinuesAmfRegistration {
 				logger.NgapLog.Tracef("No further AMFs to accept")
 				return 
 			}
 			// Resets to accept more 
-			self.NewAmfIpList = []string{}
+			self.NewRegistAmfIpList = []string{}
 			self.NewAmf = false
 			logger.NgapLog.Tracef("Waiting for new Amfs")
 		}
@@ -38,9 +52,9 @@ func InitAmfs(ngapHandler NGAPHandler) {
 }
 
 // Creates AMF and initializes the starting process
-func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler) {
+func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler, amfType int) {
 	self := context.LB_Self()
-	amf := context.CreateAndAddAmfToLB()
+	amf := context.CreateAndAddAmfToLB(amfType)
 	addr, err := context.GenSCTPAddr(self.LbIP, int(numberGen.NextNumber()))
 	if err != nil {
 		logger.NgapLog.Errorln("LB-SCTP-Address couldn't be build")
@@ -60,7 +74,13 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			ngap_message.SendNGSetupRequest(amf.LbConn)
 			go handleConnection(amf.LbConn, readBufSize, handler)
 			logger.NgapLog.Debugf("Connected to amf")
-			self.Next_Regist_Amf = amf
+			if amf.AmfTypeIdent == context.TypeIdRegist {
+				self.Next_Regist_Amf = amf
+			} else if amf.AmfTypeIdent == context.TypeIdDeregist {
+				self.Next_Deregist_Amf = amf
+			} else {
+				self.Next_Regular_Amf = amf
+			}
 			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
 			self.Table.AddAmfCounter(amf)
