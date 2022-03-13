@@ -2,6 +2,7 @@ package context
 
 import (
 	"encoding/hex"
+	"strconv"
 	"time"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
@@ -45,7 +46,9 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, start
 	// Adding new Trace to the routing table 
 	if lb.MetricsLevel > 0{
 		duration := time.Since(startTime)
-		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, duration)
+		dur := duration.Microseconds()
+		logger.ContextLog.Errorf(strconv.Itoa(int(dur)))
+		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
 		go lb.Table.incrementAmfIndividualUEs(next)
 		go lb.Table.incrementAmfTraffic(next)
 	}
@@ -82,7 +85,9 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
 		duration := time.Since(startTime)
-		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, duration)
+		dur := duration.Microseconds()
+		logger.ContextLog.Errorf(strconv.Itoa(int(dur)))
+		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
 		go lb.Table.incrementAmfTraffic(amf)
 	}
 }
@@ -115,7 +120,9 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
 		duration := time.Since(startTime) 
-		go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent, duration)
+		dur := duration.Microseconds()
+		logger.ContextLog.Errorf(strconv.Itoa(int(dur)))
+		go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent, dur)
 	}
 	
 }

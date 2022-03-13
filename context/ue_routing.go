@@ -1,10 +1,10 @@
 package context
 
 import (
+	"encoding/csv"
+	"os"
 	"strconv"
-	"sync"
-	"time"
-
+	
 	"github.com/LuckyG0ldfish/balancer/logger"
 ) 
 
@@ -25,7 +25,7 @@ type trace struct {
 	destination int64
 	d_type 		int 
 	ue_State	int
-	time 		time.Duration
+	dur 		int64
 }
 
 type AmfCounter struct {
@@ -36,7 +36,7 @@ type AmfCounter struct {
 
 type metricsUE struct {
 	id 			int64 
-	time 		time.Time
+	time 		int64
 }
 
 func (r *Routing_Table) Print() {
@@ -53,76 +53,95 @@ func (r *Routing_Table) Print() {
 }
 
 func printUETimings(r *Routing_Table) {
-	start := time.Now()
-	var ueList sync.Map
+	var ueList []*metricsUE
 	
 	for i := 0; i < len(r.traces); i++ {
 		temp := r.traces[i]
-		ex, ok := ueList.Load(temp.ueID)
+		ok, slot := idPresent(temp.ueID, ueList)
 		if !ok {
-			ue := newMetricsUE(temp.ueID, start.Add(temp.time))
-			ueList.Store(ue.id, ue)
+			ue := newMetricsUE(temp.ueID, temp.dur)
+			ueList = append(ueList, ue)
 		} else {
-			mUE, test := ex.(*metricsUE)
-			if !test {
-				logger.ContextLog.Error("ue timings print failed")
-				return 
-			}
-			mUE.time.Add(temp.time)
+			new := ueList[slot].time + temp.dur
+			ueList[slot].time = new
 		}
 	}
 
-	var output string = "UE-delay:"
+	sorted := sortList(ueList)
 
-	ueList.Range(func(key, value interface{}) bool {
-		ue, ok := value.(*metricsUE)
-		if !ok {
-			logger.ContextLog.Errorf("ue timings print failed")
-			return false 
-		}
-		duration := ue.time.Sub(start)
-		dur := duration.String()
+	var output [][]string 
+	heads := []string{"LbUeId", "Duration"}
+	output = append(output, heads)
+	for i := 0; i < len(sorted); i++ {
+		ue := sorted[i]
+		dur := strconv.Itoa(int(ue.time))
 		id := strconv.Itoa(int(ue.id))
-		output = output + " (LbUeId: " + id + ": " + dur + ")"
-		return true
-	})
-
-	logger.ContextLog.Info(output)
+		row := []string {id, dur}
+		output = append(output, row) 
+	}
+	
+	createAndWriteCSV(output, "./config/ueTimings.csv")
 }
 
-func newMetricsUE(id int64, time time.Time) (*metricsUE){
+func sortList(ueList []*metricsUE) []*metricsUE{
+    for i := 1; i < len(ueList); i++ {
+        var j = i
+        for j >= 1 && ueList[j].id < ueList[j - 1].id {
+            ueList[j], ueList[j - 1] = ueList[j - 1], ueList[j]
+            j--
+        }
+    }
+	return ueList
+}
+
+func idPresent(id int64, slice []*metricsUE) (bool, int) {
+	for i := 0; i < len(slice); i++ {
+		if slice[i].id == id {
+			return true, i
+		}
+	}
+	return false, 0
+}
+
+func newMetricsUE(id int64, dur int64) (*metricsUE){
 	var ue metricsUE
 	ue.id = id
-	ue.time = time 
+	ue.time = dur
 	return &ue
 }
 
 func printRouting(r *Routing_Table) {
+	var output [][]string 
+	heads := []string{"LbUeId", "GNB-ID", "AMF-ID", "Delay", "State"}
+	output = append(output, heads)
+	
 	for i := 0; i < len(r.traces); i++ {
-		p := r.traces[i]
-		var s string
-		if p.ue_State == TypeIdRegist {
-			s = "Registration"
-		} else if p.ue_State == TypeIdRegular {
-			s = "Regular Traffic"
-		} else {
-			s = "Deregistration"
-		}
-		if p.d_type == TypeAmf {
-			logger.ContextLog.Infof("LbUeID: %d | GNB: %d -> AMF: %d || %s \n", uint64(p.ueID), uint64(p.origin), uint64(p.destination), s)
-		} else if p.d_type == TypeGnb {
-			logger.ContextLog.Infof("LbUeID: %d | GNB: %d <- AMF: %d || %s \n", uint64(p.ueID), uint64(p.destination), uint64(p.origin), s)
+		trace := r.traces[i]
+		state := strconv.FormatInt(int64(trace.ue_State), 10)
+		id := strconv.FormatInt(trace.ueID, 10)
+		origin := strconv.FormatInt(trace.origin, 10)
+		destination := strconv.FormatInt(trace.destination, 10)
+		time := strconv.FormatInt(trace.dur, 10)
+
+		if trace.d_type == TypeAmf {
+			row := []string{id, origin, destination, time, state}
+			output = append(output, row)
+		} else if trace.d_type == TypeGnb {
+			row := []string{id, destination, origin, time, state}
+			output = append(output, row)
 		}	
 	}
 
-	for i := 0; i < len(r.amfs); i++ {
-		amfC := r.amfs[i]
-		id := amfC.Amf.AmfID
-		logger.ContextLog.Infof("AMF %d : | individuel UEs %d | total traffic %d \n", uint64(id), amfC.IndivUE, amfC.Traffic)
-	}
+	// for i := 0; i < len(r.amfs); i++ {
+	// 	amfC := r.amfs[i]
+	// 	id := amfC.Amf.AmfID
+	// 	logger.ContextLog.Infof("AMF %d : | individuel UEs %d | total traffic %d \n", uint64(id), amfC.IndivUE, amfC.Traffic)
+	// }
+
+	createAndWriteCSV(output, "./config/routing.csv")
 }
 
-func (r *Routing_Table) AddRouting_Element(origin int64, ueID int64, destination int64, d_type int, ue_State int, time time.Duration) {
+func (r *Routing_Table) AddRouting_Element(origin int64, ueID int64, destination int64, d_type int, ue_State int, time int64) {
 	trace := newTrace(origin, ueID, destination, d_type, ue_State, time)
 	r.traces = append(r.traces, trace)
 }
@@ -133,7 +152,7 @@ func NewTable() (*Routing_Table){
 	return &t
 }
 
-func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int, time time.Duration) (*trace){
+func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int, time int64) (*trace){
 	var t trace
 	t.id = trafficNum
 	trafficNum ++
@@ -142,7 +161,7 @@ func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	
 	t.destination = destination
 	t.d_type = d_type
 	t.ue_State = ue_State
-	t.time = time
+	t.dur = time
 	return &t
 }
 
@@ -176,3 +195,15 @@ func (r *Routing_Table) incrementAmfIndividualUEs(amf *LbAmf) {
 	}
 }
 
+func createAndWriteCSV(input [][]string, location string) {
+	file, err := os.Create(location)
+	if err != nil {
+		logger.ContextLog.Fatalf("failed creating file: %s", err)
+	}
+	writer := csv.NewWriter(file)
+	for _, row := range input {
+		_ = writer.Write(row)
+	}
+	writer.Flush()
+	file.Close()
+}
