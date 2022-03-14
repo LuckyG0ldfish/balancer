@@ -72,7 +72,6 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Initial Context Setup Request")
 	
-	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
 	if message == nil {
@@ -97,15 +96,6 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 
 	for _, ie := range initialContextSetupRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				} else {
-					// aMFUENGAPIDInt = aMFUENGAPID.Value
-					// amfIDPresent = true
-				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
@@ -120,10 +110,6 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					// if amfIDPresent {
-					// 	ue.UeAmfId = aMFUENGAPIDInt
-					// 	lbConn.Log.Warnln("UeAmfID set")
-					// }
 					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
