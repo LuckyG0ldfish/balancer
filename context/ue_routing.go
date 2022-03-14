@@ -53,37 +53,76 @@ func (r *Routing_Table) Print() {
 }
 
 func printUETimings(r *Routing_Table) {
-	var ueList []*metricsUE
+	var ueRegistrationList []*metricsUE
+	var ueRegularList []*metricsUE
+	var ueDeregistrationList []*metricsUE
 	
 	for i := 0; i < len(r.traces); i++ {
 		temp := r.traces[i]
-		ok, slot := idPresent(temp.ueID, ueList)
-		if !ok {
-			ue := newMetricsUE(temp.ueID, temp.dur)
-			ueList = append(ueList, ue)
+		
+		if temp.ue_State == TypeIdRegist {
+			ok, slot := idPresent(temp.ueID, ueRegistrationList)
+			if !ok {
+				ue := newMetricsUE(temp.ueID, temp.dur)
+				ueRegistrationList = append(ueRegistrationList, ue)
+			} else {
+				new := ueRegistrationList[slot].time + temp.dur
+				ueRegistrationList[slot].time = new
+			}
+		} else if temp.ue_State == TypeIdRegular {
+			ok, slot := idPresent(temp.ueID, ueRegularList)
+			if !ok {
+				ue := newMetricsUE(temp.ueID, temp.dur)
+				ueRegularList = append(ueRegularList, ue)
+			} else {
+				new := ueRegularList[slot].time + temp.dur
+				ueRegularList[slot].time = new
+			}
 		} else {
-			new := ueList[slot].time + temp.dur
-			ueList[slot].time = new
+			ok, slot := idPresent(temp.ueID, ueDeregistrationList)
+			if !ok {
+				ue := newMetricsUE(temp.ueID, temp.dur)
+				ueDeregistrationList = append(ueDeregistrationList, ue)
+			} else {
+				new := ueDeregistrationList[slot].time + temp.dur
+				ueDeregistrationList[slot].time = new
+			}
 		}
+		
 	}
 
-	sorted := sortList(ueList)
+	if len(ueRegistrationList) != 0 {
+		sortedRegist := sortList(ueRegistrationList)
+		output := createOutputList(sortedRegist)
+		createAndWriteCSV(output, "./config/ueRegistTimings.csv")
+	}
+	if len(ueRegularList) != 0 {
+		sortedRegular := sortList(ueRegularList)
+		output := createOutputList(sortedRegular)
+		createAndWriteCSV(output, "./config/ueRegularTimings.csv")
+	}
+	if len(ueRegistrationList) != 0 {
+		sortedDeregist := sortList(ueDeregistrationList)
+		output := createOutputList(sortedDeregist)
+		createAndWriteCSV(output, "./config/ueDeregistTimings.csv")
+	}
+}
 
+func createOutputList(sorted []*metricsUE) [][]string{
 	var output [][]string 
-	heads := []string{"LbUeId", "Duration"}
+	heads := []string{"GnbUeId", "Duration"}
 	output = append(output, heads)
 	for i := 0; i < len(sorted); i++ {
 		ue := sorted[i]
-		dur := strconv.Itoa(int(ue.time))
+		dur := strconv.Itoa(int(ue.time)/1000) // to millisecounds
 		id := strconv.Itoa(int(ue.id))
 		row := []string {id, dur}
 		output = append(output, row) 
 	}
-	
-	createAndWriteCSV(output, "./config/ueTimings.csv")
+	return output
 }
 
-func sortList(ueList []*metricsUE) []*metricsUE{
+func sortList(ueList []*metricsUE) []*metricsUE {
     for i := 1; i < len(ueList); i++ {
         var j = i
         for j >= 1 && ueList[j].id < ueList[j - 1].id {

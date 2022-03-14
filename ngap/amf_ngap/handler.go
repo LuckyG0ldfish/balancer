@@ -3,15 +3,13 @@ package amf_ngap
 // This handles messages incoming from AMF with the functions of the GNBs handler
 
 import (
-	"time"
-
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/ngap/ngapType"
 )
 
-func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
+func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle NG Setup Response")
 
 	LB := context.LB_Self()
@@ -71,7 +69,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 	}
 }
 
-func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
+func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Initial Context Setup Request")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -133,7 +131,7 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 }
 
 // TODO 
-func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
+func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle UE Context Release Command TODO")
 
 	var ueNgapIDs *ngapType.UENGAPIDs
@@ -198,7 +196,7 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 	context.ForwardToGnb(message, ue, startTime)
 }
 
-func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
+func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Downlink NAS Transport")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -269,7 +267,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	}
 }
 
-func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
+func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Setup Request")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -331,7 +329,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 }
 
 // TODO
-func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime time.Time) {
+func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Release Command")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID

@@ -1,8 +1,6 @@
 package ngap
 
 import (
-	"time"
-
 	"github.com/ishidawataru/sctp"
 
 	"github.com/LuckyG0ldfish/balancer/context"
@@ -14,7 +12,7 @@ import (
 )
 
 // Distributes message to the correct handler based on Type of the incoming Connection
-func Dispatch(lbConn *context.LBConn, msg []byte, startTime time.Time) {
+func Dispatch(lbConn *context.LBConn, msg []byte, startTime int64) {
 	if lbConn.TypeID == context.TypeIdGNBConn {
 		DispatchForMessageToAmf(lbConn, msg, startTime) 		
 	} else if lbConn.TypeID == context.TypeIdAMFConn {
@@ -25,7 +23,7 @@ func Dispatch(lbConn *context.LBConn, msg []byte, startTime time.Time) {
 }
 
 // This handles messages incoming from GNB with the functions of the AMFs handler 
-func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime time.Time) {
+func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64) {
 	if len(msg) == 0 {
 		lbConn.Log.Infof("RAN close the connection.")
 		// ran.Remove() TODO
@@ -184,7 +182,7 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime time.
 }
 
 // This handles messages incoming from AMF with the functions of the GNBs handler 
-func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime time.Time) {
+func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64) {
 	// Decode
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {

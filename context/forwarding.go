@@ -10,7 +10,7 @@ import (
 )
 
 // Used to forward unregistered UEs to an preselected AMF
-func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
+func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	lb := LB_Self()
 	if lb.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
@@ -44,19 +44,19 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, start
 	/* Metrics */
 	// Adding new Trace to the routing table 
 	if lb.MetricsLevel > 0{
-		duration := time.Since(startTime)
-		dur := duration.Microseconds()
-		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
-		go lb.Table.incrementAmfIndividualUEs(next)
-		go lb.Table.incrementAmfTraffic(next)
+		now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		dur := now - startTime
+		lb.Table.AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
+		lb.Table.incrementAmfIndividualUEs(next)
+		lb.Table.incrementAmfTraffic(next)
 	}
 	
 	// Selecting AMF that will be used for the next new UE
-	go lb.SelectNextAmf()
+	lb.SelectNextAmf()
 }
 
 // Used to forward registered UE's messages to an AMF
-func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
+func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	// finding the correct AMF by the in UE stored AMF-Pointer
 	amf := ue.AmfPointer
 
@@ -82,15 +82,15 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		duration := time.Since(startTime)
-		dur := duration.Microseconds()
-		go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
-		go lb.Table.incrementAmfTraffic(amf)
+		now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		dur := now - startTime
+		lb.Table.AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
+		lb.Table.incrementAmfTraffic(amf)
 	}
 }
 
 // Used to forward registered UE's messages to an GNB
-func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
+func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.RanPointer
 
@@ -116,9 +116,9 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime time.Time) {
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		duration := time.Since(startTime) 
-		dur := duration.Microseconds()
-		go lb.Table.AddRouting_Element(ue.AmfID, ue.UeLbID, ue.RanID, TypeGnb, ue.UeStateIdent, dur)
+		now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		dur := now - startTime
+		lb.Table.AddRouting_Element(ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, dur)
 	}
 	
 }

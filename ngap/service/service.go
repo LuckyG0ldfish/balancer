@@ -16,7 +16,7 @@ import (
 )
 
 type NGAPHandler struct {
-	HandleMessage      func(lbConn *context.LBConn, msg []byte, startTime time.Time)
+	HandleMessage      func(lbConn *context.LBConn, msg []byte, startTime int64)
 	HandleNotification func(conn *sctp.SCTPConn, notification sctp.Notification)
 }
 
@@ -58,7 +58,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		buf := make([]byte, bufsize)
 
 		n, info, notification, err := lbConn.Conn.SCTPRead(buf)
-		time := time.Now()
+		
 		if err != nil {
 			switch err {
 			case io.EOF, io.ErrUnexpectedEOF:
@@ -100,6 +100,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			}
 			logger.NgapLog.Tracef("Read %d bytes", n)
 			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
+			time := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 			go handler.HandleMessage(lbConn, buf[:n], time)
 		}
 	}
