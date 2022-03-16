@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"regexp"
-	"time"
+	// "time"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/UeauCommon"
@@ -70,7 +70,7 @@ func NewUE() (*LbUe){
 
 // Removes LbUe from AMF and RAN Context withing LB  
 func (ue *LbUe) RemoveUeEntirely() {
-	time.Sleep(1 * time.Second)
+	// time.Sleep(1 * time.Second)
 	ue.RemoveUeFromAMF()
 	ue.RemoveUeFromGNB()
 	ue = nil 
