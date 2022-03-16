@@ -121,7 +121,7 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 	logger.GNBHandlerLog.Debugln("[gNB] Handle UE Context Release Command TODO")
 
 	var ueNgapIDs *ngapType.UENGAPIDs
-	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
+	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if message == nil {
 		logger.NgapLog.Error("NGAP Message is nil")
@@ -152,17 +152,16 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		}
 	}
 
-	if len(iesCriticalityDiagnostics.List) > 0 {
-		// TODO: send error indication
-		return
-	}
+	// if len(iesCriticalityDiagnostics.List) > 0 {
+	// 	// TODO: send error indication
+	// 	return
+	// }
 
-	var id int64
 	var ue *context.LbUe
 
 	switch ueNgapIDs.Present {
 	case ngapType.UENGAPIDsPresentUENGAPIDPair:
-		id = ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
+		id := ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
 		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
 		if !ok {
 			logger.NgapLog.Errorf("UE not found")
@@ -171,13 +170,14 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value = ueTemp.UeRanID
 		ue = ueTemp
 	case ngapType.UENGAPIDsPresentAMFUENGAPID:
-		id = ueNgapIDs.AMFUENGAPID.Value
-		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
+		id := ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value 
+		ueTemp, ok := lbConn.AmfPointer.FindUeByUeID(id)
 		if !ok {
 			logger.NgapLog.Errorf("UE not found")
 			return 
 		}
 		ue = ueTemp
+		logger.AMFHandlerLog.Debugf("LB_UE_ID %d found by ranID", ue.UeLbID)
 	}
 	context.ForwardToGnb(message, ue, startTime)
 }

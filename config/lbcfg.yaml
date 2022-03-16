@@ -4,7 +4,7 @@ info:
 
 configuration:
   lbName: LB # the name of this LB
-  ngapIp: "10.162.149.214" # IP of this LB 
+  ngapIp: "10.162.149.24" # IP of this LB 
   ngapListenPort: 48484 # port of this LB that listens to incoming GNB connections 
   ngapLbToAmfPort: 23232  # port of this LB that connects to the AMFs 
   differentAmfTypes: 1 # 1, 2, 3 
