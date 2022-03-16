@@ -44,6 +44,6 @@ configuration:
 #   # ReportCaller: enable the caller report or not, value: true or false
 logger:
   LB:
-    debugLevel: info
+    debugLevel: debug
     ReportCaller: false
 

@@ -80,10 +80,7 @@ func (ue *LbUe) RemoveUeEntirely() {
 func (ue *LbUe) RemoveUeFromAMF() {
 	if ue.AmfPointer != nil {
 		ue.AmfPointer.Ues.Delete(ue.UeLbID) // sync.Map key here is the LB internal UE-ID 
-		ue.AmfPointer.Log.Traceln("UE context removed from AMF")
-		ue.AmfPointer = nil 
-		ue.AmfID = 0 
-		ue.UeAmfID = 0 
+		ue.AmfPointer.Log.Debugf("LB_UE_ID %d context removed from AMF", ue.UeLbID)
 	}
 }
 
@@ -91,9 +88,7 @@ func (ue *LbUe) RemoveUeFromAMF() {
 func (ue *LbUe) RemoveUeFromGNB() {
 	if ue.RanPointer != nil {
 		ue.RanPointer.Ues.Delete(ue.UeRanID) // sync.Map key here is the RAN UE-ID
-		ue.RanPointer.Log.Traceln("UE context removed from GNB")
-		ue.RanPointer = nil 
-		ue.RanID = 0 
+		ue.RanPointer.Log.Debugf("LB_UE_ID %d context removed from GNB", ue.UeLbID)
 	}
 }
 
