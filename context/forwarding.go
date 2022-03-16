@@ -43,9 +43,9 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe, start
 	
 	/* Metrics */
 	// Adding new Trace to the routing table 
-	if lb.MetricsLevel > 0{
-		now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-		dur := now - startTime
+	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	dur := now - startTime
+	if lb.MetricsLevel > 0 {
 		lb.Table.AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
 		lb.Table.incrementAmfIndividualUEs(next)
 		lb.Table.incrementAmfTraffic(next)
@@ -77,13 +77,13 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	} else {
 		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
 	}
-
+	
 	/* Metrics */
 	// Adding new Trace to the routing table 
+	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	dur := now - startTime
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-		dur := now - startTime
 		lb.Table.AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, dur)
 		lb.Table.incrementAmfTraffic(amf)
 	}
@@ -114,10 +114,10 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 
 	/* Metrics */
 	// Adding new Trace to the routing table 
+	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	dur := now - startTime
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-		dur := now - startTime
 		lb.Table.AddRouting_Element(ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, dur)
 	}
 	
