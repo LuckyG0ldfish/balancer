@@ -31,8 +31,13 @@ type LBContext struct {
 
 	Running 			bool 	// true while the LB is not beeing terminated 
 
-	NewAmf				bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
-	NewAmfIpList 		[]string 
+	NewAmf						bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
+	NewRegistAmfIpList 			[]string 
+	NewRegularAmfIpList 		[]string 
+	NewDeregistAmfIpList 		[]string 
+	
+	DifferentAmfTypes			int 
+	ContinuesAmfRegistration	bool // true for continues accepting AMFs for registration 
 	
 	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
 	LbAmfPool 			sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
@@ -53,7 +58,8 @@ type LBContext struct {
 	Log 				*logrus.Entry
 
 	/* metrics */
-	Table 				*Routing_Table
+	MetricsLevel 		int 
+	MetricsUEs			*sync.Map
 }
 
 // Creates and returns a new *LBContext
@@ -90,4 +96,9 @@ func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
 
 func LB_Self() *LBContext {
 	return &lbContext
+}
+
+func NewMetricsUEMap() *sync.Map {
+	var maps sync.Map
+	return &maps
 }

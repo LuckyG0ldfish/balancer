@@ -1,12 +1,12 @@
 /*
- * AMF Configuration Factory
+ * LB Configuration Factory
  */
 
  package factory
 
  import (
-	 "github.com/free5gc/logger_util" 
-	 "github.com/free5gc/openapi/models"
+	Logger "github.com/LuckyG0ldfish/balancer/util/logger_helper"
+	"github.com/free5gc/openapi/models"
  )
  
  const (
@@ -16,7 +16,7 @@
  type Config struct {
 	 Info          *Info               `yaml:"info"`
 	 Configuration *Configuration      `yaml:"configuration"`
-	 Logger        *logger_util.Logger `yaml:"logger"`
+	 Logger        *Logger.Logger 		`yaml:"logger"`
  }
  
  type Info struct {
@@ -29,9 +29,14 @@
 	 NgapIp                      	 string                  	`yaml:"ngapIp,omitempty"`
 	 NgapListenPort					 int						`yaml:"ngapListenPort,omitempty"`
 	 NgapLbToAmfPort				 int						`yaml:"ngapLbToAmfPort,omitempty"`
-	 AmfNgapIpList					 []string					`yaml:"amfNgapIpList,omitempty"`
-	 ServedGumaiList                 []models.Guami            `yaml:"servedGuamiList,omitempty"`
-	 PlmnSupportList                 []PlmnSupportItem         `yaml:"plmnSupportList,omitempty"`
+	 DifferentAmfTypes 				 int 						`yaml:"differentAmfTypes,omitempty"`
+	 RegistrationAmfNgapIpList		 []string					`yaml:"registrationAmfNgapIpList,omitempty"`
+	 DeregistrationAmfNgapIpList	 []string					`yaml:"deregistrationAmfNgapIpList,omitempty"`
+	 RegularAmfNgapIpList			 []string					`yaml:"regularAmfNgapIpList,omitempty"`
+	 ServedGumaiList                 []models.Guami            	`yaml:"servedGuamiList,omitempty"`
+	 PlmnSupportList                 []PlmnSupportItem         	`yaml:"plmnSupportList,omitempty"`
+	 MetricsLevel 					 int 						`yaml:"metricsLevel,omitempty"`
+	 ContinuesAmfRegistration 		 bool 						`yaml:"continuesAmfRegistration,omitempty"`
  }
 
  type PlmnSupportItem struct {

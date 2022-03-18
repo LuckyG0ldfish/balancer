@@ -65,15 +65,15 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 			logger.NgapLog.Debugln("Subscribe SCTP event[DATA_IO, SHUTDOWN_EVENT, ASSOCIATION_CHANGE]")
 		}
 
-		if err := newConn.SetReadBuffer(int(readBufSize)); err != nil {
-			logger.NgapLog.Errorf("Set read buffer error: %+v, accept failed", err)
-			if err = newConn.Close(); err != nil {
-				logger.NgapLog.Errorf("Close error: %+v", err)
-			}
-			continue
-		} else {
-			logger.NgapLog.Debugf("Set read buffer to %d bytes", readBufSize)
-		}
+		// if err := newConn.SetReadBuffer(int(readBufSize)); err != nil {
+		// 	logger.NgapLog.Errorf("Set read buffer error: %+v, accept failed", err)
+		// 	if err = newConn.Close(); err != nil {
+		// 		logger.NgapLog.Errorf("Close error: %+v", err)
+		// 	}
+		// 	continue
+		// } else {
+		// 	logger.NgapLog.Infof("Set read buffer to %d bytes", readBufSize)
+		// }
 
 		if err := newConn.SetReadTimeout(readTimeout); err != nil {
 			logger.NgapLog.Errorf("Set read timeout error: %+v, accept failed", err)
@@ -82,8 +82,26 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 			}
 			continue
 		} else {
-			logger.NgapLog.Debugf("Set read timeout: %+v", readTimeout)
+			logger.NgapLog.Infof("Set read timeout: %+v", readTimeout)
 		}
+		
+		value, err := newConn.GetNoDelay()
+		if err != nil {
+			logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
+		}
+		logger.AppLog.Infof("[BEFORE] Boolean value of the SCTP_NODELAY flag: %v", value)
+	
+	
+		err = newConn.SetNoDelay(1)
+		if err != nil {
+			logger.AppLog.Errorf("Error setting SCTP_NODELAY: %v", err)
+		}
+	
+		value, err = newConn.GetNoDelay()
+		if err != nil {
+			logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
+		}
+		logger.AppLog.Infof("[AFTER] Boolean value of the SCTP_NODELAY flag: %v", value)
 
 		logger.NgapLog.Infof("[LB] SCTP Accept from: %s", newConn.RemoteAddr().String())
 		

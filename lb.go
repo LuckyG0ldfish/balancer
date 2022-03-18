@@ -1,11 +1,9 @@
 package main
 
 import (
-	// "fmt"
-	"os"
-
 	"fmt"
-	"time"
+	"os"
+	// "time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -28,24 +26,23 @@ func main() {
 	app.Name = "lb"
 	appLog.Infoln(app.Name)
 	appLog.Infoln("LB version: ", version.GetVersion())
-	app.Usage = "-free5gccfg common configuration file -amfcfg amf configuration file"
+	app.Usage = "-lbcfg lb configuration file" // -free5gccfg common configuration file
 	app.Action = action
 	app.Flags = LB.GetCliCmd()
 	if err := app.Run(os.Args); err != nil {
-		appLog.Errorf("AMF Run error: %v", err)
+		appLog.Errorf("LB Run error: %v", err)
 		return
 	}
 	
-	for{
-		// fmt.Println("loop")
-		time.Sleep(1 *time.Hour)
-	}
+	// for{
+	// 	time.Sleep(1 *time.Hour)
+	// }
 }
 
 func action(c *cli.Context) error {
 	if err := LB.Initialize(c); err != nil {
 		logger.CfgLog.Errorf("%+v", err)
-		return fmt.Errorf("Failed to initialize!!")
+		return fmt.Errorf("failed to initialize")
 	}
 
 	LB.Start()

@@ -5,9 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
-
 	"fmt"
 
+	"github.com/free5gc/path_util"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 
@@ -21,10 +21,7 @@ import (
 
 	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 
-	"github.com/LuckyG0ldfish/balancer/util"
-
-	"github.com/free5gc/path_util"
-
+	util "github.com/LuckyG0ldfish/balancer/util/context_helper"
 )
 
 type Load struct{
@@ -41,10 +38,10 @@ type (
 var config Config
 
 var lbCLi = []cli.Flag{
-	cli.StringFlag{
-		Name:  "free5gccfg",
-		Usage: "common config file",
-	},
+	// cli.StringFlag{
+	// 	Name:  "free5gccfg",
+	// 	Usage: "common config file",
+	// },
 	cli.StringFlag{
 		Name:  "lbcfg",
 		Usage: "lb config file",
@@ -61,7 +58,7 @@ func (*Load) GetCliCmd() (flags []cli.Flag) {
 	return lbCLi
 }
 
-func (Lb *Load) Initialize(c *cli.Context)  error{ // c *cli.Context) error {
+func (Lb *Load) Initialize(c *cli.Context) error { 
 	config = Config{
 		lbcfg: c.String("lbcfg"),
 	}
@@ -89,11 +86,11 @@ func (lb *Load) setLogLevel() {
 		return
 	}
 
-	if factory.LbConfig.Logger.AMF != nil {
-		if factory.LbConfig.Logger.AMF.DebugLevel != "" {
-			if level, err := logrus.ParseLevel(factory.LbConfig.Logger.AMF.DebugLevel); err != nil {
+	if factory.LbConfig.Logger.LB != nil {
+		if factory.LbConfig.Logger.LB.DebugLevel != "" {
+			if level, err := logrus.ParseLevel(factory.LbConfig.Logger.LB.DebugLevel); err != nil {
 				initLog.Warnf("AMF Log level [%s] is invalid, set to [info] level",
-					factory.LbConfig.Logger.AMF.DebugLevel)
+					factory.LbConfig.Logger.LB.DebugLevel)
 				logger.SetLogLevel(logrus.InfoLevel)
 			} else {
 				initLog.Infof("AMF Log level is set to [%s] level", level)
@@ -103,10 +100,8 @@ func (lb *Load) setLogLevel() {
 			initLog.Warnln("AMF Log level not set. Default set to [info] level")
 			logger.SetLogLevel(logrus.InfoLevel)
 		}
-		logger.SetReportCaller(factory.LbConfig.Logger.AMF.ReportCaller)
+		logger.SetReportCaller(factory.LbConfig.Logger.LB.ReportCaller)
 	}
-
-	
 }
 
 func (amf *Load) FilterCli(c *cli.Context) (args []string) {
@@ -138,7 +133,7 @@ func (Lb *Load) Start() {
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-	go func() {
+	func() {
 		<-signalChannel
 		Lb.Terminate()
 		os.Exit(0)
@@ -150,9 +145,14 @@ func (Lb *Load) Terminate() {
 	logger.InitLog.Infof("Terminating LB...")
 	lbSelf := context.LB_Self()
 
-	lbSelf.Running = false 
 	ngap_service.Stop()
-	lbSelf.Table.Print()
+
+	/* Metrics */
+	if lbSelf.MetricsLevel > 0 {
+		context.Print(lbSelf.MetricsUEs)
+	}
+
+	lbSelf.Running = false 
 
 	logger.InitLog.Infof("LB terminated")
 }

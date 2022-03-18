@@ -1,6 +1,6 @@
 package amf_ngap
 
-// This handles messages incoming from AMF with the functions of the GNBs handler 
+// This handles messages incoming from AMF with the functions of the GNBs handler
 
 import (
 	"github.com/LuckyG0ldfish/balancer/context"
@@ -9,7 +9,7 @@ import (
 	"github.com/free5gc/ngap/ngapType"
 )
 
-func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle NG Setup Response")
 
 	LB := context.LB_Self()
@@ -69,10 +69,9 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Initial Context Setup Request")
 	
-	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
 	if message == nil {
@@ -97,15 +96,6 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 
 	for _, ie := range initialContextSetupRequest.ProtocolIEs.List {
 		switch ie.Id.Value {
-			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-				aMFUENGAPID = ie.Value.AMFUENGAPID
-				lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-				if aMFUENGAPID == nil {
-					lbConn.Log.Errorf("AmfUeNgapID is nil")
-				} else {
-					// aMFUENGAPIDInt = aMFUENGAPID.Value
-					// amfIDPresent = true
-				}
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
 				rANUENGAPID = ie.Value.RANUENGAPID
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
@@ -120,24 +110,18 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					// if amfIDPresent {
-					// 	ue.UeAmfId = aMFUENGAPIDInt
-					// 	lbConn.Log.Warnln("UeAmfID set")
-					// }
-					context.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
 }
 
 // TODO 
-func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle UE Context Release Command TODO")
 
 	var ueNgapIDs *ngapType.UENGAPIDs
-	var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
-
-	// var lbCtx = context.LB_Self()
+	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
 
 	if message == nil {
 		logger.NgapLog.Error("NGAP Message is nil")
@@ -168,17 +152,16 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		}
 	}
 
-	if len(iesCriticalityDiagnostics.List) > 0 {
-		// TODO: send error indication
-		return
-	}
+	// if len(iesCriticalityDiagnostics.List) > 0 {
+	// 	// TODO: send error indication
+	// 	return
+	// }
 
-	var id int64
 	var ue *context.LbUe
 
 	switch ueNgapIDs.Present {
 	case ngapType.UENGAPIDsPresentUENGAPIDPair:
-		id = ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
+		id := ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
 		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
 		if !ok {
 			logger.NgapLog.Errorf("UE not found")
@@ -187,24 +170,24 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value = ueTemp.UeRanID
 		ue = ueTemp
 	case ngapType.UENGAPIDsPresentAMFUENGAPID:
-		id = ueNgapIDs.AMFUENGAPID.Value
-		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
+		id := ueNgapIDs.UENGAPIDPair.RANUENGAPID.Value 
+		ueTemp, ok := lbConn.AmfPointer.FindUeByUeID(id)
 		if !ok {
 			logger.NgapLog.Errorf("UE not found")
 			return 
 		}
 		ue = ueTemp
+		logger.AMFHandlerLog.Debugf("LB_UE_ID %d found by ranID", ue.UeLbID)
 	}
-	// ue.UeStateIdent = context.TypeIdDeregist
-	// State Change
-	context.ForwardToGnb(message, ue)
+	context.ForwardToGnb(message, ue, startTime)
 }
 
-func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle Downlink NAS Transport")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
 	
 
@@ -256,25 +239,21 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
 					if amfIDPresent && ue.UeAmfID == 0 {
 						ue.UeAmfID = aMFUENGAPIDInt
-						// lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
-					}
-					if ue.UeStateIdent == context.TypeIdRegist {
-						ue.UeStateIdent = context.TypeIdRegular
-						// State Change
-						// lbConn.Log.Errorf("UeState set to Regular")
 					}
 				}
 			case ngapType.ProtocolIEIDNASPDU:
-				nASPDU := ie.Value.NASPDU
-				nas.HandleNAS(ue, nASPDU.Value)
+				nASPDU = ie.Value.NASPDU
 		}	
 	}
+	if nASPDU != nil && ue != nil {
+		nas.HandleNAS(ue, nASPDU.Value)
+	}
 	if ue != nil {
-		context.ForwardToGnb(message, ue)
+		context.ForwardToGnb(message, ue, startTime)
 	}
 }
 
-func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Setup Request")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -329,14 +308,14 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
-					context.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
 }
 
 // TODO
-func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Release Command")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -391,7 +370,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
-					context.ForwardToGnb(message, ue)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}

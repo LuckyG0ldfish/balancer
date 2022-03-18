@@ -19,28 +19,48 @@ func InitAmfs(ngapHandler NGAPHandler) {
 		if !self.Running { return }
 		if self.NewAmf {
 			// starting connections to each individual AMF 
-			for i := 0; i < len(self.NewAmfIpList); i++  {
-				ip := self.NewAmfIpList[i]
-				logger.NgapLog.Tracef("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
-				go CreateAndStartAmf(ip, amfPort, ngapHandler)
+			for i := 0; i < len(self.NewRegistAmfIpList); i++  {
+				ip := self.NewRegistAmfIpList[i]
+				logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
+				go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdRegist)
+			}
+			if self.DifferentAmfTypes == 3 {
+				for i := 0; i < len(self.NewRegularAmfIpList); i++  {
+					ip := self.NewRegistAmfIpList[i]
+					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
+					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdRegular)
+				}
+			}
+			if self.DifferentAmfTypes >= 2 {
+				for i := 0; i < len(self.NewDeregistAmfIpList); i++  {
+					ip := self.NewRegistAmfIpList[i]
+					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
+					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdDeregist)
+				}
+			}
+			if !self.ContinuesAmfRegistration {
+				logger.NgapLog.Tracef("No further AMFs to accept")
+				return 
 			}
 			// Resets to accept more 
-			self.NewAmfIpList = []string{}
+			self.NewRegistAmfIpList = []string{}
 			self.NewAmf = false
+			logger.NgapLog.Tracef("Waiting for new Amfs")
 		}
+		time.Sleep(2 * time.Second)
 	}
 }
 
 // Creates AMF and initializes the starting process
-func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler) {
+func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler, amfType int) {
 	self := context.LB_Self()
-	amf := context.CreateAndAddAmfToLB()
+	amf := context.CreateAndAddAmfToLB(amfType)
 	addr, err := context.GenSCTPAddr(self.LbIP, int(numberGen.NextNumber()))
 	if err != nil {
 		logger.NgapLog.Errorln("LB-SCTP-Address couldn't be build")
 		return 
 	}
-	go StartAmf(amf, addr, amfIP, amfPort, ngapHandler)
+	StartAmf(amf, addr, amfIP, amfPort, ngapHandler)
 }
 
 // Initializes LB to AMF communication and starts handling the connection 
@@ -51,12 +71,18 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
 		if err == nil {
 			amf.LbConn.Conn = conn
-			ngap_message.SendNGSetupRequest(amf.LbConn)
-			go handleConnection(amf.LbConn, readBufSize, handler)
 			logger.NgapLog.Debugf("Connected to amf")
-			self.Next_Regist_Amf = amf
+			if amf.AmfTypeIdent == context.TypeIdRegist {
+				self.Next_Regist_Amf = amf
+			} else if amf.AmfTypeIdent == context.TypeIdDeregist {
+				self.Next_Deregist_Amf = amf
+			} else {
+				self.Next_Regular_Amf = amf
+			}
 			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
+			ngap_message.SendNGSetupRequest(amf.LbConn)
+			handleConnection(amf.LbConn, readBufSize, handler)
 			return 
 		}
 		time.Sleep(2 * time.Second)
@@ -106,26 +132,6 @@ func ConnectToAmf(lbaddr *sctp.SCTPAddr, amfIP string, amfPort int) (*sctp.SCTPC
 		logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
 	}
 	logger.AppLog.Infof("[AFTER] Boolean value of the SCTP_NODELAY flag: %v", value)
-
-	// Change the value of the SCTP_NODELAY flag to disable the Nagle Algorithm and send packets as soon as they're available.
-	// value, err := conn.GetNoDelay()
-	// if err != nil {
-	// 	logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
-	// }
-	// logger.AppLog.Infof("[BEFORE] Boolean value of the SCTP_NODELAY flag: %v", value)
-
-
-	// err = conn.SetNoDelay(1)
-	// if err != nil {
-	// 	logger.AppLog.Errorf("Error setting SCTP_NODELAY: %v", err)
-	// }
-
-	// value, err = conn.GetNoDelay()
-	// if err != nil {
-	// 	logger.AppLog.Errorf("Error getting SCTP_NODELAY: %v", err)
-	// }
-	// logger.AppLog.Infof("[AFTER] Boolean value of the SCTP_NODELAY flag: %v", value)
-
 
 	logger.NgapLog.Infoln("connected to amf: IP " + amfIP + " Port: " + strconv.Itoa(amfPort))
 	return conn, nil

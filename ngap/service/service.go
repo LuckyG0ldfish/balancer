@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/ishidawataru/sctp"
 
@@ -15,11 +16,11 @@ import (
 )
 
 type NGAPHandler struct {
-	HandleMessage      func(lbConn *context.LBConn, msg []byte)
+	HandleMessage      func(lbConn *context.LBConn, msg []byte, startTime int64)
 	HandleNotification func(conn *sctp.SCTPConn, notification sctp.Notification)
 }
 
-const readBufSize uint32 = 8192
+const readBufSize uint32 = 256 // 8192
 const amfPort int = 38412
 
 // set default read timeout to 2 seconds
@@ -99,7 +100,8 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 			}
 			logger.NgapLog.Tracef("Read %d bytes", n)
 			logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(buf[:n]))
-			go handler.HandleMessage(lbConn, buf[:n])
+			time := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+			go handler.HandleMessage(lbConn, buf[:n], time)
 		}
 	}
 }
