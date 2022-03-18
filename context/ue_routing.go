@@ -114,13 +114,11 @@ func calcuateDuration(traces []*trace) int64 {
 			dur += end-start
 			continue
 		}
-		if traces[i].startTime > end {
+		if traces[i].startTime >= end && traces[i].endTime > end {
 			start = traces[i].startTime
 			end = traces[i].endTime
 			dur += end-start
-		} else if traces[i].endTime < end {
-			continue
-		} else {
+		} else if traces[i].startTime <= end && traces[i].endTime > end{
 			dur += traces[i].endTime - end
 			end = traces[i].endTime
 		}
