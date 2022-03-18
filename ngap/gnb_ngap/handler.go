@@ -343,8 +343,11 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 
 	if ue != nil {
 		context.ForwardToAmf(message, ue, startTime)
-		for ue.DeregFlag == false {
-			ue.RemoveUeEntirely()
+		for {
+			if ue.DeregFlag == true {
+				ue.RemoveUeEntirely()
+				return 
+			}
 			time.Sleep(2 * time.Millisecond)
 		}
 	}
