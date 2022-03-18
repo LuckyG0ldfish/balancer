@@ -39,7 +39,7 @@ func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64
 	
 	ue, ok := m.Load(ueID)
 	if ok {
-		mue, test := ue.(metricsUE)
+		mue, test := ue.(*metricsUE)
 		if !test {
 			logger.ContextLog.Error("error while parsing metricsUE")
 		}
@@ -69,11 +69,11 @@ func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*tra
 	var unsorted []*metricsUE
 
 	m.Range(func(key, value interface{}) bool {
-		tempUE, ok := value.(metricsUE)
+		tempUE, ok := value.(*metricsUE)
 		if !ok {
 			logger.NgapLog.Errorf("error while parsing metricsUE")
 		}
-		unsorted = append(unsorted, &tempUE)
+		unsorted = append(unsorted, tempUE)
 		return true
 	})
 
