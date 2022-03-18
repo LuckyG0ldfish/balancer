@@ -77,7 +77,7 @@ func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*tra
 		return true
 	})
 
-	sorted = sortUEsByUEID(unsorted)
+	sorted = sortUEsByUEID(unsorted) 
 
 	for i := 0; i < len(sorted); i++ {
 		var registTraces []*trace
