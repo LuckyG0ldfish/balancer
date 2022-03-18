@@ -111,7 +111,7 @@ func calcuateDuration(traces []*trace) int64 {
 		if i == 0 {
 			start = traces[i].startTime
 			end = traces[i].endTime
-			dur = dur + (end-start)
+			dur = dur + (end-start) 
 			continue
 		}
 		if traces[i].startTime >= end && traces[i].endTime > end {
@@ -169,7 +169,7 @@ func sortUEsByUEID(ueList []*metricsUE) []*metricsUE {
 func sortTracesByStartTime(traceList []*trace) []*trace {
     for i := 1; i < len(traceList); i++ {
         var j = i
-        for j >= 1 && traceList[j].startTime > traceList[j - 1].startTime {
+        for j >= 1 && traceList[j].startTime < traceList[j - 1].startTime {
             traceList[j], traceList[j - 1] = traceList[j - 1], traceList[j]
             j--
         }
