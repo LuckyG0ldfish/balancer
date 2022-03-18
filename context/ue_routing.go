@@ -4,7 +4,8 @@ import (
 	"encoding/csv"
 	"os"
 	"strconv"
-	
+	"sync"
+
 	"github.com/LuckyG0ldfish/balancer/logger"
 ) 
 
@@ -13,11 +14,6 @@ const TypeGnb int = 1
 
 var trafficNum int = 1 
 
-type Routing_Table struct {
-	traces 		[]*trace
-	amfs 		[]*AmfCounter
-}
-
 type trace struct {
 	id 			int
 	origin 		int64
@@ -25,86 +21,137 @@ type trace struct {
 	destination int64
 	d_type 		int 
 	ue_State	int
-	dur 		int64
-}
-
-type AmfCounter struct {
-	Amf 		*LbAmf
-	IndivUE		int 
-	Traffic		int
+	startTime int64
+	endTime int64
 }
 
 type metricsUE struct {
 	id 			int64 
-	time 		int64
+	
+	regTime 	int64 
+	deregTime 	int64
+
+	routings 	[]*trace
 }
 
-func (r *Routing_Table) Print() {
+func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64, d_type int, ue_State int, startTime int64, endTime int64) {	
+	trace := newTrace(origin, ueID, destination, d_type, ue_State, startTime, endTime)
+	
+	ue, ok := m.Load(ueID)
+	if ok {
+		mue, test := ue.(metricsUE)
+		if !test {
+			logger.ContextLog.Error("error while parsing metricsUE")
+		}
+		mue.routings = append(mue.routings, trace)
+	} else {
+		mue := newMetricsUE(ueID)
+		mue.routings = append(mue.routings, trace)
+		m.Store(ueID, mue)
+	}
+}
+
+func Print(m *sync.Map) {
 	self := LB_Self()
+	sortedUEs, routingTable := prepareMapForOutput(m)
 	if self.MetricsLevel == 2 {
-		printRouting(r)
+		printRouting(routingTable)
 		return 
 	} else if self.MetricsLevel == 1 {
-		printUETimings(r)
+		printUETimings(sortedUEs)
 		return 
 	}
-	printRouting(r)
-	printUETimings(r)
+	printRouting(routingTable)
+	printUETimings(sortedUEs)
 }
 
-func printUETimings(r *Routing_Table) {
-	var ueRegistrationList []*metricsUE
-	var ueRegularList []*metricsUE
-	var ueDeregistrationList []*metricsUE
-	
-	for i := 0; i < len(r.traces); i++ {
-		temp := r.traces[i]
-		
-		if temp.ue_State == TypeIdRegist {
-			ok, slot := idPresent(temp.ueID, ueRegistrationList)
-			if !ok {
-				ue := newMetricsUE(temp.ueID, temp.dur)
-				ueRegistrationList = append(ueRegistrationList, ue)
-			} else {
-				new := ueRegistrationList[slot].time + temp.dur
-				ueRegistrationList[slot].time = new
-			}
-		} else if temp.ue_State == TypeIdRegular {
-			ok, slot := idPresent(temp.ueID, ueRegularList)
-			if !ok {
-				ue := newMetricsUE(temp.ueID, temp.dur)
-				ueRegularList = append(ueRegularList, ue)
-			} else {
-				new := ueRegularList[slot].time + temp.dur
-				ueRegularList[slot].time = new
-			}
-		} else {
-			ok, slot := idPresent(temp.ueID, ueDeregistrationList)
-			if !ok {
-				ue := newMetricsUE(temp.ueID, temp.dur)
-				ueDeregistrationList = append(ueDeregistrationList, ue)
-			} else {
-				new := ueDeregistrationList[slot].time + temp.dur
-				ueDeregistrationList[slot].time = new
-			}
+func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*trace) {
+	var unsorted []*metricsUE
+
+	m.Range(func(key, value interface{}) bool {
+		tempUE, ok := value.(metricsUE)
+		if !ok {
+			logger.NgapLog.Errorf("error while parsing metricsUE")
 		}
+		unsorted = append(unsorted, &tempUE)
+		return true
+	})
+
+	sorted = sortUEsByUEID(unsorted)
+
+	for i := 0; i < len(sorted); i++ {
+		var registTraces []*trace
+		var deregTraces []*trace
 		
+		tempUE := sorted[i]
+		tempUE.routings = sortTracesByStartTime(tempUE.routings)
+		
+		for j := 0; j < len(tempUE.routings); i++ {
+			tempTrace := tempUE.routings[j] // creating the routing table 
+			routingTraces = append(routingTraces, tempTrace)
+			if tempTrace.ue_State == TypeIdRegist {
+				registTraces = append(registTraces, tempTrace)
+			} else if tempTrace.ue_State == TypeIdDeregist {
+				deregTraces = append(deregTraces, tempTrace)
+			} 
+		}
+		tempUE.regTime = calcuateDuration(registTraces)
+		tempUE.deregTime = calcuateDuration(deregTraces)
+
+	}
+	return 
+}
+
+func calcuateDuration(traces []*trace) int64 {
+	var dur int64
+	var start int64 
+	var end int64
+
+	for i := 0; i < len(traces); i++ {
+		if i == 0 {
+			start = traces[i].startTime
+			end = traces[i].endTime
+		}
+		if traces[i].startTime > end {
+			start = traces[i].startTime
+			end = traces[i].endTime
+			dur += end-start
+		} else if traces[i].endTime < end {
+			continue
+		} else {
+			dur += traces[i].endTime - end
+			end = traces[i].endTime
+		}
 	}
 
-	if len(ueRegistrationList) != 0 {
-		sortedRegist := sortList(ueRegistrationList)
-		output := createOutputList(sortedRegist)
-		createAndWriteCSV(output, "./config/ueRegistTimings.csv")
+	return dur
+}
+
+func printUETimings(m []*metricsUE) {
+	var registOutput [][]string 
+	var deregOutput [][]string 
+	
+	heads := []string{"GnbUeId", "Duration"}
+	registOutput = append(registOutput, heads)
+	deregOutput = append(deregOutput, heads)
+	
+	for i := 0; i < len(m); i++ {
+		temp := m[i]
+		dur := strconv.Itoa(int(temp.regTime)/1000) // to millisecounds
+		id := strconv.Itoa(int(temp.id))
+		row := []string {id, dur}
+		registOutput = append(registOutput, row)
+		
+		dur = strconv.Itoa(int(temp.deregTime)/1000) // to millisecounds
+		row = []string {id, dur}
+		deregOutput = append(deregOutput, row)
 	}
-	if len(ueRegularList) != 0 {
-		sortedRegular := sortList(ueRegularList)
-		output := createOutputList(sortedRegular)
-		createAndWriteCSV(output, "./config/ueRegularTimings.csv")
+
+	if len(registOutput) != 0 {
+		createAndWriteCSV(registOutput, "./config/ueRegistTimings.csv")
 	}
-	if len(ueRegistrationList) != 0 {
-		sortedDeregist := sortList(ueDeregistrationList)
-		output := createOutputList(sortedDeregist)
-		createAndWriteCSV(output, "./config/ueDeregistTimings.csv")
+	if len(deregOutput) != 0 {
+		createAndWriteCSV(deregOutput, "./config/ueDeregistTimings.csv")
 	}
 }
 
@@ -114,7 +161,7 @@ func createOutputList(sorted []*metricsUE) [][]string{
 	output = append(output, heads)
 	for i := 0; i < len(sorted); i++ {
 		ue := sorted[i]
-		dur := strconv.Itoa(int(ue.time)/1000) // to millisecounds
+		dur := strconv.Itoa(int(ue.regTime)/1000) // to millisecounds
 		id := strconv.Itoa(int(ue.id))
 		row := []string {id, dur}
 		output = append(output, row) 
@@ -122,7 +169,7 @@ func createOutputList(sorted []*metricsUE) [][]string{
 	return output
 }
 
-func sortList(ueList []*metricsUE) []*metricsUE {
+func sortUEsByUEID(ueList []*metricsUE) []*metricsUE {
     for i := 1; i < len(ueList); i++ {
         var j = i
         for j >= 1 && ueList[j].id < ueList[j - 1].id {
@@ -133,34 +180,38 @@ func sortList(ueList []*metricsUE) []*metricsUE {
 	return ueList
 }
 
-func idPresent(id int64, slice []*metricsUE) (bool, int) {
-	for i := 0; i < len(slice); i++ {
-		if slice[i].id == id {
-			return true, i
-		}
-	}
-	return false, 0
+func sortTracesByStartTime(traceList []*trace) []*trace {
+    for i := 1; i < len(traceList); i++ {
+        var j = i
+        for j >= 1 && traceList[j].startTime > traceList[j - 1].startTime {
+            traceList[j], traceList[j - 1] = traceList[j - 1], traceList[j]
+            j--
+        }
+    }
+	return traceList
 }
 
-func newMetricsUE(id int64, dur int64) (*metricsUE){
-	var ue metricsUE
-	ue.id = id
-	ue.time = dur
-	return &ue
-}
+// func idPresent(id int64, slice []*metricsUE) (bool, int) {
+// 	for i := 0; i < len(slice); i++ {
+// 		if slice[i].id == id {
+// 			return true, i
+// 		}
+// 	}
+// 	return false, 0
+// }
 
-func printRouting(r *Routing_Table) {
+func printRouting(traces []*trace) {
 	var output [][]string 
-	heads := []string{"LbUeId", "GNB-ID", "AMF-ID", "Delay", "State"}
+	heads := []string{"GNBUeId", "GNB-ID", "AMF-ID", "Delay", "State"}
 	output = append(output, heads)
 	
-	for i := 0; i < len(r.traces); i++ {
-		trace := r.traces[i]
+	for i := 0; i < len(traces); i++ {
+		trace := traces[i]
 		state := strconv.FormatInt(int64(trace.ue_State), 10)
 		id := strconv.FormatInt(trace.ueID, 10)
 		origin := strconv.FormatInt(trace.origin, 10)
 		destination := strconv.FormatInt(trace.destination, 10)
-		time := strconv.FormatInt(trace.dur, 10)
+		time := strconv.FormatInt(trace.endTime - trace.startTime, 10)
 
 		if trace.d_type == TypeAmf {
 			row := []string{id, origin, destination, time, state}
@@ -171,27 +222,16 @@ func printRouting(r *Routing_Table) {
 		}	
 	}
 
-	// for i := 0; i < len(r.amfs); i++ {
-	// 	amfC := r.amfs[i]
-	// 	id := amfC.Amf.AmfID
-	// 	logger.ContextLog.Infof("AMF %d : | individuel UEs %d | total traffic %d \n", uint64(id), amfC.IndivUE, amfC.Traffic)
-	// }
-
 	createAndWriteCSV(output, "./config/routing.csv")
 }
 
-func (r *Routing_Table) AddRouting_Element(origin int64, ueID int64, destination int64, d_type int, ue_State int, time int64) {
-	trace := newTrace(origin, ueID, destination, d_type, ue_State, time)
-	r.traces = append(r.traces, trace)
-}
-
-func NewTable() (*Routing_Table){
-	var t Routing_Table
-	t.traces = []*trace{}
+func newMetricsUE(id int64) (*metricsUE){
+	var t metricsUE
+	t.id = id 
 	return &t
 }
 
-func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int, time int64) (*trace){
+func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int, startTime int64, endTime int64) (*trace){
 	var t trace
 	t.id = trafficNum
 	trafficNum ++
@@ -200,38 +240,9 @@ func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	
 	t.destination = destination
 	t.d_type = d_type
 	t.ue_State = ue_State
-	t.dur = time
+	t.startTime = startTime
+	t.endTime = endTime
 	return &t
-}
-
-func (r *Routing_Table) AddAmfCounter(amf *LbAmf) {
-	r.amfs = append(r.amfs, newAmfCounter(amf))
-}
-
-func newAmfCounter(amf *LbAmf) *AmfCounter{
-	var amfC AmfCounter
-	amfC.Amf = amf
-	amfC.IndivUE = 0 
-	amfC.Traffic = 0 
-	return &amfC
-}
-
-func (r *Routing_Table) incrementAmfTraffic(amf *LbAmf) {
-	for i := 0; i < len(r.amfs); i++ {
-		if r.amfs[i].Amf.AmfID == amf.AmfID {
-			r.amfs[i].Traffic++
-			return
-		}
-	}
-}
-
-func (r *Routing_Table) incrementAmfIndividualUEs(amf *LbAmf) {
-	for i := 0; i < len(r.amfs); i++ {
-		if r.amfs[i].Amf.AmfID == amf.AmfID {
-			r.amfs[i].IndivUE++
-			return
-		}
-	}
 }
 
 func createAndWriteCSV(input [][]string, location string) {

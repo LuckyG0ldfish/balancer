@@ -81,7 +81,6 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			}
 			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
-			self.Table.AddAmfCounter(amf)
 			ngap_message.SendNGSetupRequest(amf.LbConn)
 			handleConnection(amf.LbConn, readBufSize, handler)
 			return 
