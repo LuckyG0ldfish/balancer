@@ -4,6 +4,7 @@ package gnb_ngap
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
@@ -149,15 +150,19 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		}
 	}
 	if ue != nil {
-		var regDone bool 
+		var changeFlag bool 
 		if nASPDU != nil {
-			regDone = nas.HandleNAS(ue, nASPDU.Value)
+			changeFlag = nas.HandleNAS(ue, nASPDU.Value)
 		}
 		context.ForwardToAmf(message, ue, startTime)
-		if regDone {
-			ue.UplinkFlag = true 
-			// Check if registration is done and switch UE-State accordingly 
-			go ue.RegistrationComplete()
+		if changeFlag {
+			if ue.UeStateIdent == context.TypeIdRegist {
+				ue.UplinkFlag = true 
+				// Check if registration is done and switch UE-State accordingly 
+				ue.RegistrationComplete()
+			} else if ue.UeStateIdent == context.TypeIdDeregist {
+				ue.DeregFlag = true 
+			}
 		}
 	}
 }
@@ -338,7 +343,10 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 
 	if ue != nil {
 		context.ForwardToAmf(message, ue, startTime)
-		ue.RemoveUeEntirely()
+		for ue.DeregFlag == false {
+			ue.RemoveUeEntirely()
+			time.Sleep(2 * time.Millisecond)
+		}
 	}
 }
 

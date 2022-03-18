@@ -46,7 +46,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 			go context.SelectNextDeregistAmf()
 		}
 		return false 
-	case nas.MsgTypeDeregistrationAcceptUETerminatedDeregistration:
+	case nas.MsgTypeDeregistrationRequestUETerminatedDeregistration:
 		ue.UeStateIdent = context.TypeIdDeregist
 		logger.NASLog.Traceln("MsgTypeDeregistrationAcceptUETerminatedDeregistration")
 		if self.DifferentAmfTypes == 3 {
@@ -56,6 +56,12 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 			go context.SelectNextDeregistAmf()
 		}
 		return	false 
+	case nas.MsgTypeDeregistrationAcceptUEOriginatingDeregistration:
+		logger.NASLog.Traceln("MsgTypeDeregistrationAccept")
+		return true  
+	case nas.MsgTypeDeregistrationAcceptUETerminatedDeregistration: 
+		logger.NASLog.Traceln("MsgTypeDeregistrationAccept")
+		return true  
 	} 
 	return  false 
 }

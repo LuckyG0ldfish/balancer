@@ -31,7 +31,7 @@ type LbUe struct{
 
 	UplinkFlag		bool 		// set true when Uplink-NAS-RegistrationComplete is done
 	ResponseFlag	bool		// set true when InitialContextSetupResponse is done
-	// DeregFlag		bool		// set true when Uplink-NAS-RegistrationComplete 
+	DeregFlag		bool		// set true when Uplink-NAS-Deregistration-Accept is done 
 
 	/* nas decrypt */
 	RRCECause 		string
@@ -65,6 +65,7 @@ func NewUE() (*LbUe){
 	ue.ABBA = []uint8{0x00, 0x00} // set in GMM AuthenticationProcedure + AuthenticationFailure
 	ue.UplinkFlag = false 
 	ue.ResponseFlag = false 
+	ue.DeregFlag = false 
 	return &ue
 }
 
