@@ -111,15 +111,15 @@ func calcuateDuration(traces []*trace) int64 {
 		if i == 0 {
 			start = traces[i].startTime
 			end = traces[i].endTime
-			dur += end-start
+			dur = dur + (end-start)
 			continue
 		}
 		if traces[i].startTime >= end && traces[i].endTime > end {
 			start = traces[i].startTime
 			end = traces[i].endTime
-			dur += end-start
-		} else if traces[i].startTime <= end && traces[i].endTime > end{
-			dur += traces[i].endTime - end
+			dur = dur + (end - start)
+		} else if traces[i].startTime <= end && traces[i].endTime > end {
+			dur = dur + (traces[i].endTime - end)
 			end = traces[i].endTime
 		}
 	}
@@ -137,12 +137,12 @@ func printUETimings(m []*metricsUE) {
 	
 	for i := 0; i < len(m); i++ {
 		temp := m[i]
-		dur := strconv.Itoa(int(temp.regTime)/1000) // to millisecounds
+		dur := strconv.Itoa(int(temp.regTime)) //1000) // to millisecounds
 		id := strconv.Itoa(int(temp.id))
 		row := []string {id, dur}
 		registOutput = append(registOutput, row)
 		
-		dur = strconv.Itoa(int(temp.deregTime)/1000) // to millisecounds
+		dur = strconv.Itoa(int(temp.deregTime)) //1000) // to millisecounds
 		row = []string {id, dur}
 		deregOutput = append(deregOutput, row)
 	}
@@ -214,6 +214,8 @@ func printRouting(traces []*trace) {
 func newMetricsUE(id int64) (*metricsUE){
 	var t metricsUE
 	t.id = id 
+	t.regTime = 0 
+	t.deregTime = 0 
 	return &t
 }
 
