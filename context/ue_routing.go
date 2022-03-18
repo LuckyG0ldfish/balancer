@@ -86,7 +86,7 @@ func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*tra
 		tempUE := sorted[i]
 		tempUE.routings = sortTracesByStartTime(tempUE.routings)
 		
-		for j := 0; j < len(tempUE.routings); i++ {
+		for j := 0; j < len(tempUE.routings); j++ {
 			tempTrace := tempUE.routings[j] // creating the routing table 
 			routingTraces = append(routingTraces, tempTrace)
 			if tempTrace.ue_State == TypeIdRegist {
@@ -111,6 +111,8 @@ func calcuateDuration(traces []*trace) int64 {
 		if i == 0 {
 			start = traces[i].startTime
 			end = traces[i].endTime
+			dur += end-start
+			continue
 		}
 		if traces[i].startTime > end {
 			start = traces[i].startTime
@@ -153,20 +155,6 @@ func printUETimings(m []*metricsUE) {
 	if len(deregOutput) != 0 {
 		createAndWriteCSV(deregOutput, "./config/ueDeregistTimings.csv")
 	}
-}
-
-func createOutputList(sorted []*metricsUE) [][]string{
-	var output [][]string 
-	heads := []string{"GnbUeId", "Duration"}
-	output = append(output, heads)
-	for i := 0; i < len(sorted); i++ {
-		ue := sorted[i]
-		dur := strconv.Itoa(int(ue.regTime)/1000) // to millisecounds
-		id := strconv.Itoa(int(ue.id))
-		row := []string {id, dur}
-		output = append(output, row) 
-	}
-	return output
 }
 
 func sortUEsByUEID(ueList []*metricsUE) []*metricsUE {
