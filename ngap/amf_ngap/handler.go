@@ -5,6 +5,7 @@ package amf_ngap
 import (
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/ngap/ngapType"
 )
 
@@ -194,6 +195,8 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		}
 		ue = ueTemp
 	}
+	// ue.UeStateIdent = context.TypeIdDeregist
+	// State Change
 	context.ForwardToGnb(message, ue)
 }
 
@@ -202,6 +205,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	var ue *context.LbUe
 	
 
 	if message == nil {
@@ -243,7 +247,8 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
 					amf := lbConn.AmfPointer
-					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
+					var ok bool 
+					ue, ok = amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
 						return 
@@ -251,11 +256,21 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
 					if amfIDPresent && ue.UeAmfID == 0 {
 						ue.UeAmfID = aMFUENGAPIDInt
-						lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
+						// lbConn.Log.Errorf("UeAmfId set to %d", uint64(aMFUENGAPIDInt))
 					}
-					context.ForwardToGnb(message, ue)
+					if ue.UeStateIdent == context.TypeIdRegist {
+						ue.UeStateIdent = context.TypeIdRegular
+						// State Change
+						// lbConn.Log.Errorf("UeState set to Regular")
+					}
 				}
+			case ngapType.ProtocolIEIDNASPDU:
+				nASPDU := ie.Value.NASPDU
+				nas.HandleNAS(ue, nASPDU.Value)
 		}	
+	}
+	if ue != nil {
+		context.ForwardToGnb(message, ue)
 	}
 }
 

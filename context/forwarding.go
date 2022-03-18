@@ -42,7 +42,9 @@ func ForwardToNextAmf(lbConn *LBConn, message *ngapType.NGAPPDU, ue *LbUe) {
 	
 	// Adding new Trace to the routing table 
 	go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
-
+	go lb.Table.incrementAmfIndividualUEs(next)
+	go lb.Table.incrementAmfTraffic(next)
+	
 	// Selecting AMF that will be used for the next new UE
 	go lb.SelectNextAmf()
 }
@@ -73,6 +75,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe) {
 	// Adding new Trace to the routing table 
 	lb := LB_Self()
 	go lb.Table.AddRouting_Element(ue.RanID, ue.UeLbID, ue.AmfID, TypeAmf, ue.UeStateIdent)
+	go lb.Table.incrementAmfTraffic(amf)
 }
 
 // Used to forward registered UE's messages to an GNB

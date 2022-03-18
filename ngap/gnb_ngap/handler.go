@@ -1,12 +1,13 @@
 package gnb_ngap
 
-// This handles messages incoming from GNB with the functions of the AMFs handler 
+// This handles messages incoming from GNB with the functions of the AMFs handler
 
 import (
 	"strconv"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
+	"github.com/LuckyG0ldfish/balancer/nas"
 	"github.com/free5gc/aper"
 	"github.com/free5gc/ngap/ngapType"
 
@@ -89,6 +90,8 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
+	// var nASPDU *ngapType.NASPDU
+	var ue *context.LbUe
 
 	LB = *context.LB_Self()
 
@@ -133,23 +136,22 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
 					gnb := lbConn.RanPointer
-					ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+					var ok bool 
+					ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
 						return 
 					}
-					if ue.UeStateIdent == context.TypeIdRegist {
-						// TODO: 
-						// change ID to TypeIdRegular
-						// remove from registration AMF context 
-						// add to next regular AMF context
-						// find next regular amf 
-					}
 					ie.Value.RANUENGAPID.Value = ue.UeLbID
-					context.ForwardToAmf(message, ue)
 				}
-	
+			case ngapType.ProtocolIEIDNASPDU:
+				nASPDU := ie.Value.NASPDU
+				nas.HandleNAS(ue, nASPDU.Value)
+				
 			}
+	}
+	if ue != nil {
+		context.ForwardToAmf(message, ue)
 	}
 }
 

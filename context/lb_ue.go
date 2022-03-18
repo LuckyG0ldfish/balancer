@@ -57,3 +57,11 @@ func (ue *LbUe) RemoveUeFromGNB() {
 		ue.RanID = 0 
 	}
 }
+
+// Sets UEs values and adds it to the Amfs UE-Map
+func (ue *LbUe) AddUeToAmf(next *LbAmf) {
+	ue.AmfID = next.AmfID
+	ue.AmfPointer = next
+	next.Ues.Store(ue.UeLbID, ue)
+}
+

@@ -47,6 +47,12 @@ func (r *Routing_Table) Print() {
 			fmt.Printf("LbUeID: %d | GNB: %d <- AMF: %d || %s \n", uint64(p.ueID), uint64(p.destination), uint64(p.origin), s)
 		}	
 	}
+
+	for i := 0; i < len(r.amfs); i++ {
+		amfC := r.amfs[i]
+		id := amfC.Amf.AmfID
+		fmt.Printf("AMF %d : | individuel UEs %d | total traffic %d \n", uint64(id), amfC.IndivUE, amfC.Traffic)
+	}
 }
 
 func (r *Routing_Table) AddRouting_Element(origin int64, ueID int64, destination int64, d_type int, ue_State int) {
@@ -82,5 +88,23 @@ func newAmfCounter(amf *LbAmf) *AmfCounter{
 	amfC.IndivUE = 0 
 	amfC.Traffic = 0 
 	return &amfC
+}
+
+func (r *Routing_Table) incrementAmfTraffic(amf *LbAmf) {
+	for i := 0; i < len(r.amfs); i++ {
+		if r.amfs[i].Amf.AmfID == amf.AmfID {
+			r.amfs[i].Traffic++
+			return
+		}
+	}
+}
+
+func (r *Routing_Table) incrementAmfIndividualUEs(amf *LbAmf) {
+	for i := 0; i < len(r.amfs); i++ {
+		if r.amfs[i].Amf.AmfID == amf.AmfID {
+			r.amfs[i].IndivUE++
+			return
+		}
+	}
 }
 
