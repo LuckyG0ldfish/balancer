@@ -523,7 +523,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
+	// var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
 
 	LB = *context.LB_Self()
 
@@ -565,30 +565,52 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 			if nASPDU == nil {
 				lbConn.Log.Errorf("InitialUEMessage: nASPDU == nil")
 			}
-		case ngapType.ProtocolIEIDRRCEstablishmentCause: // ignore
-			rRCEstablishmentCause = ie.Value.RRCEstablishmentCause
-			lbConn.Log.Traceln("Decode IE RRCEstablishmentCause")
+		// case ngapType.ProtocolIEIDRRCEstablishmentCause: // ignore
+		// 	rRCEstablishmentCause = ie.Value.RRCEstablishmentCause
+		// 	lbConn.Log.Traceln("Decode IE RRCEstablishmentCause")
 		}
 	}
 
-	if lbConn.TypeID == context.TypeIdGNBConn {
-		gnb := lbConn.RanPointer
-		ue := context.NewUE()
-		ue.UeRanID = rANUENGAPIDInt
-		ue.UeLbID = UeLbID
-		ue.RanID = gnb.GnbID
-		if rRCEstablishmentCause != nil {
-			logger.NgapLog.Tracef("[Initial UE Message] RRC Establishment Cause[%d]", rRCEstablishmentCause.Value)
-			ue.RRCECause = strconv.Itoa(int(rRCEstablishmentCause.Value))
-		} else {
-			ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
-		}
-		gnb.Ues.Store(rANUENGAPIDInt, ue)
-		ue.RanPointer = gnb
-		context.ForwardToNextAmf(lbConn, message, ue, startTime)
-		lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
+	lb := context.LB_Self()
+	if lb.Next_Regist_Amf == nil {
+		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
 		return
 	}
+
+	next := lb.Next_Regist_Amf
+	gnb := lbConn.RanPointer
+	ue := context.NewUE()
+	ue.UeRanID = rANUENGAPIDInt
+	ue.UeLbID = UeLbID
+	ue.RanID = gnb.GnbID
+	ue.AmfID = next.AmfID
+	ue.AmfPointer = next
+	
+	// Checks whether an UE with this UeLbID already exists
+	// and otherwise adds it
+	_, ok := next.Ues.Load(ue.UeLbID)
+	if ok {
+		logger.NgapLog.Errorf("UE already exists")
+		return
+	}
+	next.Ues.Store(ue.UeLbID, ue)
+	next.NumberOfConnectedUEs += 1
+
+	// if rRCEstablishmentCause != nil {
+	// 	logger.NgapLog.Tracef("[Initial UE Message] RRC Establishment Cause[%d]", rRCEstablishmentCause.Value)
+	// 	ue.RRCECause = strconv.Itoa(int(rRCEstablishmentCause.Value))
+	// } else {
+	// 	ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
+	// }
+	gnb.Ues.Store(rANUENGAPIDInt, ue)
+	ue.RanPointer = gnb
+	context.ForwardToAmf(message, ue, startTime)
+	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
+	
+	// Selecting AMF that will be used for the next new UE
+	lb.SelectNextAmf()
+	
+	return
 }
 
 func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
