@@ -9,7 +9,7 @@ import (
 	"github.com/free5gc/ngap/ngapType"
 )
 
-func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle NG Setup Response")
 
 	LB := context.LB_Self()

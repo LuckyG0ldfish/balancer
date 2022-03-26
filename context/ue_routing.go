@@ -19,6 +19,15 @@ type MetricsGNB struct {
 	MetricsUEs 	*sync.Map
 }
 
+type metricsUE struct {
+	id 			int64 
+	
+	regTime 	int64 
+	deregTime 	int64
+
+	routings 	[]*trace
+}
+
 type trace struct {
 	id 			int
 	origin 		int64
@@ -28,15 +37,6 @@ type trace struct {
 	ue_State	int
 	startTime int64
 	endTime int64
-}
-
-type metricsUE struct {
-	id 			int64 
-	
-	regTime 	int64 
-	deregTime 	int64
-
-	routings 	[]*trace
 }
 
 func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64, d_type int, ue_State int, startTime int64, endTime int64) {	

@@ -257,7 +257,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
 			logger.NgapLog.Tracef("Handling NGSetupResponse")
-			amf_ngap.HandleNGSetupResponse(lbConn, pdu, startTime)
+			amf_ngap.HandleNGSetupResponse(lbConn, pdu)
 
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGResetAcknowledge(amf, pdu)
