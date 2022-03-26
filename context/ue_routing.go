@@ -14,6 +14,11 @@ const TypeGnb int = 1
 
 var trafficNum int = 1 
 
+type MetricsGNB struct {
+	ID 			int64
+	MetricsUEs 	*sync.Map
+}
+
 type trace struct {
 	id 			int
 	origin 		int64
@@ -35,9 +40,26 @@ type metricsUE struct {
 }
 
 func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64, d_type int, ue_State int, startTime int64, endTime int64) {	
+	var id int64
+	if d_type == TypeAmf {
+		id = origin
+	} else {
+		id = destination
+	}
+	gnb, ok := m.Load(id)
+	if !ok {
+		logger.ContextLog.Warning("metricsGNB does not exist (failed lookup)")
+		return 
+	}
+	metricsGNB, ok := gnb.(*MetricsGNB)
+	if !ok {
+		logger.ContextLog.Warning("metricsGNB does not exist (failed type cast)")
+		return 
+	}
+	
 	trace := newTrace(origin, ueID, destination, d_type, ue_State, startTime, endTime)
 	
-	ue, ok := m.Load(ueID)
+	ue, ok := metricsGNB.MetricsUEs.Load(ueID)
 	if ok {
 		mue, test := ue.(*metricsUE)
 		if !test {
@@ -51,18 +73,29 @@ func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64
 	}
 }
 
-func Print(m *sync.Map) {
+func Print(gnbs *sync.Map) {
+	gnbs.Range(func(key, value interface{}) bool {
+		tempGNB, ok := value.(*MetricsGNB)
+		if !ok {
+			logger.NgapLog.Errorf("error while parsing metricsUE")
+		}
+		PrintPerGNB(tempGNB)
+		return true
+	})
+}
+
+func PrintPerGNB(gnb *MetricsGNB) {
 	self := LB_Self()
-	sortedUEs, routingTable := prepareMapForOutput(m)
+	sortedUEs, routingTable := prepareMapForOutput(gnb.MetricsUEs)
 	if self.MetricsLevel == 2 {
-		printRouting(routingTable)
+		printRouting(routingTable, gnb.ID)
 		return 
 	} else if self.MetricsLevel == 1 {
-		printUETimings(sortedUEs)
+		printUETimings(sortedUEs, gnb.ID)
 		return 
 	}
-	printRouting(routingTable)
-	printUETimings(sortedUEs)
+	printRouting(routingTable, gnb.ID)
+	printUETimings(sortedUEs, gnb.ID)
 }
 
 func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*trace) {
@@ -127,7 +160,7 @@ func calcuateDuration(traces []*trace) int64 {
 	return dur
 }
 
-func printUETimings(m []*metricsUE) {
+func printUETimings(m []*metricsUE, id int64) {
 	var registOutput [][]string 
 	var deregOutput [][]string 
 	
@@ -147,11 +180,12 @@ func printUETimings(m []*metricsUE) {
 		deregOutput = append(deregOutput, row)
 	}
 
+	s := strconv.FormatInt(id, 10)
 	if len(registOutput) != 0 {
-		createAndWriteCSV(registOutput, "./config/ueRegistTimings.csv")
+		createAndWriteCSV(registOutput, "./config/ueRegistTimingsGNB" + s + ".csv")
 	}
 	if len(deregOutput) != 0 {
-		createAndWriteCSV(deregOutput, "./config/ueDeregistTimings.csv")
+		createAndWriteCSV(deregOutput, "./config/ueDeregistTimingsGNB" + s + ".csv")
 	}
 }
 
@@ -186,7 +220,7 @@ func sortTracesByStartTime(traceList []*trace) []*trace {
 // 	return false, 0
 // }
 
-func printRouting(traces []*trace) {
+func printRouting(traces []*trace, id int64) {
 	var output [][]string 
 	heads := []string{"GNBUeId", "GNB-ID", "AMF-ID", "Delay", "State"}
 	output = append(output, heads)
@@ -207,8 +241,15 @@ func printRouting(traces []*trace) {
 			output = append(output, row)
 		}	
 	}
+	s := strconv.FormatInt(id, 10)
+	createAndWriteCSV(output, "./config/routingGNB" + s + ".csv")
+}
 
-	createAndWriteCSV(output, "./config/routing.csv")
+func NewMetricsGNB(id int64) (*MetricsGNB) {
+	var metricsGNB MetricsGNB
+	metricsGNB.ID = id 
+	metricsGNB.MetricsUEs = NewMetricsMap()
+	return &metricsGNB
 }
 
 func newMetricsUE(id int64) (*metricsUE){

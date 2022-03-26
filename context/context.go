@@ -98,7 +98,7 @@ func LB_Self() *LBContext {
 	return &lbContext
 }
 
-func NewMetricsUEMap() *sync.Map {
+func NewMetricsMap() *sync.Map {
 	var maps sync.Map
 	return &maps
 }
