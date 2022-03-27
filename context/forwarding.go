@@ -94,10 +94,18 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	lb := LB_Self()
 
-	_, ok := lb.MetricsGNBs.Load(ue.UeRanID)
+	test, ok := lb.MetricsGNBs.Load(ue.UeRanID)
 	if !ok {
 		logger.ContextLog.Errorln("failed mgnb add #3")
 	} 
+	_, ok = test.(*MetricsGNB)
+	if !ok {
+		logger.ContextLog.Errorln("failed mgnb type cast #3")
+	}
+	_, ok = test.(MetricsGNB)
+	if !ok {
+		logger.ContextLog.Errorln("failed mgnb type cast #3.5")
+	}
 
 	if lb.MetricsLevel > 0 {
 		AddRouting_Element(lb.MetricsGNBs, ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, startTime, now)

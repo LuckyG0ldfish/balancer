@@ -118,10 +118,18 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		if lb.MetricsLevel > 0 {
 			mGNB := context.NewMetricsGNB(gnb.GnbID)
 			lb.MetricsGNBs.Store(gnb.GnbID, mGNB)
-			_, ok := lb.MetricsGNBs.Load(gnb.GnbID)
+			test, ok := lb.MetricsGNBs.Load(gnb.GnbID)
 			if !ok {
 				logger.ContextLog.Errorln("failed mgnb add #1")
 			} 
+			_, ok = test.(*context.MetricsGNB)
+			if !ok {
+				logger.ContextLog.Errorln("failed mgnb type cast #1")
+			}
+			_, ok = test.(context.MetricsGNB)
+			if !ok {
+				logger.ContextLog.Errorln("failed mgnb type cast #1.5")
+			}
 		} 
 		
 		

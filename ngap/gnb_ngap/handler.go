@@ -527,10 +527,18 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 
 	LB = *context.LB_Self()
 
-	_, ok := LB.MetricsGNBs.Load(lbConn.RanPointer.GnbID)
+	test, ok := LB.MetricsGNBs.Load(lbConn.RanPointer.GnbID)
 	if !ok {
 		logger.ContextLog.Errorln("failed mgnb add #2")
 	} 
+	_, ok = test.(*context.MetricsGNB)
+	if !ok {
+		logger.ContextLog.Errorln("failed mgnb type cast #2")
+	}
+	_, ok = test.(context.MetricsGNB)
+	if !ok {
+		logger.ContextLog.Errorln("failed mgnb type cast #2.5")
+	}
 
 	if message == nil {
 		lbConn.Log.Errorf("NGAP Message is nil")
