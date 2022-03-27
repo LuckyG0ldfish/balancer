@@ -40,7 +40,9 @@ type LBContext struct {
 	ContinuesAmfRegistration	bool // true for continues accepting AMFs for registration 
 	
 	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
-	LbAmfPool 			sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	LbRegistAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	LbRegularAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	LbDeregistAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 
 	Next_Regist_Amf 			*LbAmf
 	Next_Regular_Amf 			*LbAmf
@@ -59,7 +61,7 @@ type LBContext struct {
 
 	/* metrics */
 	MetricsLevel 		int 
-	MetricsGNBs			*sync.Map
+	MetricsGNBs			sync.Map
 }
 
 // Creates and returns a new *LBContext
@@ -79,19 +81,6 @@ func (context *LBContext) LbGnbFindByConn(conn *sctp.SCTPConn) (*LbGnb, bool) {
 		return nil, false
 	}
 	return gnb, ok
-}
-
-// use sctp.SCTPConn to find Amf context, return *LbAmf and true if found
-func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
-	amfTemp, ok := context.LbAmfPool.Load(conn)
-	if !ok {
-		return nil, false
-	}
-	amf, ok := amfTemp.(*LbAmf)
-	if !ok {
-		return nil, false
-	}
-	return amf, ok
 }
 
 func LB_Self() *LBContext {

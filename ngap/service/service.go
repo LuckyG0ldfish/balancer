@@ -17,7 +17,7 @@ import (
 
 type NGAPHandler struct {
 	HandleMessage      func(lbConn *context.LBConn, msg []byte, startTime int64)
-	HandleNotification func(conn *sctp.SCTPConn, notification sctp.Notification)
+	HandleNotification func(conn *context.LBConn, notification sctp.Notification)
 }
 
 const readBufSize uint32 = 256 // 8192
@@ -85,7 +85,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 		if notification != nil {
 			if handler.HandleNotification != nil {
-				handler.HandleNotification(lbConn.Conn, notification)
+				handler.HandleNotification(lbConn, notification)
 			} else {
 				logger.NgapLog.Warnf("Received sctp notification[type 0x%x] but not handled", notification.Type())
 			}

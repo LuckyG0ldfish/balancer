@@ -74,12 +74,14 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			logger.NgapLog.Debugf("Connected to amf")
 			if amf.AmfTypeIdent == context.TypeIdRegist {
 				self.Next_Regist_Amf = amf
+				self.LbRegistAmfPool.Store(amf.LbConn.Conn, amf)
 			} else if amf.AmfTypeIdent == context.TypeIdDeregist {
 				self.Next_Deregist_Amf = amf
+				self.LbDeregistAmfPool.Store(amf.LbConn.Conn, amf)
 			} else {
 				self.Next_Regular_Amf = amf
+				self.LbRegularAmfPool.Store(amf.LbConn.Conn, amf)
 			}
-			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
 			ngap_message.SendNGSetupRequest(amf.LbConn)
 			handleConnection(amf.LbConn, readBufSize, handler)

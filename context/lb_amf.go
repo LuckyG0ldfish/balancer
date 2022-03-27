@@ -63,7 +63,7 @@ func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
 func CreateAndAddAmfToLB(amfType int) *LbAmf{
 	self := LB_Self()
 	amf := newLbAmf(amfType)
-	self.LbAmfPool.Store(amf.LbConn.Conn, amf)
+	self.LbRegistAmfPool.Store(amf.LbConn.Conn, amf)
 	// self.Table.addAmfCounter(amf)
 	return amf
 }
@@ -96,7 +96,7 @@ func (amf *LbAmf) calculateAMFUsage() float64{
 // Removes AMF-Context and closes the Connection  
 func (amf *LbAmf) RemoveAmfContext() {
 	lb := LB_Self()
-	lb.LbAmfPool.Delete(amf.LbConn.Conn)
+	lb.LbRegistAmfPool.Delete(amf.LbConn.Conn)
 	amf.LbConn.Conn.Close()
 	amf = nil 
 }

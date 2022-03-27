@@ -1,8 +1,6 @@
 package context_helper
 
 import (
-	"sync"
-
 	"github.com/google/uuid"
 
 	"github.com/LuckyG0ldfish/balancer/context"
@@ -59,10 +57,6 @@ func InitLbContext(self *context.LBContext) {
 	
 	self.Running = true
 	self.IDGen = context.NewUniqueNumberGen(1) // internal LbUe.ID for the first UE 
-
-	/* Metrics */
-	var metricsGNBs sync.Map
-	self.MetricsGNBs = &metricsGNBs
 
 	self.DifferentAmfTypes = configuration.DifferentAmfTypes
 	self.ContinuesAmfRegistration = configuration.ContinuesAmfRegistration

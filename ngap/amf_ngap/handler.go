@@ -12,8 +12,6 @@ import (
 func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("[gNB] Handle NG Setup Response")
 
-	LB := context.LB_Self()
-
 	var servedGUAMIList *ngapType.ServedGUAMIList
 	var plmnSupportList *ngapType.PLMNSupportList
 
@@ -48,14 +46,8 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 		case ngapType.ProtocolIEIDRelativeAMFCapacity:
 			lbConn.Log.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
 			relativeAMFCapacity := ie.Value.RelativeAMFCapacity
-			amf, ok := LB.LbAmfFindByConn(lbConn.Conn)
-			if !ok {
-				lbConn.Log.Errorf("AMF not found -> Capacity not set")
-				
-			} else {
-				amf.RelativeCapacity = relativeAMFCapacity.Value
-				lbConn.Log.Traceln("[NGAP] AMFs RelativeAMFCapacity set to %d", relativeAMFCapacity.Value)
-			}
+			lbConn.AmfPointer.RelativeCapacity = relativeAMFCapacity.Value
+			lbConn.Log.Traceln("[NGAP] AMFs RelativeAMFCapacity set to %d", relativeAMFCapacity.Value)
 		case ngapType.ProtocolIEIDPLMNSupportList:
 			lbConn.Log.Traceln("[NGAP] Decode IE PLMNSupportList")
 			plmnSupportList = ie.Value.PLMNSupportList

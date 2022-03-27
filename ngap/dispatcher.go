@@ -288,35 +288,37 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64
 	}
 }
 
-func HandleSCTPNotification(conn *sctp.SCTPConn, notification sctp.Notification) {
-	lbSelf := context.LB_Self()
-
-	logger.NgapLog.Infof("Handle SCTP Notification[addr: %+v]", conn.RemoteAddr())
-
-	_, ok := lbSelf.LbAmfFindByConn(conn)
-	if !ok {
-		logger.NgapLog.Warnf("RAN context has been removed[addr: %+v]", conn.RemoteAddr())
-		return
-	}
-
+func HandleSCTPNotification(conn *context.LBConn, notification sctp.Notification) { 
 	switch notification.Type() {
 	case sctp.SCTP_ASSOC_CHANGE:
-		// ran.Log.Infof("SCTP_ASSOC_CHANGE notification")
+		conn.Log.Infof("SCTP_ASSOC_CHANGE notification")
 		event := notification.(*sctp.SCTPAssocChangeEvent)
 		switch event.State() {
 		case sctp.SCTP_COMM_LOST:
-			// ran.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
-			// ran.Remove()
+			conn.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
+			if conn.TypeID == context.TypeAmf {
+				conn.AmfPointer.RemoveAmfContext()
+			} else {
+				conn.RanPointer.RemoveGnbContext()
+			}
 		case sctp.SCTP_SHUTDOWN_COMP:
-			// ran.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
-			// ran.Remove()
+			conn.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
+			if conn.TypeID == context.TypeAmf {
+				conn.AmfPointer.RemoveAmfContext()
+			} else {
+				conn.RanPointer.RemoveGnbContext()
+			}
 		default:
-			// ran.Log.Warnf("SCTP state[%+v] is not handled", event.State())
+			conn.Log.Warnf("SCTP state[%+v] is not handled", event.State())
 		}
 	case sctp.SCTP_SHUTDOWN_EVENT:
-		// ran.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
-		// ran.Remove()
+		conn.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
+		if conn.TypeID == context.TypeAmf {
+			conn.AmfPointer.RemoveAmfContext()
+		} else {
+			conn.RanPointer.RemoveGnbContext()
+		}
 	default:
-		// ran.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
+		conn.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
 	}
 }
