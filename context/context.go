@@ -97,8 +97,3 @@ func (context *LBContext) LbAmfFindByConn(conn *sctp.SCTPConn) (*LbAmf, bool) {
 func LB_Self() *LBContext {
 	return &lbContext
 }
-
-func NewMetricsMap() *sync.Map {
-	var maps sync.Map
-	return &maps
-}

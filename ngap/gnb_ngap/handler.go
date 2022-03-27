@@ -585,6 +585,8 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	ue.RanID = gnb.GnbID
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
+	ue.RanPointer = gnb
+	gnb.Ues.Store(rANUENGAPIDInt, ue)
 	
 	// Checks whether an UE with this UeLbID already exists
 	// and otherwise adds it
@@ -602,8 +604,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	// } else {
 	// 	ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
 	// }
-	gnb.Ues.Store(rANUENGAPIDInt, ue)
-	ue.RanPointer = gnb
+
 	context.ForwardToAmf(message, ue, startTime)
 	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 	

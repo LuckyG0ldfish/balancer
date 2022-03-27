@@ -12,8 +12,6 @@ import (
 const TypeAmf int = 0 
 const TypeGnb int = 1 
 
-var trafficNum int = 1 
-
 type MetricsGNB struct {
 	ID 			int64
 	MetricsUEs 	*sync.Map
@@ -29,7 +27,6 @@ type metricsUE struct {
 }
 
 type trace struct {
-	id 			int
 	origin 		int64
 	ueID 		int64
 	destination int64
@@ -247,8 +244,9 @@ func printRouting(traces []*trace, id int64) {
 
 func NewMetricsGNB(id int64) (*MetricsGNB) {
 	var metricsGNB MetricsGNB
+	var metricsUEs sync.Map
 	metricsGNB.ID = id 
-	metricsGNB.MetricsUEs = NewMetricsMap()
+	metricsGNB.MetricsUEs = &metricsUEs
 	return &metricsGNB
 }
 
@@ -260,10 +258,8 @@ func newMetricsUE(id int64) (*metricsUE){
 	return &t
 }
 
-func newTrace(origin int64, ueID int64, destination int64, destType int, ue_State	int, startTime int64, endTime int64) (*trace){
+func newTrace(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) (*trace){
 	var t trace
-	t.id = trafficNum
-	trafficNum ++
 	t.origin = origin 
 	t.ueID = ueID
 	t.destination = destination
