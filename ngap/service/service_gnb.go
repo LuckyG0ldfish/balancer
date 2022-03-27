@@ -106,16 +106,18 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		logger.NgapLog.Infof("[LB] SCTP Accept from: %s", newConn.RemoteAddr().String())
 		
 		
+
 		// add connection as new GNBConn 
+		lb := context.LB_Self()
 		gnb := context.CreateAndAddNewGnbToLB(newConn)
 		logger.ContextLog.Tracef("LB_GNB created")
 		connections.Store(gnb.LbConn, *gnb.LbConn)
+		lb.LbRanPool.Store(gnb.GnbID, gnb)
 		
 		// Metrics
-		lb := context.LB_Self()
 		if lb.MetricsLevel > 0 {
 			mGNB := context.NewMetricsGNB(gnb.GnbID)
-			lb.MetricsUEs.Store(mGNB.ID, &mGNB)
+			lb.MetricsGNBs.Store(mGNB.ID, mGNB)
 		}
 		
 		go handleConnection(gnb.LbConn, readBufSize, handler)

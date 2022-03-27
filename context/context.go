@@ -59,7 +59,7 @@ type LBContext struct {
 
 	/* metrics */
 	MetricsLevel 		int 
-	MetricsUEs			*sync.Map
+	MetricsGNBs			*sync.Map
 }
 
 // Creates and returns a new *LBContext

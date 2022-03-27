@@ -33,20 +33,20 @@ type trace struct {
 	origin 		int64
 	ueID 		int64
 	destination int64
-	d_type 		int 
+	destType 		int 
 	ue_State	int
 	startTime int64
 	endTime int64
 }
 
-func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64, d_type int, ue_State int, startTime int64, endTime int64) {	
+func AddRouting_Element(mGNBs *sync.Map, origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) {	
 	var id int64
-	if d_type == TypeAmf {
+	if destType == TypeAmf {
 		id = origin
 	} else {
 		id = destination
 	}
-	gnb, ok := m.Load(id)
+	gnb, ok := mGNBs.Load(id)
 	if !ok {
 		logger.ContextLog.Warning("metricsGNB does not exist (failed lookup)")
 		return 
@@ -57,7 +57,7 @@ func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64
 		return 
 	}
 	
-	trace := newTrace(origin, ueID, destination, d_type, ue_State, startTime, endTime)
+	trace := newTrace(origin, ueID, destination, destType, ue_State, startTime, endTime)
 	
 	ue, ok := metricsGNB.MetricsUEs.Load(ueID)
 	if ok {
@@ -69,7 +69,7 @@ func AddRouting_Element(m *sync.Map, origin int64, ueID int64, destination int64
 	} else {
 		mue := newMetricsUE(ueID)
 		mue.routings = append(mue.routings, trace)
-		m.Store(ueID, mue)
+		mGNBs.Store(ueID, mue)
 	}
 }
 
@@ -233,10 +233,10 @@ func printRouting(traces []*trace, id int64) {
 		destination := strconv.FormatInt(trace.destination, 10)
 		time := strconv.FormatInt(trace.endTime - trace.startTime, 10)
 
-		if trace.d_type == TypeAmf {
+		if trace.destType == TypeAmf {
 			row := []string{id, origin, destination, time, state}
 			output = append(output, row)
-		} else if trace.d_type == TypeGnb {
+		} else if trace.destType == TypeGnb {
 			row := []string{id, destination, origin, time, state}
 			output = append(output, row)
 		}	
@@ -260,14 +260,14 @@ func newMetricsUE(id int64) (*metricsUE){
 	return &t
 }
 
-func newTrace(origin int64, ueID int64, destination int64, d_type int, ue_State	int, startTime int64, endTime int64) (*trace){
+func newTrace(origin int64, ueID int64, destination int64, destType int, ue_State	int, startTime int64, endTime int64) (*trace){
 	var t trace
 	t.id = trafficNum
 	trafficNum ++
 	t.origin = origin 
 	t.ueID = ueID
 	t.destination = destination
-	t.d_type = d_type
+	t.destType = destType
 	t.ue_State = ue_State
 	t.startTime = startTime
 	t.endTime = endTime

@@ -62,7 +62,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		AddRouting_Element(lb.MetricsUEs, ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now)
+		AddRouting_Element(lb.MetricsGNBs, ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now)
 	}
 }
 
@@ -94,6 +94,6 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		AddRouting_Element(lb.MetricsUEs, ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now)
+		AddRouting_Element(lb.MetricsGNBs, ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, startTime, now)
 	}
 }
