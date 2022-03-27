@@ -121,7 +121,7 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 			// _, ok := lb.MetricsGNBs.Load(gnb.GnbID)
 			// if !ok {
 			// 	logger.ContextLog.Errorln("failed mgnb add #1")
-			// }
+			// } 
 		} 
 		
 		
