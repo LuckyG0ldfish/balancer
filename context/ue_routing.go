@@ -48,7 +48,7 @@ func AddRouting_Element(mGNBs *sync.Map, origin int64, ueID int64, destination i
 		logger.ContextLog.Warning("metricsGNB does not exist (failed lookup)")
 		return 
 	}
-	metricsGNB, ok := gnb.(*MetricsGNB)
+	metricsGNB, ok := gnb.(MetricsGNB)
 	if !ok {
 		logger.ContextLog.Warning("metricsGNB does not exist (failed type cast)")
 		return 
@@ -167,12 +167,12 @@ func printUETimings(m []*metricsUE, id int64) {
 	
 	for i := 0; i < len(m); i++ {
 		temp := m[i]
-		dur := strconv.Itoa(int(temp.regTime)) //1000) // to millisecounds
+		dur := strconv.Itoa(int(temp.regTime) / 1000) // to millisecounds
 		id := strconv.Itoa(int(temp.id))
 		row := []string {id, dur}
 		registOutput = append(registOutput, row)
 		
-		dur = strconv.Itoa(int(temp.deregTime)) //1000) // to millisecounds
+		dur = strconv.Itoa(int(temp.deregTime) / 1000) // to millisecounds
 		row = []string {id, dur}
 		deregOutput = append(deregOutput, row)
 	}

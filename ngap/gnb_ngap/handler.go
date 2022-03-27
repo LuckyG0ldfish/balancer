@@ -527,6 +527,11 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 
 	LB = *context.LB_Self()
 
+	_, ok := LB.MetricsGNBs.Load(lbConn.RanPointer.GnbID)
+	if !ok {
+		logger.ContextLog.Errorln("failed mgnb add #2")
+	} 
+
 	if message == nil {
 		lbConn.Log.Errorf("NGAP Message is nil")
 		return
@@ -589,7 +594,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	
 	// Checks whether an UE with this UeLbID already exists
 	// and otherwise adds it
-	_, ok := next.Ues.Load(ue.UeLbID)
+	_, ok = next.Ues.Load(ue.UeLbID)
 	if ok {
 		logger.NgapLog.Errorf("UE already exists")
 		return
