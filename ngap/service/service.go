@@ -105,6 +105,15 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 	}
 }
+// Removes a LB_Conn from the list of connections and the related AMF/GNB from their pool 
+func RemoveLBConnection(conn *context.LBConn) {
+	if conn.TypeID == context.TypeAmf {
+		conn.AmfPointer.RemoveAmfContext()
+	} else {
+		conn.RanPointer.RemoveGnbContext()
+	}
+	connections.Delete(conn.ID)
+}
 
 // Closes all connections 
 func Stop() {

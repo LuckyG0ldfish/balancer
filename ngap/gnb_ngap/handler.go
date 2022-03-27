@@ -571,12 +571,12 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 		}
 	}
 
-	if LB .Next_Regist_Amf == nil {
+	if LB.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
 		return
 	}
 
-	next := LB .Next_Regist_Amf
+	next := LB.Next_Regist_Amf
 	gnb := lbConn.RanPointer
 	ue := context.NewUE()
 	ue.UeRanID = rANUENGAPIDInt

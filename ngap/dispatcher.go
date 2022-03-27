@@ -9,6 +9,7 @@ import (
 	gnb_ngap "github.com/LuckyG0ldfish/balancer/ngap/gnb_ngap"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
+	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 )
 
 // Distributes message to the correct handler based on Type of the incoming Connection
@@ -288,6 +289,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64
 	}
 }
 
+// Handles Notifications of the SCTPConn
 func HandleSCTPNotification(conn *context.LBConn, notification sctp.Notification) { 
 	switch notification.Type() {
 	case sctp.SCTP_ASSOC_CHANGE:
@@ -296,29 +298,18 @@ func HandleSCTPNotification(conn *context.LBConn, notification sctp.Notification
 		switch event.State() {
 		case sctp.SCTP_COMM_LOST:
 			conn.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
-			if conn.TypeID == context.TypeAmf {
-				conn.AmfPointer.RemoveAmfContext()
-			} else {
-				conn.RanPointer.RemoveGnbContext()
-			}
+			ngap_service.RemoveLBConnection(conn)
 		case sctp.SCTP_SHUTDOWN_COMP:
 			conn.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
-			if conn.TypeID == context.TypeAmf {
-				conn.AmfPointer.RemoveAmfContext()
-			} else {
-				conn.RanPointer.RemoveGnbContext()
-			}
+			ngap_service.RemoveLBConnection(conn)
 		default:
 			conn.Log.Warnf("SCTP state[%+v] is not handled", event.State())
 		}
 	case sctp.SCTP_SHUTDOWN_EVENT:
 		conn.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
-		if conn.TypeID == context.TypeAmf {
-			conn.AmfPointer.RemoveAmfContext()
-		} else {
-			conn.RanPointer.RemoveGnbContext()
-		}
+		ngap_service.RemoveLBConnection(conn)
 	default:
 		conn.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
 	}
 }
+

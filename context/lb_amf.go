@@ -63,8 +63,13 @@ func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
 func CreateAndAddAmfToLB(amfType int) *LbAmf{
 	self := LB_Self()
 	amf := newLbAmf(amfType)
-	self.LbRegistAmfPool.Store(amf.LbConn.Conn, amf)
-	// self.Table.addAmfCounter(amf)
+	if amf.AmfTypeIdent == TypeIdRegist {
+		self.LbRegistAmfPool.Store(amf.LbConn.Conn, amf)
+	} else if amf.AmfTypeIdent == TypeIdDeregist {
+		self.LbDeregistAmfPool.Store(amf.LbConn.Conn, amf)
+	} else {
+		self.LbRegularAmfPool.Store(amf.LbConn.Conn, amf)
+	}
 	return amf
 }
 
@@ -96,7 +101,14 @@ func (amf *LbAmf) calculateAMFUsage() float64{
 // Removes AMF-Context and closes the Connection  
 func (amf *LbAmf) RemoveAmfContext() {
 	lb := LB_Self()
-	lb.LbRegistAmfPool.Delete(amf.LbConn.Conn)
+
+	if amf.AmfTypeIdent == TypeIdRegist {
+		lb.LbRegistAmfPool.Delete(amf.LbConn.Conn)
+	} else if amf.AmfTypeIdent == TypeIdDeregist {
+		lb.LbDeregistAmfPool.Delete(amf.LbConn.Conn)
+	} else {
+		lb.LbRegularAmfPool.Delete(amf.LbConn.Conn)
+	}
 	amf.LbConn.Conn.Close()
 	amf = nil 
 }
