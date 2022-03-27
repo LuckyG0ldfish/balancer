@@ -610,8 +610,6 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	
 	// Selecting AMF that will be used for the next new UE
 	lb.SelectNextAmf()
-	
-	return
 }
 
 func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {

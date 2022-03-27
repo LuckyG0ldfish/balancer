@@ -118,6 +118,8 @@ func listenAndServeGNBs(addr *sctp.SCTPAddr, handler NGAPHandler) {
 		if lb.MetricsLevel > 0 {
 			mGNB := context.NewMetricsGNB(gnb.GnbID)
 			lb.MetricsGNBs.Store(gnb.GnbID, mGNB)
+		} else {
+			logger.ContextLog.Errorln("failed mgnb add")
 		}
 		
 		go handleConnection(gnb.LbConn, readBufSize, handler)

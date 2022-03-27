@@ -74,7 +74,7 @@ func Print(gnbs *sync.Map) {
 	gnbs.Range(func(key, value interface{}) bool {
 		tempGNB, ok := value.(*MetricsGNB)
 		if !ok {
-			logger.NgapLog.Errorf("error while parsing metricsUE")
+			logger.NgapLog.Errorf("error while parsing metricsGNB")
 		}
 		PrintPerGNB(tempGNB)
 		return true
