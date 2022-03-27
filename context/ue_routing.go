@@ -36,14 +36,15 @@ type trace struct {
 	endTime int64
 }
 
-func AddRouting_Element(mGNBs *sync.Map, origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) {	
+func AddRouting_Element(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) {	
+	self := LB_Self()
 	var id int64
 	if destType == TypeAmf {
 		id = origin
 	} else {
 		id = destination
 	}
-	gnb, ok := mGNBs.Load(id)
+	gnb, ok := self.MetricsGNBs.Load(id)
 	if !ok {
 		logger.ContextLog.Warning("metricsGNB does not exist (failed lookup)")
 		return 
@@ -66,7 +67,7 @@ func AddRouting_Element(mGNBs *sync.Map, origin int64, ueID int64, destination i
 	} else {
 		mue := newMetricsUE(ueID)
 		mue.routings = append(mue.routings, trace)
-		mGNBs.Store(ueID, mue)
+		metricsGNB.MetricsUEs.Store(ueID, mue)
 	}
 }
 
