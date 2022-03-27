@@ -49,7 +49,7 @@ func AddRouting_Element(origin int64, ueID int64, destination int64, destType in
 		logger.ContextLog.Warning("metricsGNB does not exist (failed lookup)")
 		return 
 	}
-	metricsGNB, ok := gnb.(MetricsGNB)
+	metricsGNB, ok := gnb.(*MetricsGNB)
 	if !ok {
 		logger.ContextLog.Warning("metricsGNB does not exist (failed type cast)")
 		return 
