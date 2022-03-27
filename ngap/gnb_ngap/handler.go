@@ -571,13 +571,12 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 		}
 	}
 
-	lb := context.LB_Self()
-	if lb.Next_Regist_Amf == nil {
+	if LB .Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Connected AMF / No AMf set as next AMF")
 		return
 	}
 
-	next := lb.Next_Regist_Amf
+	next := LB .Next_Regist_Amf
 	gnb := lbConn.RanPointer
 	ue := context.NewUE()
 	ue.UeRanID = rANUENGAPIDInt
@@ -609,7 +608,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 	
 	// Selecting AMF that will be used for the next new UE
-	lb.SelectNextAmf()
+	LB.SelectNextAmf()
 }
 
 func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
