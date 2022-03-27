@@ -152,7 +152,11 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	if ue != nil {
 		var changeFlag bool 
 		if nASPDU != nil {
-			changeFlag = nas.HandleNAS(ue, nASPDU.Value)
+			if ue.UeStateIdent != context.TypeIdDeregist {
+				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
+			} else if LB.NasDecodeDeregistration {
+				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
+			}
 		}
 		context.ForwardToAmf(message, ue, startTime)
 		if changeFlag {
@@ -344,7 +348,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	if ue != nil {
 		context.ForwardToAmf(message, ue, startTime)
 		for {
-			if ue.DeregFlag == true {
+			if ue.DeregFlag || !LB.NasDecodeDeregistration {
 				ue.RemoveUeEntirely()
 				return 
 			}

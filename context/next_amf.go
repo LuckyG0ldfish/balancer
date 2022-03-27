@@ -37,7 +37,7 @@ import (
 
 // TODO:
 func (context *LBContext) SelectNextRegistAmf() bool{
-	if context.Next_Regular_Amf == nil {
+	if context.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
 	}

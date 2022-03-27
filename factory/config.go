@@ -37,6 +37,7 @@
 	 PlmnSupportList                 []PlmnSupportItem         	`yaml:"plmnSupportList,omitempty"`
 	 MetricsLevel 					 int 						`yaml:"metricsLevel,omitempty"`
 	 ContinuesAmfRegistration 		 bool 						`yaml:"continuesAmfRegistration,omitempty"`
+	 NasDecodeDeregistration		 bool 						`yaml:"nasDecodeDeregistration,omitempty"`
  }
 
  type PlmnSupportItem struct {
