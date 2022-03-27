@@ -43,7 +43,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 			next := self.Next_Deregist_Amf
 			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go context.SelectNextDeregistAmf()
+			go self.SelectNextDeregistAmf()
 		}
 		return false 
 	case nas.MsgTypeDeregistrationRequestUETerminatedDeregistration:
@@ -53,7 +53,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 			next := self.Next_Deregist_Amf
 			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go context.SelectNextDeregistAmf()
+			go self.SelectNextDeregistAmf()
 		}
 		return	false 
 	case nas.MsgTypeDeregistrationAcceptUEOriginatingDeregistration:

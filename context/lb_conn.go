@@ -14,7 +14,9 @@ const TypeIdGNBConn		int = 2
 type LBConn struct{
 	ID 			int64 				// internal AMF/GNB ID that is connected with Conn 
 	TypeID 		int 				// type identifier of the connected AMF/GNB 
+	
 	Conn 		*sctp.SCTPConn		// actual connection to AMF/GNB 
+	Closed 		bool 				// determines whether the connection is closed 
 
 	RanPointer 	*LbGnb
 	AmfPointer 	*LbAmf
@@ -29,5 +31,6 @@ func newLBConn(id int64, typeID int) (*LBConn){
 	lbConn.ID = id
 	lbConn.TypeID = typeID 
 	lbConn.Log = logger.LbConnLog
+	lbConn.Closed = false 
 	return &lbConn
 }

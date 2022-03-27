@@ -36,8 +36,7 @@ import (
 // }
 
 // TODO:
-func SelectNextRegistAmf() bool{
-	context := LB_Self()
+func (context *LBContext) SelectNextRegistAmf() bool{
 	if context.Next_Regular_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
@@ -45,15 +44,14 @@ func SelectNextRegistAmf() bool{
 	if context.Next_Regist_Amf.NumberOfConnectedUEs % 5 != 0 {
 		return true 
 	}
-	nextAmf := findNextAMF(TypeIdRegist)
+	nextAmf := context.findNextAMF(TypeIdRegist)
 	context.Next_Regist_Amf = nextAmf
 	logger.ContextLog.Tracef("NextAMF = AMFID: %d", nextAmf.AmfID)
 	return true 
 }
 
 // TODO:
-func SelectNextRegularAmf() bool{
-	context := LB_Self()
+func (context *LBContext) SelectNextRegularAmf() bool{
 	if context.Next_Regular_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
@@ -61,15 +59,14 @@ func SelectNextRegularAmf() bool{
 	if context.Next_Regular_Amf.NumberOfConnectedUEs % 5 != 0 {
 		return true 
 	}
-	amfWithMaxCap := findNextAMF(TypeIdRegular)
+	amfWithMaxCap := context.findNextAMF(TypeIdRegular)
 	context.Next_Regular_Amf = amfWithMaxCap
 	logger.ContextLog.Tracef("NextRegularAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
 }
 
 // TODO:
-func SelectNextDeregistAmf() bool{
-	context := LB_Self()
+func (context *LBContext) SelectNextDeregistAmf() bool{
 	if context.Next_Deregist_Amf == nil {
 		logger.ContextLog.Errorf("No Amf found")
 		return false 
@@ -77,13 +74,13 @@ func SelectNextDeregistAmf() bool{
 	if context.Next_Deregist_Amf.NumberOfConnectedUEs % 5 != 0 {
 		return true 
 	}
-	amfWithMaxCap := findNextAMF(TypeIdDeregist)
+	amfWithMaxCap := context.findNextAMF(TypeIdDeregist)
 	context.Next_Deregist_Amf = amfWithMaxCap
 	logger.ContextLog.Tracef("NextDeregistAMF = AMFID: %d", amfWithMaxCap.AmfID)
 	return true 
 }
 
-func findNextAMF(state int) *LbAmf{
+func (context *LBContext) findNextAMF(state int) *LbAmf{
 	lb := LB_Self()
 	var amfWithMaxCap *LbAmf
 	var amfUsage float64

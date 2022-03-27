@@ -54,7 +54,7 @@ func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
 // Handling all the the LBs open connections (AMFs + GNBs)
 func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandler) {// conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) {
 	logger.NgapLog.Tracef("Waiting for message")
-	for {
+	for !lbConn.Closed {
 		buf := make([]byte, bufsize)
 
 		n, info, notification, err := lbConn.Conn.SCTPRead(buf)
@@ -107,11 +107,13 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 }
 // Removes a LB_Conn from the list of connections and the related AMF/GNB from their pool 
 func RemoveLBConnection(conn *context.LBConn) {
+	conn.Closed = true 
 	if conn.TypeID == context.TypeAmf {
 		conn.AmfPointer.RemoveAmfContext()
 	} else {
 		conn.RanPointer.RemoveGnbContext()
 	}
+	time.Sleep(1 * time.Second)
 	connections.Delete(conn.ID)
 }
 
@@ -123,7 +125,7 @@ func Stop() {
 		logger.NgapLog.Error(err)
 		logger.NgapLog.Infof("SCTP server may not close normally.")
 	}
-
+	
 	connections.Range(func(key, value interface{}) bool {
 		lbConn, ok := value.(context.LBConn)
 		if !ok {

@@ -608,7 +608,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 	
 	// Selecting AMF that will be used for the next new UE
-	context.SelectNextRegistAmf()
+	LB.SelectNextRegistAmf()
 }
 
 func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {

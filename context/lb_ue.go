@@ -109,13 +109,13 @@ func (ue *LbUe) RegistrationComplete() {
 			next := self.Next_Regular_Amf
 			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go SelectNextRegularAmf()
+			go self.SelectNextRegularAmf()
 			return 
 		} else if self.DifferentAmfTypes == 2 {
 			next := self.Next_Deregist_Amf
 			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go SelectNextDeregistAmf()
+			go self.SelectNextDeregistAmf()
 		}
 					
 	}
