@@ -35,7 +35,7 @@ import (
 // }
 
 // Used to forward registered UE's messages to an AMF
-func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
+func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64, startTime2 int64) {
 	// finding the correct AMF by the in UE stored AMF-Pointer
 	amf := ue.AmfPointer
 
@@ -62,12 +62,12 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now)
+		AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now, startTime2)
 	}
 }
 
 // Used to forward registered UE's messages to an GNB
-func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
+func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64, startTime2 int64) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.RanPointer
 
@@ -95,6 +95,6 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	lb := LB_Self()
 
 	if lb.MetricsLevel > 0 {
-		AddRouting_Element(ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, startTime, now)
+		AddRouting_Element(ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, startTime, now, startTime2)
 	}
 }

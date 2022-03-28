@@ -1,30 +1,33 @@
 package ngap
 
 import (
+	"time"
+
 	"github.com/ishidawataru/sctp"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	amf_ngap "github.com/LuckyG0ldfish/balancer/ngap/amf_ngap"
 	gnb_ngap "github.com/LuckyG0ldfish/balancer/ngap/gnb_ngap"
+	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
-	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 )
 
 // Distributes message to the correct handler based on Type of the incoming Connection
 func Dispatch(lbConn *context.LBConn, msg []byte, startTime int64) {
+	startTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	if lbConn.TypeID == context.TypeIdGNBConn {
-		DispatchForMessageToAmf(lbConn, msg, startTime) 		
+		DispatchForMessageToAmf(lbConn, msg, startTime, startTime2) 		
 	} else if lbConn.TypeID == context.TypeIdAMFConn {
-		DispatchForMessageToGnb(lbConn, msg, startTime)		
+		DispatchForMessageToGnb(lbConn, msg, startTime, startTime2)		
 	} else {
 		logger.NgapLog.Errorf("Connection undefiend!")
 	}
 }
 
 // This handles messages incoming from GNB with the functions of the AMFs handler 
-func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64) {
+func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64, startTime2 int64) {
 	if len(msg) == 0 {
 		lbConn.Log.Infof("RAN close the connection.")
 		// ran.Remove() TODO
@@ -50,10 +53,10 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64
 			gnb_ngap.HandleNGSetupRequest(lbConn, pdu)
 		case ngapType.ProcedureCodeInitialUEMessage:
 			logger.NgapLog.Tracef("Handling InitialUEMessage")
-			gnb_ngap.HandleInitialUEMessage(lbConn, pdu, startTime)
+			gnb_ngap.HandleInitialUEMessage(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUplinkNASTransport:
 			logger.NgapLog.Tracef("Handling UplinkNasTransport")
-			gnb_ngap.HandleUplinkNasTransport(lbConn, pdu, startTime)
+			gnb_ngap.HandleUplinkNasTransport(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeNGReset:
 			logger.NgapLog.Tracef("Handling NGReset")
 			gnb_ngap.HandleNGReset(lbConn, pdu)
@@ -62,55 +65,55 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64
 		// 	gnb_ngap.HandleHandoverCancel(lbConn, pdu, startTime)
 		case ngapType.ProcedureCodeUEContextReleaseRequest:
 			logger.NgapLog.Tracef("Handling UEContextReleaseRequest")
-			gnb_ngap.HandleUEContextReleaseRequest(lbConn, pdu, startTime)
+			gnb_ngap.HandleUEContextReleaseRequest(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeNASNonDeliveryIndication:
 			logger.NgapLog.Tracef("Handling NasNonDeliveryIndication")
-			gnb_ngap.HandleNasNonDeliveryIndication(lbConn, pdu, startTime)
+			gnb_ngap.HandleNasNonDeliveryIndication(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeLocationReportingFailureIndication:
 			logger.NgapLog.Tracef("Handling LocationReportingFailureIndication")
-			gnb_ngap.HandleLocationReportingFailureIndication(lbConn, pdu, startTime)
+			gnb_ngap.HandleLocationReportingFailureIndication(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeErrorIndication:
 			logger.NgapLog.Tracef("Handling ErrorIndication")
-			gnb_ngap.HandleErrorIndication(lbConn, pdu, startTime)
+			gnb_ngap.HandleErrorIndication(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUERadioCapabilityInfoIndication:
 			logger.NgapLog.Tracef("Handling UERadioCapabilityInfoIndication")
-			gnb_ngap.HandleUERadioCapabilityInfoIndication(lbConn, pdu, startTime)
+			gnb_ngap.HandleUERadioCapabilityInfoIndication(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeHandoverNotification:
 			logger.NgapLog.Tracef("Handling HandoverNotify")
-			gnb_ngap.HandleHandoverNotify(lbConn, pdu, startTime)
+			gnb_ngap.HandleHandoverNotify(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeHandoverPreparation:
 			logger.NgapLog.Tracef("Handling HandoverRequired") //
-			gnb_ngap.HandleHandoverRequired(lbConn, pdu, startTime)
+			gnb_ngap.HandleHandoverRequired(lbConn, pdu, startTime, startTime2)
 		// case ngapType.ProcedureCodeRANConfigurationUpdate:
 		// 	logger.NgapLog.Tracef("Handling RanConfigurationUpdate")
 			// gnb_ngap.HandleRanConfigurationUpdate(lbConn, pdu, startTime)
 		case ngapType.ProcedureCodeRRCInactiveTransitionReport:
 			logger.NgapLog.Tracef("Handling RRCInactiveTransitionReport")
-			gnb_ngap.HandleRRCInactiveTransitionReport(lbConn, pdu, startTime)
+			gnb_ngap.HandleRRCInactiveTransitionReport(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodePDUSessionResourceNotify:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceNotify")
-			gnb_ngap.HandlePDUSessionResourceNotify(lbConn, pdu, startTime)
+			gnb_ngap.HandlePDUSessionResourceNotify(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodePathSwitchRequest:
 			logger.NgapLog.Tracef("Handling PathSwitchRequest")
-			gnb_ngap.HandlePathSwitchRequest(lbConn, pdu, startTime)
+			gnb_ngap.HandlePathSwitchRequest(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeLocationReport:
 			logger.NgapLog.Tracef("Handling LocationReport")
-			gnb_ngap.HandleLocationReport(lbConn, pdu, startTime)
+			gnb_ngap.HandleLocationReport(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUplinkUEAssociatedNRPPaTransport:
 			logger.NgapLog.Tracef("Handling UplinkUEAssociatedNRPPATransport")
-			gnb_ngap.HandleUplinkUEAssociatedNRPPATransport(lbConn, pdu, startTime)
+			gnb_ngap.HandleUplinkUEAssociatedNRPPATransport(lbConn, pdu, startTime, startTime2)
 		// case ngapType.ProcedureCodeUplinkRANConfigurationTransfer:
 		// 	logger.NgapLog.Tracef("Handling UplinkRanConfigurationTransfer")
 		// 	gnb_ngap.HandleUplinkRanConfigurationTransfer(lbConn, pdu, startTime)
 		case ngapType.ProcedureCodePDUSessionResourceModifyIndication:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceModifyIndication")
-			gnb_ngap.HandlePDUSessionResourceModifyIndication(lbConn, pdu, startTime)
+			gnb_ngap.HandlePDUSessionResourceModifyIndication(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeCellTrafficTrace:
 			logger.NgapLog.Tracef("Handling CellTrafficTrace")
-			gnb_ngap.HandleCellTrafficTrace(lbConn, pdu, startTime)
+			gnb_ngap.HandleCellTrafficTrace(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUplinkRANStatusTransfer:
 			logger.NgapLog.Tracef("Handling UplinkRanStatusTransfer")
-			gnb_ngap.HandleUplinkRanStatusTransfer(lbConn, pdu, startTime)
+			gnb_ngap.HandleUplinkRanStatusTransfer(lbConn, pdu, startTime, startTime2)
 		// case ngapType.ProcedureCodeUplinkNonUEAssociatedNRPPaTransport:
 		// 	logger.NgapLog.Tracef("Handling UplinkNonUEAssociatedNRPPATransport")
 		// 	gnb_ngap.HandleUplinkNonUEAssociatedNRPPATransport(lbConn, pdu, startTime)
@@ -129,31 +132,31 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64
 			gnb_ngap.HandleNGResetAcknowledge(lbConn, pdu)
 		case ngapType.ProcedureCodeUEContextRelease:
 			logger.NgapLog.Tracef("Handling UEContextReleaseComplete")
-			gnb_ngap.HandleUEContextReleaseComplete(lbConn, pdu, startTime)
+			gnb_ngap.HandleUEContextReleaseComplete(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodePDUSessionResourceRelease:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceReleaseResponse")
-			gnb_ngap.HandlePDUSessionResourceReleaseResponse(lbConn, pdu, startTime)
+			gnb_ngap.HandlePDUSessionResourceReleaseResponse(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUERadioCapabilityCheck:
 			logger.NgapLog.Tracef("Handling UERadioCapabilityCheckResponse")
-			gnb_ngap.HandleUERadioCapabilityCheckResponse(lbConn, pdu, startTime)
+			gnb_ngap.HandleUERadioCapabilityCheckResponse(lbConn, pdu, startTime, startTime2)
 		// case ngapType.ProcedureCodeAMFConfigurationUpdate:
 		// 	logger.NgapLog.Tracef("Handling AMFconfigurationUpdateAcknowledge")
 		// 	gnb_ngap.HandleAMFconfigurationUpdateAcknowledge(lbConn, pdu, startTime)
 		case ngapType.ProcedureCodeInitialContextSetup:
 			logger.NgapLog.Tracef("Handling InitialContextSetupResponse")
-			gnb_ngap.HandleInitialContextSetupResponse(lbConn, pdu, startTime)
+			gnb_ngap.HandleInitialContextSetupResponse(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUEContextModification:
 			logger.NgapLog.Tracef("Handling UEContextModificationResponse")
-			gnb_ngap.HandleUEContextModificationResponse(lbConn, pdu, startTime)
+			gnb_ngap.HandleUEContextModificationResponse(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodePDUSessionResourceSetup:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceSetupResponse")
-			gnb_ngap.HandlePDUSessionResourceSetupResponse(lbConn, pdu, startTime)
+			gnb_ngap.HandlePDUSessionResourceSetupResponse(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodePDUSessionResourceModify:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceModifyResponse")
-			gnb_ngap.HandlePDUSessionResourceModifyResponse(lbConn, pdu, startTime)
+			gnb_ngap.HandlePDUSessionResourceModifyResponse(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeHandoverResourceAllocation:
 			logger.NgapLog.Tracef("Handling HandoverRequestAcknowledge")
-			gnb_ngap.HandleHandoverRequestAcknowledge(lbConn, pdu, startTime)
+			gnb_ngap.HandleHandoverRequestAcknowledge(lbConn, pdu, startTime, startTime2)
 		default:
 			lbConn.Log.Warnf("Not implemented(choice:%d, procedureCode:%d)\n", pdu.Present, successfulOutcome.ProcedureCode.Value)
 		}
@@ -169,10 +172,10 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64
 		// 	gnb_ngap.HandleAMFconfigurationUpdateFailure(lbConn, pdu, startTime)
 		case ngapType.ProcedureCodeInitialContextSetup:
 			logger.NgapLog.Tracef("Handling InitialContextSetupFailure")
-			gnb_ngap.HandleInitialContextSetupFailure(lbConn, pdu, startTime)
+			gnb_ngap.HandleInitialContextSetupFailure(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeUEContextModification:
 			logger.NgapLog.Tracef("Handling UEContextModificationFailure")
-			gnb_ngap.HandleUEContextModificationFailure(lbConn, pdu, startTime)
+			gnb_ngap.HandleUEContextModificationFailure(lbConn, pdu, startTime, startTime2)
 		// case ngapType.ProcedureCodeHandoverResourceAllocation:
 		// 	logger.NgapLog.Tracef("Handling HandoverFailure")
 		// 	gnb_ngap.HandleHandoverFailure(lbConn, pdu, startTime)
@@ -183,7 +186,7 @@ func DispatchForMessageToAmf(lbConn *context.LBConn, msg []byte, startTime int64
 }
 
 // This handles messages incoming from AMF with the functions of the GNBs handler 
-func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64) {
+func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64, startTime2 int64) {
 	// Decode
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
@@ -204,24 +207,24 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64
 		//	handler.HandleNGReset(amf, pdu)
 		case ngapType.ProcedureCodeInitialContextSetup:
 			logger.NgapLog.Tracef("Handling InitialContextSetupRequest")
-			amf_ngap.HandleInitialContextSetupRequest(lbConn, pdu, startTime)
+			amf_ngap.HandleInitialContextSetupRequest(lbConn, pdu, startTime, startTime2)
 		//case ngapType.ProcedureCodeUEContextModification:
 		//	handler.HandleUEContextModificationRequest(amf, pdu)
 		case ngapType.ProcedureCodeUEContextRelease:
 			logger.NgapLog.Tracef("Handling UEContextReleaseCommand")
-			amf_ngap.HandleUEContextReleaseCommand(lbConn, pdu, startTime)
+			amf_ngap.HandleUEContextReleaseCommand(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodeDownlinkNASTransport:
 			logger.NgapLog.Tracef("Handling DownlinkNASTransport")
-			amf_ngap.HandleDownlinkNASTransport(lbConn, pdu, startTime)
+			amf_ngap.HandleDownlinkNASTransport(lbConn, pdu, startTime, startTime2)
 		case ngapType.ProcedureCodePDUSessionResourceSetup:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceSetupRequest")
-			amf_ngap.HandlePDUSessionResourceSetupRequest(lbConn, pdu, startTime)
+			amf_ngap.HandlePDUSessionResourceSetupRequest(lbConn, pdu, startTime, startTime2)
 		// TODO: This will be commented for the time being, after adding other procedures will be uncommented.
 		//case ngapType.ProcedureCodePDUSessionResourceModify:
 		//	handler.HandlePDUSessionResourceModifyRequest(amf, pdu)
 		case ngapType.ProcedureCodePDUSessionResourceRelease:
 			logger.NgapLog.Tracef("Handling PDUSessionResourceReleaseCommand")
-			amf_ngap.HandlePDUSessionResourceReleaseCommand(lbConn, pdu, startTime)
+			amf_ngap.HandlePDUSessionResourceReleaseCommand(lbConn, pdu, startTime, startTime2)
 		//case ngapType.ProcedureCodeErrorIndication:
 		//	handler.HandleErrorIndication(amf, pdu)
 		//case ngapType.ProcedureCodeUERadioCapabilityCheck:

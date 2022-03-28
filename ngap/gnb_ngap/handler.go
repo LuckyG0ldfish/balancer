@@ -88,7 +88,7 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
@@ -158,7 +158,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
 			}
 		}
-		context.ForwardToAmf(message, ue, startTime)
+		context.ForwardToAmf(message, ue, startTime, startTime2)
 		if changeFlag {
 			if ue.UeStateIdent == context.TypeIdRegist {
 				ue.UplinkFlag = true 
@@ -290,7 +290,7 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	}
 }
 
-func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
@@ -346,7 +346,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	}
 
 	if ue != nil {
-		context.ForwardToAmf(message, ue, startTime)
+		context.ForwardToAmf(message, ue, startTime, startTime2)
 		for {
 			if ue.DeregFlag || !LB.NasDecodeDeregistration {
 				ue.RemoveUeEntirely()
@@ -357,7 +357,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	}
 }
 
-func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -406,13 +406,13 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -462,13 +462,13 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -518,13 +518,13 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	// var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
@@ -608,14 +608,14 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	// 	ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
 	// }
 
-	context.ForwardToAmf(message, ue, startTime)
+	context.ForwardToAmf(message, ue, startTime, startTime2)
 	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 	
 	// Selecting AMF that will be used for the next new UE
 	LB.SelectNextRegistAmf()
 }
 
-func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -664,13 +664,13 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -719,13 +719,13 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -774,13 +774,13 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -843,13 +843,13 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
@@ -903,13 +903,13 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 			}
 		}
 	}
-	context.ForwardToAmf(message, ue, startTime)
+	context.ForwardToAmf(message, ue, startTime, startTime2)
 	ue.ResponseFlag = true 
 	// Check if registration is done and switch UE-State accordingly 
 	go ue.RegistrationComplete()
 }
 
-func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -958,13 +958,13 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1013,13 +1013,13 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1068,13 +1068,13 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1123,13 +1123,13 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1181,13 +1181,13 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1238,19 +1238,19 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
 // TS 23.502 4.9.1
-func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	//TODO
 	lbConn.Log.Errorln("Handling case not implemented yet: Path Switch Request")
 }
 
-func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1299,14 +1299,14 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
 //TODO
-func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1357,13 +1357,13 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1412,13 +1412,13 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1467,13 +1467,13 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1522,13 +1522,13 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1577,13 +1577,13 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1633,13 +1633,13 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1686,13 +1686,13 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1741,13 +1741,13 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-				context.ForwardToAmf(message, ue, startTime)
+				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
 	}
 }
 
-func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
+func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present int, value aper.Enumerated, startTime2 int64) {
 	present = cause.Present
 	switch cause.Present {
 	case ngapType.CausePresentRadioNetwork:
