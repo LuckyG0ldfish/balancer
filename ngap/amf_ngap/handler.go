@@ -3,6 +3,8 @@ package amf_ngap
 // This handles messages incoming from AMF with the functions of the GNBs handler
 
 import (
+	"time"
+
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/LuckyG0ldfish/balancer/nas"
@@ -297,16 +299,20 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					lbConn.Log.Errorf("RanUeNgapID is nil")
 				} else {
 					amf := lbConn.AmfPointer
+					startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 					ue, ok := amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
 						return 
 					}
+					endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
 					// if amfIDPresent {
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
+					delay := endTime2-startTime3
+					logger.NgapLog.Errorf("%d", delay)
 					context.ForwardToGnb(message, ue, startTime, startTime2)
 				}
 		}
