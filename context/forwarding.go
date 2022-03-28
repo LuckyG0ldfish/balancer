@@ -46,7 +46,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64, startTim
 		logger.NgapLog.Errorf("Message encoding failed")
 		return
 	}
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	// Forwarding
 	SendByteToConn(amf.LbConn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to AMF")
@@ -70,7 +70,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64, startTim
 func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64, startTime2 int64) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.RanPointer
-
+	
 	// Encoding
 	var mes []byte
 	mes, err := ngap.Encoder(*message)
@@ -78,7 +78,7 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64, startTim
 		logger.NgapLog.Errorf("Message encoding failed")
 		return
 	}
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	// Forwarding
 	SendByteToConn(gnb.LbConn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to GNB")
