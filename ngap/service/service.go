@@ -131,6 +131,9 @@ func Stop() {
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}
+		if lbConn.Conn == nil {
+			return true 
+		}
 		if err := lbConn.Conn.Close(); err != nil {
 			logger.NgapLog.Error(err)
 		}

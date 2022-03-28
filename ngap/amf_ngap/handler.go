@@ -183,7 +183,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
-	LB := context.LB_Self()
+	// LB := context.LB_Self()
 
 	if message == nil {
 		logger.NgapLog.Errorf("NGAP Message is nil")
@@ -243,11 +243,6 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	}
 	// startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	if nASPDU != nil && ue != nil {
-		if ue.UeStateIdent != context.TypeIdDeregist {
-			nas.HandleNAS(ue, nASPDU.Value)
-		} else if LB.NasDecodeDeregistration {
-			nas.HandleNAS(ue, nASPDU.Value)
-		}
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
 	// endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)

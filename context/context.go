@@ -38,7 +38,6 @@ type LBContext struct {
 	
 	DifferentAmfTypes			int 
 	ContinuesAmfRegistration	bool // true for continues accepting AMFs for registration 
-	NasDecodeDeregistration		bool 
 	
 	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
 	LbRegistAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB

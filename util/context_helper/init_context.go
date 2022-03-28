@@ -60,7 +60,6 @@ func InitLbContext(self *context.LBContext) {
 
 	self.DifferentAmfTypes = configuration.DifferentAmfTypes
 	self.ContinuesAmfRegistration = configuration.ContinuesAmfRegistration
-	self.NasDecodeDeregistration = configuration.NasDecodeDeregistration
 
 	// adding AMFs 
 	if configuration.RegistrationAmfNgapIpList != nil {

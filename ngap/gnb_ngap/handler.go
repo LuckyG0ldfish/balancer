@@ -15,7 +15,7 @@ import (
 	ngap_message "github.com/LuckyG0ldfish/balancer/ngap/message"
 )
 
-var LB context.LBContext
+var LB *context.LBContext = context.LB_Self()
 
 //TODO
 func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
@@ -24,7 +24,6 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var supportedTAList *ngapType.SupportedTAList
 	var pagingDRX *ngapType.PagingDRX
 	
-	LB = *context.LB_Self()
 	var cause ngapType.Cause
 
 	if LbConn == nil {
@@ -151,14 +150,9 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	}
 	if ue != nil {
 		// startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-		LB = *context.LB_Self()
 		var changeFlag bool 
 		if nASPDU != nil {
-			if ue.UeStateIdent != context.TypeIdDeregist {
-				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
-			} else if LB.NasDecodeDeregistration {
-				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
-			}
+			changeFlag = nas.HandleNAS(ue, nASPDU.Value)
 		}
 		// endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 		// delay := endTime2-startTime3
@@ -181,8 +175,6 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var resetType *ngapType.ResetType
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -246,8 +238,6 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -301,8 +291,6 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -354,7 +342,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	if ue != nil {
 		context.ForwardToAmf(message, ue, startTime, startTime2)
 		for {
-			if ue.DeregFlag || !LB.NasDecodeDeregistration {
+			if ue.DeregFlag {
 				ue.RemoveUeEntirely()
 				return 
 			}
@@ -366,8 +354,6 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -421,8 +407,6 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -478,8 +462,6 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -533,9 +515,6 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	// var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
-
-	LB = *context.LB_Self()
 
 	if message == nil {
 		lbConn.Log.Errorf("NGAP Message is nil")
@@ -624,8 +603,6 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -678,8 +655,6 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -734,8 +709,6 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -788,8 +761,6 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -859,8 +830,6 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -911,14 +880,12 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	context.ForwardToAmf(message, ue, startTime, startTime2)
 	ue.ResponseFlag = true 
 	// Check if registration is done and switch UE-State accordingly 
-	go ue.RegistrationComplete()
+	ue.RegistrationComplete()
 }
 
 func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -973,8 +940,6 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -1027,8 +992,6 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1083,8 +1046,6 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -1138,8 +1099,6 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1196,8 +1155,6 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1259,8 +1216,6 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, 
 func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1316,8 +1271,6 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -1372,8 +1325,6 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1480,8 +1431,6 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1535,8 +1484,6 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1590,8 +1537,6 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -1647,8 +1592,6 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
-	LB = *context.LB_Self()
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -1699,8 +1642,6 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	
-	LB = *context.LB_Self()
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")

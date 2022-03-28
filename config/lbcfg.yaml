@@ -38,7 +38,7 @@ configuration:
     # 2 (routing: enables LB internal tracking of UE states, routings, and message specific timings)   
     # 3 (1 and 2)
   continuesAmfRegistration: true # true for continues accepting AMFs for registration
-  nasDecodeDeregistration: true # false deactivates NAS processing on deregistration state UEs
+  # nasDecodeDeregistration: true # false deactivates NAS processing on deregistration state UEs
 
 # # the kind of log output
 #   # debugLevel: how detailed to output, value: trace, debug, info, warn, error, fatal, panic
