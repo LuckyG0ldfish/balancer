@@ -150,7 +150,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		}
 	}
 	if ue != nil {
-		startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		// startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 		LB = *context.LB_Self()
 		var changeFlag bool 
 		if nASPDU != nil {
@@ -160,9 +160,9 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
 			}
 		}
-		endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-		delay := endTime2-startTime3
-		logger.NgapLog.Errorf("%d", delay)
+		// endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		// delay := endTime2-startTime3
+		// logger.NgapLog.Errorf("%d", delay)
 		context.ForwardToAmf(message, ue, startTime, startTime2)
 		
 		if changeFlag {

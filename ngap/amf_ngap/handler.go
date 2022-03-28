@@ -3,7 +3,7 @@ package amf_ngap
 // This handles messages incoming from AMF with the functions of the GNBs handler
 
 import (
-	"time"
+	// "time"
 
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
@@ -241,7 +241,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				nASPDU = ie.Value.NASPDU
 		}	
 	}
-	startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	// startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	if nASPDU != nil && ue != nil {
 		if ue.UeStateIdent != context.TypeIdDeregist {
 			nas.HandleNAS(ue, nASPDU.Value)
@@ -250,9 +250,9 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		}
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
-	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-	delay := endTime2-startTime3
-	logger.NgapLog.Errorf("%d", delay)
+	// endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	// delay := endTime2-startTime3
+	// logger.NgapLog.Errorf("%d", delay)
 	if ue != nil {
 		context.ForwardToGnb(message, ue, startTime, startTime2)
 	}
