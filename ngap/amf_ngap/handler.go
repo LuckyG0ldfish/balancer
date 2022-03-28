@@ -183,7 +183,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
-	
+	LB := context.LB_Self()
 
 	if message == nil {
 		logger.NgapLog.Errorf("NGAP Message is nil")
@@ -204,7 +204,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 	var aMFUENGAPIDInt int64
 	var amfIDPresent bool = false
-
+	
 	for _, ie := range downlinkNASTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
 			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
@@ -225,7 +225,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				} else {
 					amf := lbConn.AmfPointer
 					var ok bool 
-					startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+					
 					ue, ok = amf.FindUeByUeID(rANUENGAPIDInt)
 					if !ok {
 						lbConn.Log.Errorf("UE not registered")
@@ -235,16 +235,13 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					if amfIDPresent && ue.UeAmfID == 0 {
 						ue.UeAmfID = aMFUENGAPIDInt
 					}
-					endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-					delay := endTime2-startTime3
-					logger.NgapLog.Errorf("%d", delay)
+					
 				}
 			case ngapType.ProtocolIEIDNASPDU:
 				nASPDU = ie.Value.NASPDU
 		}	
 	}
-	LB := context.LB_Self()
-
+	startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	if nASPDU != nil && ue != nil {
 		if ue.UeStateIdent != context.TypeIdDeregist {
 			nas.HandleNAS(ue, nASPDU.Value)
@@ -253,6 +250,9 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		}
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
+	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	delay := endTime2-startTime3
+	logger.NgapLog.Errorf("%d", delay)
 	if ue != nil {
 		context.ForwardToGnb(message, ue, startTime, startTime2)
 	}

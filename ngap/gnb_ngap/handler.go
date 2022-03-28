@@ -94,7 +94,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
 	
-	LB = *context.LB_Self()
+	
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -118,7 +118,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	}
 
 	lbConn.Log.Infoln("Handle Uplink Nas Transport")
-	
+
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
@@ -150,6 +150,8 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		}
 	}
 	if ue != nil {
+		startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		LB = *context.LB_Self()
 		var changeFlag bool 
 		if nASPDU != nil {
 			if ue.UeStateIdent != context.TypeIdDeregist {
@@ -158,7 +160,11 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 				changeFlag = nas.HandleNAS(ue, nASPDU.Value)
 			}
 		}
+		endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+		delay := endTime2-startTime3
+		logger.NgapLog.Errorf("%d", delay)
 		context.ForwardToAmf(message, ue, startTime, startTime2)
+		
 		if changeFlag {
 			if ue.UeStateIdent == context.TypeIdRegist {
 				ue.UplinkFlag = true 
