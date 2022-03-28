@@ -93,7 +93,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -294,7 +294,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -360,7 +360,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -415,7 +415,7 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -471,7 +471,7 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -528,7 +528,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	// var rRCEstablishmentCause *ngapType.RRCEstablishmentCause
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if message == nil {
@@ -607,7 +607,6 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	// } else {
 	// 	ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
 	// }
-
 	context.ForwardToAmf(message, ue, startTime, startTime2)
 	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 	
@@ -618,7 +617,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -673,7 +672,7 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -728,7 +727,7 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -783,7 +782,7 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -853,7 +852,7 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -912,7 +911,7 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -967,7 +966,7 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1022,7 +1021,7 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1077,7 +1076,7 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1123,6 +1122,7 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
+
 				context.ForwardToAmf(message, ue, startTime, startTime2)
 			}
 		}
@@ -1132,7 +1132,7 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1190,7 +1190,7 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1253,7 +1253,7 @@ func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, 
 func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1309,7 +1309,7 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1366,7 +1366,7 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1421,7 +1421,7 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1476,7 +1476,7 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1531,7 +1531,7 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1586,7 +1586,7 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1642,7 +1642,7 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1695,7 +1695,7 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-
+	startTime2 = int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	LB = *context.LB_Self()
 
 	if lbConn == nil {
@@ -1747,7 +1747,7 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	}
 }
 
-func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present int, value aper.Enumerated, startTime2 int64) {
+func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
 	present = cause.Present
 	switch cause.Present {
 	case ngapType.CausePresentRadioNetwork:
