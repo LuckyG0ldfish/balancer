@@ -180,8 +180,12 @@ func calcuateGNBComparableDuration(traces []*trace) int64 {
 	if mes2.endTime > mes3.endTime {
 		return dur
 	}
-	if mes2.endTime > mes3.startTime {
+	if mes2.endTime > mes3.startTime && mes3.endTime < end {
 		dur += (mes3.endTime - mes2.endTime)
+		return dur
+	}
+	if mes2.endTime > mes3.startTime && mes3.endTime >= end {
+		dur += (end - mes2.endTime)
 		return dur
 	}
 	dur += (mes3.endTime - mes3.startTime)
