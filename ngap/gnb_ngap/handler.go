@@ -101,7 +101,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		lbConn.Log.Errorf("NGAP Message is nil")
 		return
 	}
-
+	startTime5 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
 		lbConn.Log.Errorf("Initiating Message is nil")
@@ -113,9 +113,11 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		lbConn.Log.Errorf("UplinkNasTransport is nil")
 		return
 	}
-
+	endTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	delay2 := endTime3-startTime5
+	logger.NgapLog.Errorf("a%d", delay2)
 	lbConn.Log.Infoln("Handle Uplink Nas Transport")
-
+	startTime4 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
@@ -157,7 +159,9 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 			logger.NgapLog.Errorf("n%d", delay)
 		}
 	}
-	
+	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	delay := endTime2-startTime4
+	logger.NgapLog.Errorf("t%d", delay)
 	
 	if ue != nil {
 		var changeFlag bool 

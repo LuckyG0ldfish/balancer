@@ -192,7 +192,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		logger.NgapLog.Errorf("NGAP Message is nil")
 		return
 	}
-
+	startTime5 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
 		logger.NgapLog.Errorf("Initiating Message is nil")
@@ -204,7 +204,10 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 		logger.NgapLog.Errorf("DownlinkNASTransport is nil")
 		return
 	}
-
+	endTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	delay2 := endTime3-startTime5
+	logger.NgapLog.Errorf("a%d", delay2)
+	startTime4 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	var aMFUENGAPIDInt int64
 	var amfIDPresent bool = false
 	for _, ie := range downlinkNASTransport.ProtocolIEs.List {
@@ -253,10 +256,12 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 				delay := endTime2-startTime3
 				logger.NgapLog.Errorf("n%d", delay)
+			default: 
 		}	
 	}
-	
-	
+	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	delay := endTime2-startTime4
+	logger.NgapLog.Errorf("n%d", delay)
 	if nASPDU != nil && ue != nil {
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
