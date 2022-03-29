@@ -206,7 +206,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	}
 	endTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	delay2 := endTime3-startTime5
-	logger.NgapLog.Errorf("a%d", delay2)
+	logger.NgapLog.Errorf("t%d", delay2)
 	startTime4 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	var aMFUENGAPIDInt int64
 	var amfIDPresent bool = false
