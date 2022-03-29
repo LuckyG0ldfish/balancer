@@ -187,7 +187,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	var ue *context.LbUe
 	// LB := context.LB_Self()
 
-	startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	
 	if message == nil {
 		logger.NgapLog.Errorf("NGAP Message is nil")
 		return
@@ -207,19 +207,23 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 
 	var aMFUENGAPIDInt int64
 	var amfIDPresent bool = false
-	
 	for _, ie := range downlinkNASTransport.ProtocolIEs.List {
 		switch ie.Id.Value {
 			case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+				startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)	
 				aMFUENGAPID = ie.Value.AMFUENGAPID
 				lbConn.Log.Trace("Decode IE AmfUeNgapID")
 				if aMFUENGAPID == nil {
 					lbConn.Log.Errorf("AmfUeNgapID is nil")
 				} else {
-				aMFUENGAPIDInt = aMFUENGAPID.Value
-				amfIDPresent = true
+					aMFUENGAPIDInt = aMFUENGAPID.Value
+					amfIDPresent = true
 				}
+				endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+				delay := endTime2-startTime3
+				logger.NgapLog.Errorf("a%d", delay)
 			case ngapType.ProtocolIEIDRANUENGAPID: // reject
+				startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)	
 				rANUENGAPID = ie.Value.RANUENGAPID
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 				lbConn.Log.Trace("Decode IE RanUeNgapID")
@@ -240,13 +244,18 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 					}
 					
 				}
+				endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+				delay := endTime2-startTime3
+				logger.NgapLog.Errorf("r%d", delay)
 			case ngapType.ProtocolIEIDNASPDU:
+				startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 				nASPDU = ie.Value.NASPDU
+				endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+				delay := endTime2-startTime3
+				logger.NgapLog.Errorf("n%d", delay)
 		}	
 	}
-	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-	delay := endTime2-startTime3
-	logger.NgapLog.Errorf("%d", delay)
+	
 	
 	if nASPDU != nil && ue != nil {
 		nas.HandleNAS(ue, nASPDU.Value)

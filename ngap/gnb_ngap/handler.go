@@ -93,8 +93,6 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
 	
-	startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
 		return
@@ -122,12 +120,17 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
+			startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)	
 			aMFUENGAPID = ie.Value.AMFUENGAPID
 			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
 			if aMFUENGAPID == nil {
 				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
+			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+			delay := endTime2-startTime3
+			logger.NgapLog.Errorf("a%d", delay)
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
+			startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 			rANUENGAPID = ie.Value.RANUENGAPID
 			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 			lbConn.Log.Traceln("Decode IE RanUeNgapID")
@@ -143,14 +146,18 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
 			}
+			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+			delay := endTime2-startTime3
+			logger.NgapLog.Errorf("r%d", delay)
 		case ngapType.ProtocolIEIDNASPDU:
+			startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 			nASPDU = ie.Value.NASPDU
-			
+			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+			delay := endTime2-startTime3
+			logger.NgapLog.Errorf("n%d", delay)
 		}
 	}
-	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-	delay := endTime2-startTime3
-	logger.NgapLog.Errorf("%d", delay)
+	
 	
 	if ue != nil {
 		var changeFlag bool 
