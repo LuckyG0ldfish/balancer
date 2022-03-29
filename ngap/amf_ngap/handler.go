@@ -46,7 +46,6 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			if servedGUAMIList == nil {
 				lbConn.Log.Errorf("ServedGUAMIList is nil")
 			}
-			// LB.ServedGuamiList = servedGUAMIList
 		case ngapType.ProtocolIEIDRelativeAMFCapacity:
 			lbConn.Log.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
 			relativeAMFCapacity := ie.Value.RelativeAMFCapacity
@@ -58,7 +57,6 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			if plmnSupportList == nil {
 				lbConn.Log.Errorf("PLMNSupportList is nil")
 			}
-			// LB.PlmnSupportList = plmnSupportList
 		case ngapType.ProtocolIEIDCriticalityDiagnostics:
 			lbConn.Log.Traceln("[NGAP] Decode IE CriticalityDiagnostics")
 		}
@@ -206,7 +204,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	}
 	endTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	delay2 := endTime3-startTime5
-	logger.NgapLog.Errorf("t%d", delay2)
+	logger.NgapLog.Errorf("i%d", delay2)
 	startTime4 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	var aMFUENGAPIDInt int64
 	var amfIDPresent bool = false
@@ -261,7 +259,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	}
 	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	delay := endTime2-startTime4
-	logger.NgapLog.Errorf("n%d", delay)
+	logger.NgapLog.Errorf("t%d", delay)
 	if nASPDU != nil && ue != nil {
 		nas.HandleNAS(ue, nASPDU.Value)
 	}

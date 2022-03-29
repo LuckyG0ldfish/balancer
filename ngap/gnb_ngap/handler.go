@@ -115,7 +115,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	}
 	endTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	delay2 := endTime3-startTime5
-	logger.NgapLog.Errorf("t%d", delay2)
+	logger.NgapLog.Errorf("i%d", delay2)
 	lbConn.Log.Infoln("Handle Uplink Nas Transport")
 	startTime4 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
@@ -157,6 +157,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 			delay := endTime2-startTime3
 			logger.NgapLog.Errorf("n%d", delay)
+		default:
 		}
 	}
 	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
