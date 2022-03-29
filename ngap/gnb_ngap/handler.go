@@ -101,7 +101,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		lbConn.Log.Errorf("NGAP Message is nil")
 		return
 	}
-	startTime5 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	
 	initiatingMessage := message.InitiatingMessage
 	if initiatingMessage == nil {
 		lbConn.Log.Errorf("Initiating Message is nil")
@@ -113,26 +113,22 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 		lbConn.Log.Errorf("UplinkNasTransport is nil")
 		return
 	}
-	endTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-	delay2 := endTime3-startTime5
-	logger.NgapLog.Errorf("i%d", delay2)
+	
 	lbConn.Log.Infoln("Handle Uplink Nas Transport")
-	startTime4 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
 		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-			startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)	
+			
 			aMFUENGAPID = ie.Value.AMFUENGAPID
 			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
 			if aMFUENGAPID == nil {
 				lbConn.Log.Errorf("AmfUeNgapID is nil")
 			}
-			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-			delay := endTime2-startTime3
-			logger.NgapLog.Errorf("a%d", delay)
+			
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
-			startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+			
 			rANUENGAPID = ie.Value.RANUENGAPID
 			rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
 			lbConn.Log.Traceln("Decode IE RanUeNgapID")
@@ -148,21 +144,15 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
 			}
-			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-			delay := endTime2-startTime3
-			logger.NgapLog.Errorf("r%d", delay)
+			
 		case ngapType.ProtocolIEIDNASPDU:
-			startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+			
 			nASPDU = ie.Value.NASPDU
-			endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-			delay := endTime2-startTime3
-			logger.NgapLog.Errorf("n%d", delay)
+			
 		default:
 		}
 	}
-	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-	delay := endTime2-startTime4
-	logger.NgapLog.Errorf("t%d", delay)
+	
 	
 	if ue != nil {
 		var changeFlag bool 

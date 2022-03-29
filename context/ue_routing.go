@@ -22,6 +22,7 @@ type metricsUE struct {
 	
 	regTime 	int64 
 	deregTime 	int64
+	gnbTime		int64
 
 	routings 	[]*trace
 }
@@ -128,6 +129,7 @@ func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*tra
 		}
 		tempUE.regTime = calcuateDuration(registTraces)
 		tempUE.deregTime = calcuateDuration(deregTraces)
+		tempUE.gnbTime = calcuateGNBComparableDuration(deregTraces)
 
 	}
 	return 
@@ -158,13 +160,43 @@ func calcuateDuration(traces []*trace) int64 {
 	return dur
 }
 
+func calcuateGNBComparableDuration(traces []*trace) int64 {
+	var dur int64
+	var end int64
+
+	mes1 := traces[0]
+	mes2 := traces[1]
+	mes3 := traces[2]
+	mes4 := traces[3]
+
+	end = mes4.startTime
+
+	dur += (mes1.endTime - mes1.startTime)
+	if mes2.endTime > end {
+		dur += (end - mes2.startTime)
+		return dur 
+	}
+	dur += (mes2.endTime - mes2.startTime)
+	if mes2.endTime > mes3.endTime {
+		return dur
+	}
+	if mes2.endTime > mes3.startTime {
+		dur += (mes3.endTime - mes2.endTime)
+		return dur
+	}
+	dur += (mes3.endTime - mes3.startTime)
+	return dur
+}
+
 func printUETimings(m []*metricsUE, id int64) {
 	var registOutput [][]string 
-	var deregOutput [][]string 
+	var deregOutput [][]string
+	var gnbOutput [][]string 
 	
 	heads := []string{"GnbUeId", "Duration"}
 	registOutput = append(registOutput, heads)
 	deregOutput = append(deregOutput, heads)
+	gnbOutput = append(gnbOutput, heads)
 	
 	for i := 0; i < len(m); i++ {
 		temp := m[i]
@@ -176,6 +208,10 @@ func printUETimings(m []*metricsUE, id int64) {
 		dur = strconv.Itoa(int(temp.deregTime) / 1000) // to millisecounds
 		row = []string {id, dur}
 		deregOutput = append(deregOutput, row)
+
+		dur = strconv.Itoa(int(temp.gnbTime) / 1000) // to millisecounds
+		row = []string {id, dur}
+		gnbOutput = append(gnbOutput, row)
 	}
 
 	s := strconv.FormatInt(id, 10)
@@ -184,6 +220,9 @@ func printUETimings(m []*metricsUE, id int64) {
 	}
 	if len(deregOutput) != 0 {
 		createAndWriteCSV(deregOutput, "./config/ueDeregistTimingsGNB" + s + ".csv")
+	}
+	if len(gnbOutput) != 0 {
+		createAndWriteCSV(gnbOutput, "./config/ueGNBDeregTimingsGNB" + s + ".csv")
 	}
 }
 
@@ -257,6 +296,7 @@ func newMetricsUE(id int64) (*metricsUE){
 	t.id = id 
 	t.regTime = 0 
 	t.deregTime = 0 
+	t.gnbTime = 0 
 	return &t
 }
 
