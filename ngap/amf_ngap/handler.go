@@ -5,6 +5,8 @@ package amf_ngap
 import (
 	// "time"
 
+	"time"
+
 	"github.com/LuckyG0ldfish/balancer/context"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/LuckyG0ldfish/balancer/nas"
@@ -12,7 +14,7 @@ import (
 )
 
 func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
-	logger.GNBHandlerLog.Debugln("[gNB] Handle NG Setup Response")
+	logger.GNBHandlerLog.Debugln("Handle NG Setup Response")
 
 	var servedGUAMIList *ngapType.ServedGUAMIList
 	var plmnSupportList *ngapType.PLMNSupportList
@@ -63,8 +65,8 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
-	logger.GNBHandlerLog.Debugln("[gNB] Handle Initial Context Setup Request")
+func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+	logger.GNBHandlerLog.Debugln("Handle Initial Context Setup Request")
 	
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -104,15 +106,15 @@ func HandleInitialContextSetupRequest(lbConn *context.LBConn, message *ngapType.
 						return 
 					}
 					ie.Value.RANUENGAPID.Value = ue.UeRanID
-					context.ForwardToGnb(message, ue, startTime, startTime2)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
 }
 
 // TODO 
-func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
-	logger.GNBHandlerLog.Debugln("[gNB] Handle UE Context Release Command TODO")
+func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+	logger.GNBHandlerLog.Debugln("Handle UE Context Release Command TODO")
 
 	var ueNgapIDs *ngapType.UENGAPIDs
 	// var iesCriticalityDiagnostics ngapType.CriticalityDiagnosticsIEList
@@ -173,11 +175,11 @@ func HandleUEContextReleaseCommand(lbConn *context.LBConn, message *ngapType.NGA
 		ue = ueTemp
 		logger.AMFHandlerLog.Debugf("LB_UE_ID %d found by ranID", ue.UeLbID)
 	}
-	context.ForwardToGnb(message, ue, startTime, startTime2)
+	context.ForwardToGnb(message, ue, startTime)
 }
 
-func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
-	logger.GNBHandlerLog.Debugln("[gNB] Handle Downlink NAS Transport")
+func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+	logger.GNBHandlerLog.Debugln("Handle Downlink NAS Transport")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -185,6 +187,7 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 	var ue *context.LbUe
 	// LB := context.LB_Self()
 
+	startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	if message == nil {
 		logger.NgapLog.Errorf("NGAP Message is nil")
 		return
@@ -241,20 +244,20 @@ func HandleDownlinkNASTransport(lbConn *context.LBConn, message *ngapType.NGAPPD
 				nASPDU = ie.Value.NASPDU
 		}	
 	}
-	// startTime3 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
+	delay := endTime2-startTime3
+	logger.NgapLog.Errorf("%d", delay)
+	
 	if nASPDU != nil && ue != nil {
 		nas.HandleNAS(ue, nASPDU.Value)
 	}
-	// endTime2 := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
-	// delay := endTime2-startTime3
-	// logger.NgapLog.Errorf("%d", delay)
 	if ue != nil {
-		context.ForwardToGnb(message, ue, startTime, startTime2)
+		context.ForwardToGnb(message, ue, startTime)
 	}
 }
 
-func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
-	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Setup Request")
+func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+	logger.GNBHandlerLog.Debugln("Handle PDU Session Resource Setup Request")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -311,15 +314,15 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.LBConn, message *ngapT
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
 					
-					context.ForwardToGnb(message, ue, startTime, startTime2)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}
 }
 
 // TODO
-func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64, startTime2 int64) {
-	logger.GNBHandlerLog.Debugln("[gNB] Handle PDU Session Resource Release Command")
+func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+	logger.GNBHandlerLog.Debugln("Handle PDU Session Resource Release Command")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -373,7 +376,7 @@ func HandlePDUSessionResourceReleaseCommand(lbConn *context.LBConn, message *nga
 					// 	ue.UeAmfId = aMFUENGAPIDInt
 					// 	lbConn.Log.Errorf("UEAMFID SET!!!!!!!!!!!!!!!!!!!!!!!!")
 					// }
-					context.ForwardToGnb(message, ue, startTime, startTime2)
+					context.ForwardToGnb(message, ue, startTime)
 				}
 		}
 	}

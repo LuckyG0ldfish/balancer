@@ -80,6 +80,7 @@ func (ue *LbUe) RemoveUeEntirely() {
 // Removes LbUe from AMF Context withing LB 
 func (ue *LbUe) RemoveUeFromAMF() {
 	if ue.AmfPointer != nil {
+		ue.AmfPointer.NumberOfConnectedUEs -= 1
 		ue.AmfPointer.Ues.Delete(ue.UeLbID) // sync.Map key here is the LB internal UE-ID 
 		ue.AmfPointer.Log.Debugf("LB_UE_ID %d context removed from AMF", ue.UeLbID)
 	}

@@ -34,10 +34,9 @@ type trace struct {
 	ue_State	int
 	startTime int64
 	endTime int64
-	startTime2 int64
 }
 
-func AddRouting_Element(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64, startTime2 int64) {	
+func AddRouting_Element(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) {	
 	self := LB_Self()
 	var id int64
 	if destType == TypeAmf {
@@ -56,7 +55,7 @@ func AddRouting_Element(origin int64, ueID int64, destination int64, destType in
 		return 
 	}
 	
-	trace := newTrace(origin, ueID, destination, destType, ue_State, startTime, endTime, startTime2)
+	trace := newTrace(origin, ueID, destination, destType, ue_State, startTime, endTime)
 	
 	ue, ok := metricsGNB.MetricsUEs.Load(ueID)
 	if ok {
@@ -231,13 +230,13 @@ func printRouting(traces []*trace, id int64) {
 		origin := strconv.FormatInt(trace.origin, 10)
 		destination := strconv.FormatInt(trace.destination, 10)
 		time := strconv.FormatInt(trace.endTime - trace.startTime, 10)
-		processingTime := strconv.FormatInt(trace.endTime - trace.startTime2, 10)
+		
 
 		if trace.destType == TypeAmf {
-			row := []string{id, origin, destination, time, state, processingTime}
+			row := []string{id, origin, destination, time, state}
 			output = append(output, row)
 		} else if trace.destType == TypeGnb {
-			row := []string{id, destination, origin, time, state, processingTime}
+			row := []string{id, destination, origin, time, state}
 			output = append(output, row)
 		}	
 	}
@@ -261,7 +260,7 @@ func newMetricsUE(id int64) (*metricsUE){
 	return &t
 }
 
-func newTrace(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64, startTime2 int64) (*trace){
+func newTrace(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) (*trace){
 	var t trace
 	t.origin = origin 
 	t.ueID = ueID
@@ -270,7 +269,6 @@ func newTrace(origin int64, ueID int64, destination int64, destType int, ue_Stat
 	t.ue_State = ue_State
 	t.startTime = startTime
 	t.endTime = endTime
-	t.startTime2 = startTime2
 	return &t
 }
 

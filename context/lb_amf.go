@@ -94,8 +94,11 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 }
 
 // calculates a number reflecting the AMF-Usage that is comparable within the loadbalancer
-func (amf *LbAmf) calculateAMFUsage() float64{
-	return float64(amf.NumberOfConnectedUEs) / float64(amf.RelativeCapacity)
+func (amf *LbAmf) calculateAMFUsage() float32{
+	if amf.RelativeCapacity == 0 {
+		return 0.0
+	}
+	return float32(amf.NumberOfConnectedUEs) / float32(amf.RelativeCapacity)
 }
 
 // Removes AMF-Context and closes the Connection  

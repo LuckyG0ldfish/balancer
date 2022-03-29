@@ -83,7 +83,7 @@ func (context *LBContext) SelectNextDeregistAmf() bool{
 func (context *LBContext) findNextAMF(state int) *LbAmf{
 	lb := LB_Self()
 	var amfWithMaxCap *LbAmf
-	var amfUsage float64
+	var amfUsage float32
 	var pool *sync.Map
 
 	switch state {
