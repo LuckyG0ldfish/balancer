@@ -108,15 +108,15 @@ func (ue *LbUe) RegistrationComplete() {
 		if self.DifferentAmfTypes == 3 {
 			ue.UeStateIdent = TypeIdRegular
 			next := self.Next_Regular_Amf
-			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go self.SelectNextRegularAmf()
+			ue.RemoveUeFromAMF()
+			self.SelectNextRegularAmf()
 			return 
 		} else if self.DifferentAmfTypes == 2 {
 			next := self.Next_Deregist_Amf
-			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go self.SelectNextDeregistAmf()
+			ue.RemoveUeFromAMF()
+			self.SelectNextDeregistAmf()
 		}
 					
 	}

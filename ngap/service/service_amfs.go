@@ -26,14 +26,14 @@ func InitAmfs(ngapHandler NGAPHandler) {
 			}
 			if self.DifferentAmfTypes == 3 {
 				for i := 0; i < len(self.NewRegularAmfIpList); i++  {
-					ip := self.NewRegistAmfIpList[i]
+					ip := self.NewRegularAmfIpList[i]
 					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
 					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdRegular)
 				}
 			}
-			if self.DifferentAmfTypes >= 2 {
+			if self.DifferentAmfTypes > 1 {
 				for i := 0; i < len(self.NewDeregistAmfIpList); i++  {
-					ip := self.NewRegistAmfIpList[i]
+					ip := self.NewDeregistAmfIpList[i]
 					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
 					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdDeregist)
 				}

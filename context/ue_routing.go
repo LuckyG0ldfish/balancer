@@ -164,6 +164,10 @@ func calcuateGNBComparableDuration(traces []*trace) int64 {
 	var dur int64
 	var end int64
 
+	if len(traces) != 4{
+		return 0
+	}
+	
 	mes1 := traces[0]
 	mes2 := traces[1]
 	mes3 := traces[2]

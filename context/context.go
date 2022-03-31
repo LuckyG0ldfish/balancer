@@ -70,19 +70,6 @@ func NewLBContext() (*LBContext){
 	return &new
 }
 
-// use sctp.SCTPConn to find RAN context, return *LbRan and true if found
-func (context *LBContext) LbGnbFindByConn(conn *sctp.SCTPConn) (*LbGnb, bool) {
-	gnbTemp, ok := context.LbRanPool.Load(conn)
-	if !ok {
-		return nil, false
-	}
-	gnb, ok := gnbTemp.(*LbGnb)
-	if !ok {
-		return nil, false
-	}
-	return gnb, ok
-}
-
 func LB_Self() *LBContext {
 	return &lbContext
 }

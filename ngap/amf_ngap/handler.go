@@ -46,7 +46,7 @@ func HandleNGSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 			lbConn.Log.Traceln("[NGAP] Decode IE RelativeAMFCapacity")
 			relativeAMFCapacity := ie.Value.RelativeAMFCapacity
 			lbConn.AmfPointer.RelativeCapacity = relativeAMFCapacity.Value
-			lbConn.Log.Traceln("[NGAP] AMFs RelativeAMFCapacity set to %d", relativeAMFCapacity.Value)
+			lbConn.Log.Tracef("[NGAP] AMFs RelativeAMFCapacity set to %d", relativeAMFCapacity.Value)
 		case ngapType.ProtocolIEIDPLMNSupportList:
 			lbConn.Log.Traceln("[NGAP] Decode IE PLMNSupportList")
 			plmnSupportList = ie.Value.PLMNSupportList

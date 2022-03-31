@@ -64,11 +64,11 @@ func CreateAndAddAmfToLB(amfType int) *LbAmf{
 	self := LB_Self()
 	amf := newLbAmf(amfType)
 	if amf.AmfTypeIdent == TypeIdRegist {
-		self.LbRegistAmfPool.Store(amf.LbConn.Conn, amf)
+		self.LbRegistAmfPool.Store(amf.AmfID, amf)
 	} else if amf.AmfTypeIdent == TypeIdDeregist {
-		self.LbDeregistAmfPool.Store(amf.LbConn.Conn, amf)
+		self.LbDeregistAmfPool.Store(amf.AmfID, amf)
 	} else {
-		self.LbRegularAmfPool.Store(amf.LbConn.Conn, amf)
+		self.LbRegularAmfPool.Store(amf.AmfID, amf)
 	}
 	return amf
 }
@@ -96,7 +96,7 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 // calculates a number reflecting the AMF-Usage that is comparable within the loadbalancer
 func (amf *LbAmf) calculateAMFUsage() float32{
 	if amf.RelativeCapacity == 0 {
-		return 0.0
+		return 1000.0
 	}
 	return float32(amf.NumberOfConnectedUEs) / float32(amf.RelativeCapacity)
 }

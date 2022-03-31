@@ -41,12 +41,12 @@ func (context *LBContext) SelectNextRegistAmf() bool{
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
 	}
-	if context.Next_Regist_Amf.NumberOfConnectedUEs % 5 != 0 {
+	if context.Next_Regist_Amf.NumberOfConnectedUEs % 3 != 0 {
 		return true 
 	}
 	nextAmf := context.findNextAMF(TypeIdRegist)
 	context.Next_Regist_Amf = nextAmf
-	logger.ContextLog.Tracef("NextAMF = AMFID: %d", nextAmf.AmfID)
+	logger.ContextLog.Tracef("NextRegistAMF = AMFID: %d", nextAmf.AmfID)
 	return true 
 }
 
@@ -56,7 +56,7 @@ func (context *LBContext) SelectNextRegularAmf() bool{
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
 	}
-	if context.Next_Regular_Amf.NumberOfConnectedUEs % 5 != 0 {
+	if context.Next_Regular_Amf.NumberOfConnectedUEs % 3 != 0 {
 		return true 
 	}
 	amfWithMaxCap := context.findNextAMF(TypeIdRegular)
@@ -71,7 +71,7 @@ func (context *LBContext) SelectNextDeregistAmf() bool{
 		logger.ContextLog.Errorf("No Amf found")
 		return false 
 	}
-	if context.Next_Deregist_Amf.NumberOfConnectedUEs % 5 != 0 {
+	if context.Next_Deregist_Amf.NumberOfConnectedUEs % 3 != 0 {
 		return true 
 	}
 	amfWithMaxCap := context.findNextAMF(TypeIdDeregist)
@@ -104,15 +104,15 @@ func (context *LBContext) findNextAMF(state int) *LbAmf{
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}
-		if amfTemp.AmfTypeIdent == state{
-			tempUsage := amfTemp.calculateAMFUsage()
 		
-			// chooses the AMF with the lowest Usage
-			if  amfUsage > tempUsage {
-				amfWithMaxCap = amfTemp
-				amfUsage = tempUsage
-			} 
-		}
+		tempUsage := amfTemp.calculateAMFUsage()
+		
+		// chooses the AMF with the lowest Usage
+		if  amfUsage > tempUsage {
+			amfWithMaxCap = amfTemp
+			amfUsage = tempUsage
+		} 
+		
 		return true
 	})
 	return amfWithMaxCap
