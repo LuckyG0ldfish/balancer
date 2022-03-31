@@ -518,7 +518,7 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	LB := context.LB_Self()
-	
+
 	if message == nil {
 		lbConn.Log.Errorf("NGAP Message is nil")
 		return

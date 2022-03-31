@@ -117,8 +117,7 @@ func (ue *LbUe) RegistrationComplete() {
 			ue.AddUeToAmf(next)
 			ue.RemoveUeFromAMF()
 			self.SelectNextDeregistAmf()
-		}
-					
+		}			
 	}
 }	
 
