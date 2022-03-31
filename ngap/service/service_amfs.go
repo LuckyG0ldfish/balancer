@@ -26,14 +26,14 @@ func InitAmfs(ngapHandler NGAPHandler) {
 			}
 			if self.DifferentAmfTypes == 3 {
 				for i := 0; i < len(self.NewRegularAmfIpList); i++  {
-					ip := self.NewRegistAmfIpList[i]
+					ip := self.NewRegularAmfIpList[i]
 					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
 					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdRegular)
 				}
 			}
-			if self.DifferentAmfTypes >= 2 {
+			if self.DifferentAmfTypes > 1 {
 				for i := 0; i < len(self.NewDeregistAmfIpList); i++  {
-					ip := self.NewRegistAmfIpList[i]
+					ip := self.NewDeregistAmfIpList[i]
 					logger.NgapLog.Debugf("connecting to: " + ip + ":" + strconv.Itoa(amfPort))
 					go CreateAndStartAmf(ip, amfPort, ngapHandler, context.TypeIdDeregist)
 				}
@@ -79,7 +79,6 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			} else {
 				self.Next_Regular_Amf = amf
 			}
-			self.LbAmfPool.Store(amf.LbConn.Conn, amf)
 			connections.Store(amf.LbConn, *amf.LbConn)
 			ngap_message.SendNGSetupRequest(amf.LbConn)
 			handleConnection(amf.LbConn, readBufSize, handler)

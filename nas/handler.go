@@ -8,7 +8,7 @@ import (
 	// "github.com/LuckyG0ldfish/balancer/gmm"
 	"github.com/LuckyG0ldfish/balancer/logger"
 	"github.com/free5gc/nas"
-	"github.com/free5gc/nas/security"
+	// "github.com/free5gc/nas/security"
 	"github.com/free5gc/openapi/models"
 )
 
@@ -43,7 +43,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 			next := self.Next_Deregist_Amf
 			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go context.SelectNextDeregistAmf()
+			go self.SelectNextDeregistAmf()
 		}
 		return false 
 	case nas.MsgTypeDeregistrationRequestUETerminatedDeregistration:
@@ -53,7 +53,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 			next := self.Next_Deregist_Amf
 			ue.RemoveUeFromAMF()
 			ue.AddUeToAmf(next)
-			go context.SelectNextDeregistAmf()
+			go self.SelectNextDeregistAmf()
 		}
 		return	false 
 	case nas.MsgTypeDeregistrationAcceptUEOriginatingDeregistration:
@@ -185,13 +185,13 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 	// return fmt.Errorf("nas payload is not in plain")
 }
 
-func GetBearerType(accessType models.AccessType) uint8 {
-	if accessType == models.AccessType__3_GPP_ACCESS {
-		return security.Bearer3GPP
-	} else if accessType == models.AccessType_NON_3_GPP_ACCESS {
-		return security.BearerNon3GPP
-	} else {
-		return security.OnlyOneBearer
-	}
-}
+// func GetBearerType(accessType models.AccessType) uint8 {
+// 	if accessType == models.AccessType__3_GPP_ACCESS {
+// 		return security.Bearer3GPP
+// 	} else if accessType == models.AccessType_NON_3_GPP_ACCESS {
+// 		return security.BearerNon3GPP
+// 	} else {
+// 		return security.OnlyOneBearer
+// 	}
+// }
 

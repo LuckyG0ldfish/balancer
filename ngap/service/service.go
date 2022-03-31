@@ -17,7 +17,7 @@ import (
 
 type NGAPHandler struct {
 	HandleMessage      func(lbConn *context.LBConn, msg []byte, startTime int64)
-	HandleNotification func(conn *sctp.SCTPConn, notification sctp.Notification)
+	HandleNotification func(conn *context.LBConn, notification sctp.Notification)
 }
 
 const readBufSize uint32 = 256 // 8192
@@ -54,7 +54,7 @@ func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
 // Handling all the the LBs open connections (AMFs + GNBs)
 func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandler) {// conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) {
 	logger.NgapLog.Tracef("Waiting for message")
-	for {
+	for !lbConn.Closed {
 		buf := make([]byte, bufsize)
 
 		n, info, notification, err := lbConn.Conn.SCTPRead(buf)
@@ -85,7 +85,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 		if notification != nil {
 			if handler.HandleNotification != nil {
-				handler.HandleNotification(lbConn.Conn, notification)
+				handler.HandleNotification(lbConn, notification)
 			} else {
 				logger.NgapLog.Warnf("Received sctp notification[type 0x%x] but not handled", notification.Type())
 			}
@@ -105,6 +105,17 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 	}
 }
+// Removes a LB_Conn from the list of connections and the related AMF/GNB from their pool 
+func RemoveLBConnection(conn *context.LBConn) {
+	conn.Closed = true 
+	if conn.TypeID == context.TypeAmf {
+		conn.AmfPointer.RemoveAmfContext()
+	} else {
+		conn.RanPointer.RemoveGnbContext()
+	}
+	time.Sleep(1 * time.Second)
+	connections.Delete(conn.ID)
+}
 
 // Closes all connections 
 func Stop() {
@@ -114,11 +125,14 @@ func Stop() {
 		logger.NgapLog.Error(err)
 		logger.NgapLog.Infof("SCTP server may not close normally.")
 	}
-
+	
 	connections.Range(func(key, value interface{}) bool {
 		lbConn, ok := value.(context.LBConn)
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
+		}
+		if lbConn.Conn == nil {
+			return true 
 		}
 		if err := lbConn.Conn.Close(); err != nil {
 			logger.NgapLog.Error(err)

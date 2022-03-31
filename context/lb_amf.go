@@ -63,8 +63,13 @@ func (amf *LbAmf) FindUeByUeAmfID(id int64) (*LbUe, bool){
 func CreateAndAddAmfToLB(amfType int) *LbAmf{
 	self := LB_Self()
 	amf := newLbAmf(amfType)
-	self.LbAmfPool.Store(amf.LbConn.Conn, amf)
-	// self.Table.addAmfCounter(amf)
+	if amf.AmfTypeIdent == TypeIdRegist {
+		self.LbRegistAmfPool.Store(amf.AmfID, amf)
+	} else if amf.AmfTypeIdent == TypeIdDeregist {
+		self.LbDeregistAmfPool.Store(amf.AmfID, amf)
+	} else {
+		self.LbRegularAmfPool.Store(amf.AmfID, amf)
+	}
 	return amf
 }
 
@@ -89,14 +94,24 @@ func (amf *LbAmf) ContainsUE(id int64) (cont bool) {
 }
 
 // calculates a number reflecting the AMF-Usage that is comparable within the loadbalancer
-func (amf *LbAmf) calculateAMFUsage() float64{
-	return float64(amf.NumberOfConnectedUEs) / float64(amf.RelativeCapacity)
+func (amf *LbAmf) calculateAMFUsage() float32{
+	if amf.RelativeCapacity == 0 {
+		return 1000.0
+	}
+	return float32(amf.NumberOfConnectedUEs) / float32(amf.RelativeCapacity)
 }
 
 // Removes AMF-Context and closes the Connection  
 func (amf *LbAmf) RemoveAmfContext() {
 	lb := LB_Self()
-	lb.LbAmfPool.Delete(amf.LbConn.Conn)
+
+	if amf.AmfTypeIdent == TypeIdRegist {
+		lb.LbRegistAmfPool.Delete(amf.LbConn.Conn)
+	} else if amf.AmfTypeIdent == TypeIdDeregist {
+		lb.LbDeregistAmfPool.Delete(amf.LbConn.Conn)
+	} else {
+		lb.LbRegularAmfPool.Delete(amf.LbConn.Conn)
+	}
 	amf.LbConn.Conn.Close()
 	amf = nil 
 }

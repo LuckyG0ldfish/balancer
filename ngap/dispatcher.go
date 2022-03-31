@@ -7,6 +7,7 @@ import (
 	"github.com/LuckyG0ldfish/balancer/logger"
 	amf_ngap "github.com/LuckyG0ldfish/balancer/ngap/amf_ngap"
 	gnb_ngap "github.com/LuckyG0ldfish/balancer/ngap/gnb_ngap"
+	ngap_service "github.com/LuckyG0ldfish/balancer/ngap/service"
 	"github.com/free5gc/ngap"
 	"github.com/free5gc/ngap/ngapType"
 )
@@ -257,7 +258,7 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64
 		switch successfulOutcome.ProcedureCode.Value {
 		case ngapType.ProcedureCodeNGSetup:
 			logger.NgapLog.Tracef("Handling NGSetupResponse")
-			amf_ngap.HandleNGSetupResponse(lbConn, pdu, startTime)
+			amf_ngap.HandleNGSetupResponse(lbConn, pdu)
 
 		//case ngapType.ProcedureCodeNGReset:
 		//	handler.HandleNGResetAcknowledge(amf, pdu)
@@ -288,35 +289,27 @@ func DispatchForMessageToGnb(lbConn *context.LBConn, msg []byte, startTime int64
 	}
 }
 
-func HandleSCTPNotification(conn *sctp.SCTPConn, notification sctp.Notification) {
-	lbSelf := context.LB_Self()
-
-	logger.NgapLog.Infof("Handle SCTP Notification[addr: %+v]", conn.RemoteAddr())
-
-	_, ok := lbSelf.LbAmfFindByConn(conn)
-	if !ok {
-		logger.NgapLog.Warnf("RAN context has been removed[addr: %+v]", conn.RemoteAddr())
-		return
-	}
-
+// Handles Notifications of the SCTPConn
+func HandleSCTPNotification(conn *context.LBConn, notification sctp.Notification) { 
 	switch notification.Type() {
 	case sctp.SCTP_ASSOC_CHANGE:
-		// ran.Log.Infof("SCTP_ASSOC_CHANGE notification")
+		conn.Log.Infof("SCTP_ASSOC_CHANGE notification")
 		event := notification.(*sctp.SCTPAssocChangeEvent)
 		switch event.State() {
 		case sctp.SCTP_COMM_LOST:
-			// ran.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
-			// ran.Remove()
+			conn.Log.Infof("SCTP state is SCTP_COMM_LOST, close the connection")
+			ngap_service.RemoveLBConnection(conn)
 		case sctp.SCTP_SHUTDOWN_COMP:
-			// ran.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
-			// ran.Remove()
+			conn.Log.Infof("SCTP state is SCTP_SHUTDOWN_COMP, close the connection")
+			ngap_service.RemoveLBConnection(conn)
 		default:
-			// ran.Log.Warnf("SCTP state[%+v] is not handled", event.State())
+			conn.Log.Warnf("SCTP state[%+v] is not handled", event.State())
 		}
 	case sctp.SCTP_SHUTDOWN_EVENT:
-		// ran.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
-		// ran.Remove()
+		conn.Log.Infof("SCTP_SHUTDOWN_EVENT notification, close the connection")
+		ngap_service.RemoveLBConnection(conn)
 	default:
-		// ran.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
+		conn.Log.Warnf("Non handled notification type: 0x%x", notification.Type())
 	}
 }
+

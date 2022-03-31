@@ -149,7 +149,7 @@ func (Lb *Load) Terminate() {
 
 	/* Metrics */
 	if lbSelf.MetricsLevel > 0 {
-		context.Print(lbSelf.MetricsUEs)
+		context.Print(&lbSelf.MetricsGNBs)
 	}
 
 	lbSelf.Running = false 
