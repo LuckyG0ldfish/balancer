@@ -46,7 +46,7 @@ func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
 	
 	// All AMFs related services started 
 	go InitAmfs(handler)
-	
+	 
 	// All GNBs related services started 
 	go listenAndServeGNBs(addr, handler)
 }
