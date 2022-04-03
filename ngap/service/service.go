@@ -52,7 +52,7 @@ func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
 }
 
 // Handling all the the LBs open connections (AMFs + GNBs)
-func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandler) {// conn *sctp.SCTPConn, bufsize uint32, handler NGAPHandler) {
+func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandler) {
 	logger.NgapLog.Tracef("Waiting for message")
 	for !lbConn.Closed {
 		buf := make([]byte, bufsize)
@@ -105,6 +105,7 @@ func handleConnection(lbConn *context.LBConn, bufsize uint32, handler NGAPHandle
 		}
 	}
 }
+
 // Removes a LB_Conn from the list of connections and the related AMF/GNB from their pool 
 func RemoveLBConnection(conn *context.LBConn) {
 	conn.Closed = true 
@@ -127,12 +128,12 @@ func Stop() {
 	}
 	
 	connections.Range(func(key, value interface{}) bool {
+		if value == nil {
+			return true 
+		}
 		lbConn, ok := value.(context.LBConn)
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
-		}
-		if lbConn.Conn == nil {
-			return true 
 		}
 		if err := lbConn.Conn.Close(); err != nil {
 			logger.NgapLog.Error(err)

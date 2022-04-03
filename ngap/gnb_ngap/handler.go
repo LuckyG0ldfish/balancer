@@ -88,7 +88,6 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 }
 
 func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
-	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
@@ -119,14 +118,6 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 	for i := 0; i < len(uplinkNasTransport.ProtocolIEs.List); i++ {
 		ie := uplinkNasTransport.ProtocolIEs.List[i]
 		switch ie.Id.Value {
-		case ngapType.ProtocolIEIDAMFUENGAPID: // reject
-			
-			aMFUENGAPID = ie.Value.AMFUENGAPID
-			lbConn.Log.Traceln("Decode IE AmfUeNgapID")
-			if aMFUENGAPID == nil {
-				lbConn.Log.Errorf("AmfUeNgapID is nil")
-			}
-			
 		case ngapType.ProtocolIEIDRANUENGAPID: // reject
 			
 			rANUENGAPID = ie.Value.RANUENGAPID
@@ -143,16 +134,11 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 					return
 				}
 				ie.Value.RANUENGAPID.Value = ue.UeLbID
-			}
-			
+			}	
 		case ngapType.ProtocolIEIDNASPDU:
-			
 			nASPDU = ie.Value.NASPDU
-			
-		default:
 		}
 	}
-	
 	
 	if ue != nil {
 		var changeFlag bool 

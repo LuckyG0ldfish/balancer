@@ -6,35 +6,6 @@ import (
 	"github.com/LuckyG0ldfish/balancer/logger"
 )
 
-// // TODO:
-// func (context *LBContext) SelectNextAmf() bool{
-// 	if context.Next_Regist_Amf == nil {
-// 		logger.ContextLog.Errorf("No Amf found")
-// 		return false
-// 	}
-
-// 	var amfWithMaxCap *LbAmf = context.Next_Regist_Amf
-// 	var amfUsage float64 = context.Next_Regist_Amf.calculateAMFUsage()
-	
-// 	context.LbRegistAmfPool.Range(func(key, value interface{}) bool{
-// 		amfTemp, ok := value.(*LbAmf)
-// 		if !ok {
-// 			logger.NgapLog.Errorf("couldn't be converted")
-// 		}
-// 		tempUsage := amfTemp.calculateAMFUsage()
-		
-// 		// chooses the AMF with the lowest Usage
-// 		if  amfUsage > tempUsage {
-// 			amfWithMaxCap = amfTemp
-// 			amfUsage = tempUsage
-// 		} 
-// 		return true
-// 	})
-// 	context.Next_Regist_Amf = amfWithMaxCap
-// 	logger.ContextLog.Tracef("NextAMF = AMFID: %d", amfWithMaxCap.AmfID)
-// 	return true 
-// }
-
 // TODO:
 func (context *LBContext) SelectNextRegistAmf() bool{
 	if context.Next_Regist_Amf == nil {

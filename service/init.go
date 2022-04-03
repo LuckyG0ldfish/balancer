@@ -38,10 +38,6 @@ type (
 var config Config
 
 var lbCLi = []cli.Flag{
-	// cli.StringFlag{
-	// 	Name:  "free5gccfg",
-	// 	Usage: "common config file",
-	// },
 	cli.StringFlag{
 		Name:  "lbcfg",
 		Usage: "lb config file",
@@ -68,8 +64,8 @@ func (Lb *Load) Initialize(c *cli.Context) error {
 			return err
 		}
 	} else {
-		DefaultAmfConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
-		if err := factory.InitConfigFactory(DefaultAmfConfigPath); err != nil {
+		DefaultLBConfigPath := path_util.Free5gcPath("balancer/config/lbcfg.yaml")
+		if err := factory.InitConfigFactory(DefaultLBConfigPath); err != nil {
 			return err
 		}
 	}
@@ -82,22 +78,22 @@ func (Lb *Load) Initialize(c *cli.Context) error {
 
 func (lb *Load) setLogLevel() {
 	if factory.LbConfig.Logger == nil {
-		initLog.Warnln("AMF config without log level setting!!!")
+		initLog.Warnln("LB config without log level setting!!!")
 		return
 	}
 
 	if factory.LbConfig.Logger.LB != nil {
 		if factory.LbConfig.Logger.LB.DebugLevel != "" {
 			if level, err := logrus.ParseLevel(factory.LbConfig.Logger.LB.DebugLevel); err != nil {
-				initLog.Warnf("AMF Log level [%s] is invalid, set to [info] level",
+				initLog.Warnf("LB Log level [%s] is invalid, set to [info] level",
 					factory.LbConfig.Logger.LB.DebugLevel)
 				logger.SetLogLevel(logrus.InfoLevel)
 			} else {
-				initLog.Infof("AMF Log level is set to [%s] level", level)
+				initLog.Infof("LB Log level is set to [%s] level", level)
 				logger.SetLogLevel(level)
 			}
 		} else {
-			initLog.Warnln("AMF Log level not set. Default set to [info] level")
+			initLog.Warnln("LB Log level not set. Default set to [info] level")
 			logger.SetLogLevel(logrus.InfoLevel)
 		}
 		logger.SetReportCaller(factory.LbConfig.Logger.LB.ReportCaller)

@@ -48,7 +48,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 		return false 
 	case nas.MsgTypeDeregistrationRequestUETerminatedDeregistration:
 		ue.UeStateIdent = context.TypeIdDeregist
-		logger.NASLog.Traceln("MsgTypeDeregistrationAcceptUETerminatedDeregistration")
+		logger.NASLog.Traceln("MsgTypeDeregistrationRequestUETerminatedDeregistration")
 		if self.DifferentAmfTypes == 3 {
 			next := self.Next_Deregist_Amf
 			ue.RemoveUeFromAMF()
@@ -91,23 +91,9 @@ func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte
 				return 0, fmt.Errorf("gmm Message is nil")
 			}
 
-			test := msg.GmmHeader.GetMessageType()
+			msgType := msg.GmmHeader.GetMessageType()
 
-			switch test {
-			case nas.MsgTypeAuthenticationResponse:
-				logger.NASLog.Traceln("MsgTypeAuthenticationResponse")
-				// gmm.HandleAuthenticationResponse()
-				return nas.MsgTypeAuthenticationResponse, nil
-			case nas.MsgTypeRegistrationRequest:
-				logger.NASLog.Traceln("MsgTypeRegistrationRequest")
-				// gmm.HandleRegistrationRequest()
-				return nas.MsgTypeRegistrationRequest, nil
-			default:
-				logger.NASLog.Tracef("%d", test)
-				return 0, nil
-				// fmt.Errorf("UE can not send plain nas for non-emergency service when there is a valid security context")
-			// }
-			} 
+			return msgType, nil 
 		} else {
 			ue.MacFailed = false
 			err := msg.PlainNasDecode(&payload)

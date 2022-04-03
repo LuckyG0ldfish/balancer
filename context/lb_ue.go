@@ -99,6 +99,8 @@ func (ue *LbUe) AddUeToAmf(next *LbAmf) {
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
 	next.Ues.Store(ue.UeLbID, ue)
+	next.NumberOfConnectedUEs += 1
+	logger.ContextLog.Tracef("GNB_UE_ID: %d added to AMF %d", ue.UeLbID, next.AmfID)
 }
 
 
@@ -108,14 +110,14 @@ func (ue *LbUe) RegistrationComplete() {
 		if self.DifferentAmfTypes == 3 {
 			ue.UeStateIdent = TypeIdRegular
 			next := self.Next_Regular_Amf
-			ue.AddUeToAmf(next)
 			ue.RemoveUeFromAMF()
+			ue.AddUeToAmf(next)
 			self.SelectNextRegularAmf()
 			return 
 		} else if self.DifferentAmfTypes == 2 {
 			next := self.Next_Deregist_Amf
-			ue.AddUeToAmf(next)
 			ue.RemoveUeFromAMF()
+			ue.AddUeToAmf(next)
 			self.SelectNextDeregistAmf()
 		}			
 	}
