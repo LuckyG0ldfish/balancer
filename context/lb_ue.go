@@ -16,7 +16,7 @@ import (
 )
 
 // Type, that stores all relevant information of UEs
-type LbUe struct{
+type Lb_Ue struct{
 	UeStateIdent 	int			// Identifies the state of the UE 
 
 	GNB_UE_ID 		int64		// ID given to the UE by GNB/RAN
@@ -57,8 +57,8 @@ type LbUe struct{
 }
 
 // Creates, initializes and returns a new *LbUe
-func NewUE() (*LbUe){
-	var ue LbUe
+func NewUE() (*Lb_Ue){
+	var ue Lb_Ue
 	ue.UeStateIdent = TypeIdRegist
 	ue.Log = logger.UELog
 	// set ABBA value as described at TS 33.501 Annex A.7.1
@@ -70,7 +70,7 @@ func NewUE() (*LbUe){
 }
 
 // Removes LbUe from AMF and RAN Context withing LB  
-func (ue *LbUe) RemoveUeEntirely() {
+func (ue *Lb_Ue) RemoveUeEntirely() {
 	// time.Sleep(1 * time.Second)
 	ue.RemoveUeFromAMF()
 	ue.RemoveUeFromGNB()
@@ -78,7 +78,7 @@ func (ue *LbUe) RemoveUeEntirely() {
 }
 
 // Removes LbUe from AMF Context withing LB 
-func (ue *LbUe) RemoveUeFromAMF() {
+func (ue *Lb_Ue) RemoveUeFromAMF() {
 	if ue.AmfPointer != nil {
 		ue.AmfPointer.NumberOfConnectedUEs -= 1
 		ue.AmfPointer.Ues.Delete(ue.LB_UE_ID) // sync.Map key here is the LB internal UE-ID 
@@ -87,7 +87,7 @@ func (ue *LbUe) RemoveUeFromAMF() {
 }
 
 // Removes LbUe from RAN Context withing LB 
-func (ue *LbUe) RemoveUeFromGNB() {
+func (ue *Lb_Ue) RemoveUeFromGNB() {
 	if ue.GnbPointer != nil {
 		ue.GnbPointer.Ues.Delete(ue.GNB_UE_ID) // sync.Map key here is the RAN UE-ID
 		ue.GnbPointer.Log.Debugf("LB_UE_ID %d context removed from GNB", ue.LB_UE_ID)
@@ -95,7 +95,7 @@ func (ue *LbUe) RemoveUeFromGNB() {
 }
 
 // Sets UEs values and adds it to the Amfs UE-Map
-func (ue *LbUe) AddUeToAmf(next *Lb_Amf) {
+func (ue *Lb_Ue) AddUeToAmf(next *Lb_Amf) {
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
 	next.Ues.Store(ue.LB_UE_ID, ue)
@@ -104,7 +104,7 @@ func (ue *LbUe) AddUeToAmf(next *Lb_Amf) {
 }
 
 
-func (ue *LbUe) RegistrationComplete() {
+func (ue *Lb_Ue) RegistrationComplete() {
 	if ue.UeStateIdent == TypeIdRegist && ue.ResponseFlag && ue.UplinkFlag {
 		self := LB_Self()
 		if self.DifferentAmfTypes == 3 {
@@ -126,7 +126,7 @@ func (ue *LbUe) RegistrationComplete() {
 // TODO
 // Kamf Derivation function defined in TS 33.501 Annex A.7
 // gmm handler HandleAuthenticationResponse L1943 + 1978
-func (ue *LbUe) DerivateKamf() {
+func (ue *Lb_Ue) DerivateKamf() {
 	supiRegexp, err := regexp.Compile("(?:imsi|supi)-([0-9]{5,15})")
 	if err != nil {
 		logger.ContextLog.Error(err)
@@ -155,7 +155,7 @@ func (ue *LbUe) DerivateKamf() {
 
 // TODO
 // Access Network key Derivation function defined in TS 33.501 Annex A.9
-func (ue *LbUe) DerivateAnKey(anType models.AccessType) {
+func (ue *Lb_Ue) DerivateAnKey(anType models.AccessType) {
 	accessType := security.AccessType3GPP // Defalut 3gpp
 	P0 := make([]byte, 4)
 	binary.BigEndian.PutUint32(P0, ue.ULCount.Get())
@@ -182,7 +182,7 @@ func (ue *LbUe) DerivateAnKey(anType models.AccessType) {
 
 // TODO
 // Algorithm key Derivation function defined in TS 33.501 Annex A.9
-func (ue *LbUe) DerivateAlgKey() {
+func (ue *Lb_Ue) DerivateAlgKey() {
 	// Security Key
 	P0 := []byte{security.NNASEncAlg}
 	L0 := UeauCommon.KDFLen(P0)
@@ -208,7 +208,7 @@ func (ue *LbUe) DerivateAlgKey() {
 }
 
 // TODO
-func (ue *LbUe) SelectSecurityAlg(intOrder, encOrder []uint8) {
+func (ue *Lb_Ue) SelectSecurityAlg(intOrder, encOrder []uint8) {
 	ue.CipheringAlg = security.AlgCiphering128NEA0
 	ue.IntegrityAlg = security.AlgIntegrity128NIA0
 
@@ -250,7 +250,7 @@ func (ue *LbUe) SelectSecurityAlg(intOrder, encOrder []uint8) {
 }
 
 // TODO
-func (ue *LbUe) CopyDataFromUeContextModel(ueContext models.UeContext) {
+func (ue *Lb_Ue) CopyDataFromUeContextModel(ueContext models.UeContext) {
 	if ueContext.Supi != "" {
 		ue.Supi = ueContext.Supi
 	}

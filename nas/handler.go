@@ -12,7 +12,7 @@ import (
 	"github.com/free5gc/openapi/models"
 )
 
-func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
+func HandleNAS(ue *context.Lb_Ue, nasPdu []byte) bool{
 	self := context.LB_Self()
 	if ue == nil {
 		logger.NASLog.Error("RanUe is nil")
@@ -70,7 +70,7 @@ func HandleNAS(ue *context.LbUe, nasPdu []byte) bool{
 payload either a security protected 5GS NAS message or a plain 5GS NAS message which
 format is followed TS 24.501 9.1.1
 */
-func IdentMsgType(ue *context.LbUe, accessType models.AccessType, payload []byte) (uint8, error) {
+func IdentMsgType(ue *context.Lb_Ue, accessType models.AccessType, payload []byte) (uint8, error) {
 	if ue == nil {
 		return 0, fmt.Errorf("amfUe is nil")
 	}

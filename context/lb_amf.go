@@ -27,13 +27,13 @@ type Lb_Amf struct {
 }
 
 // Use a UELB-ID to find UE context, return *LbUe and true if found
-func (amf *Lb_Amf) FindUeByRAN_UE_ID(id int64) (*LbUe, bool){
+func (amf *Lb_Amf) FindUeByRAN_UE_ID(id int64) (*Lb_Ue, bool){
 	ue, ok := amf.Ues.Load(id)
 	if !ok {
 		amf.Log.Errorf("UE is not registered to this AMF %d", id)
 		return nil, false 
 	}
-	ue2, ok :=  ue.(*LbUe)
+	ue2, ok :=  ue.(*Lb_Ue)
 	if !ok {
 		amf.Log.Errorf("couldn't be converted")
 		return nil, false 
@@ -42,11 +42,11 @@ func (amf *Lb_Amf) FindUeByRAN_UE_ID(id int64) (*LbUe, bool){
 }
 
 // Use a UEAMF-ID to find UE context, return *LbUe and true if found TODO
-func (amf *Lb_Amf) FindUeByUeAmfID(id int64) (*LbUe, bool){
-	var ue *LbUe
+func (amf *Lb_Amf) FindUeByUeAmfID(id int64) (*Lb_Ue, bool){
+	var ue *Lb_Ue
 	var ok bool = false 
 	amf.Ues.Range(func(key, value interface{}) bool{
-		ueTemp, okTemp := value.(*LbUe)
+		ueTemp, okTemp := value.(*Lb_Ue)
 		if !okTemp {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}

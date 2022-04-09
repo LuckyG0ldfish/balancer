@@ -42,13 +42,13 @@ func newLbGnb(conn *sctp.SCTPConn) *Lb_Gnb{
 }
 
 // Use a UE-ID to find UE context, return *LbUe and true if found
-func (gnb *Lb_Gnb) FindUeByRAN_UE_ID(id int64) (*LbUe, bool){
+func (gnb *Lb_Gnb) FindUeByRAN_UE_ID(id int64) (*Lb_Ue, bool){
 	ue, ok := gnb.Ues.Load(id)
 	if !ok {
 		gnb.Log.Errorf("UE is not registered to this RAN")
 		return nil, false 
 	}
-	ue2, ok := ue.(*LbUe)
+	ue2, ok := ue.(*Lb_Ue)
 	if !ok {
 		gnb.Log.Errorf("couldn't be converted")
 		return nil, false 

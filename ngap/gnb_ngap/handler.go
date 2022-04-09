@@ -90,7 +90,7 @@ func HandleNGSetupRequest(LbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 func HandleUplinkNasTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	var ue *context.LbUe
+	var ue *context.Lb_Ue
 	
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -277,7 +277,7 @@ func HandleNGResetAcknowledge(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU
 func HandleUEContextReleaseComplete(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var ue *context.LbUe
+	var ue *context.Lb_Ue
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -817,7 +817,7 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.Lb_Conn, message *
 func HandleInitialContextSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var ue *context.LbUe
+	var ue *context.Lb_Ue
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")

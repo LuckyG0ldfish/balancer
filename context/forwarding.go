@@ -35,7 +35,7 @@ import (
 // }
 
 // Used to forward registered UE's messages to an AMF
-func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
+func ForwardToAmf(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
 	// finding the correct AMF by the in UE stored AMF-Pointer
 	amf := ue.AmfPointer
 
@@ -67,7 +67,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 }
 
 // Used to forward registered UE's messages to an GNB
-func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
+func ForwardToGnb(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.GnbPointer
 	

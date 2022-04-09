@@ -138,7 +138,7 @@ func HandleUEContextReleaseCommand(lbConn *context.Lb_Conn, message *ngapType.NG
 		}
 	}
 
-	var ue *context.LbUe
+	var ue *context.Lb_Ue
 
 	switch ueNgapIDs.Present {
 	case ngapType.UENGAPIDsPresentUENGAPIDPair:
@@ -169,7 +169,7 @@ func HandleDownlinkNASTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPP
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	var ue *context.LbUe
+	var ue *context.Lb_Ue
 	
 	if message == nil {
 		logger.NgapLog.Errorf("NGAP Message is nil")

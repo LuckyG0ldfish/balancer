@@ -15,7 +15,7 @@ import (
 
 // TS 24.501 5.4.1
 // TODO
-func HandleAuthenticationResponse(ue *context.LbUe, accessType models.AccessType,
+func HandleAuthenticationResponse(ue *context.Lb_Ue, accessType models.AccessType,
 	authenticationResponse *nasMessage.AuthenticationResponse) error {
 	// logger.GmmLog.Info("Handle Authentication Response")
 
@@ -146,7 +146,7 @@ func HandleAuthenticationResponse(ue *context.LbUe, accessType models.AccessType
 
 // Handle cleartext IEs of Registration Request, which cleattext IEs defined in TS 24.501 4.4.6
 // TODO 
-func HandleRegistrationRequest(ue *context.LbUe, anType models.AccessType, procedureCode int64,
+func HandleRegistrationRequest(ue *context.Lb_Ue, anType models.AccessType, procedureCode int64,
 	registrationRequest *nasMessage.RegistrationRequest) error {
 	// // var guamiFromUeGuti models.Guami
 	// // self := context.LB_Self()
