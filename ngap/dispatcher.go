@@ -13,7 +13,7 @@ import (
 )
 
 // Distributes message to the correct handler based on Type of the incoming Connection
-func Dispatch(lbConn *context.Lb_Conn, msg []byte, startTime int64) {
+func Dispatch(lbConn *context.LB_Conn, msg []byte, startTime int64) {
 	if lbConn.TypeID == context.TypeIdGNBConn {
 		DispatchForMessageToAmf(lbConn, msg, startTime) 		
 	} else if lbConn.TypeID == context.TypeIdAMFConn {
@@ -24,7 +24,7 @@ func Dispatch(lbConn *context.Lb_Conn, msg []byte, startTime int64) {
 }
 
 // This handles messages incoming from GNB with the functions of the AMFs handler 
-func DispatchForMessageToAmf(lbConn *context.Lb_Conn, msg []byte, startTime int64) {
+func DispatchForMessageToAmf(lbConn *context.LB_Conn, msg []byte, startTime int64) {
 	if len(msg) == 0 {
 		lbConn.Log.Infof("RAN close the connection.")
 		// ran.Remove() TODO
@@ -183,7 +183,7 @@ func DispatchForMessageToAmf(lbConn *context.Lb_Conn, msg []byte, startTime int6
 }
 
 // This handles messages incoming from AMF with the functions of the GNBs handler 
-func DispatchForMessageToGnb(lbConn *context.Lb_Conn, msg []byte, startTime int64) {
+func DispatchForMessageToGnb(lbConn *context.LB_Conn, msg []byte, startTime int64) {
 	// Decode
 	pdu, err := ngap.Decoder(msg)
 	if err != nil {
@@ -290,7 +290,7 @@ func DispatchForMessageToGnb(lbConn *context.Lb_Conn, msg []byte, startTime int6
 }
 
 // Handles Notifications of the SCTPConn
-func HandleSCTPNotification(conn *context.Lb_Conn, notification sctp.Notification) { 
+func HandleSCTPNotification(conn *context.LB_Conn, notification sctp.Notification) { 
 	switch notification.Type() {
 	case sctp.SCTP_ASSOC_CHANGE:
 		conn.Log.Infof("SCTP_ASSOC_CHANGE notification")

@@ -13,63 +13,64 @@ import (
 )
 
 var (
-	lb_Context = Lb_Context{}
+	lB_Context = LB_Context{}
 )
 
-type Lb_Context struct {
-	Name 				string
-	// NetworkName   		factory.NetworkName
-	NfId               	string
+// The LB's main context 
+type LB_Context struct {
+	Name 						string
+	NfId               			string
 
-	LbIP 				string
+	LbIP 						string // IPv4 adress of the LB 
 
-	LbToAmfPort			int 
-	LbToAmfAddr			*sctp.SCTPAddr 	
+	LbToAmfPort					int // inital prot to connect to the first AMF 
+	LbToAmfAddr					*sctp.SCTPAddr // SCTP adress generated for AMFs
 
-	LbListenPort		int
-	LbListenAddr		*sctp.SCTPAddr
+	LbListenPort				int // port to listen for GNBs
+	LbListenAddr				*sctp.SCTPAddr // SCTP adress generated for GNBs
 
-	Running 			bool 	// true while the LB is not beeing terminated 
+	Running 					bool 	// true while the LB is not beeing terminated 
 
 	NewAmf						bool // indicates that a new AMF IP+Port have been added so that the LB can connect to it 
-	NewRegistAmfIpList 			[]string 
-	NewRegularAmfIpList 		[]string 
-	NewDeregistAmfIpList 		[]string 
+	NewRegistAmfIpList 			[]string // Registration AMFs that have to be registred
+	NewRegularAmfIpList 		[]string // Regular AMFs that have to be registred
+	NewDeregistAmfIpList 		[]string // Deregistration AMFs that have to be registred
 	
-	DifferentAmfTypes			int 
+	DifferentAmfTypes			int // amount of different AMF types used 
 	ContinuesAmfRegistration	bool // true for continues accepting AMFs for registration 
 	
-	LbRanPool 			sync.Map //[]*LbGnb // gNBs connected to the LB
-	LbRegistAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
-	LbRegularAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
-	LbDeregistAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
+	LB_GNBPool 					sync.Map  // GNBs connected to the LB
+	RegistAMFPool 				sync.Map  // AMFs connected to LB
+	RegularAMFPool 				sync.Map  // AMFs connected to LB
+	DeregistAMFPool 			sync.Map  // AMFs connected to LB
 
-	Next_Regist_Amf 			*Lb_Amf
-	Next_Regular_Amf 			*Lb_Amf
-	Next_Deregist_Amf 			*Lb_Amf
+	Next_Regist_Amf 			*LB_AMF // AMF that is used for the next UE entering registration 
+	Next_Regular_Amf 			*LB_AMF	// if 3 AMF types: AMF that is used for the next UE finishing registration
+	Next_Deregist_Amf 			*LB_AMF	// if > 2 AMF types: AMF that is used for the next UE starting deregistration
 
-	IDGen 				*UniqueNumberGen
+	IDGen 						*UniqueNumberGen 
 	
-	RelativeCapacity 	int64 // To build setup response
+	RelativeCapacity 			int64 // To build setup response
 
 	/* temp */
-	PlmnSupportList 	[]factory.PlmnSupportItem
-	ServedGuamiList 	[]models.Guami
+	PlmnSupportList 			[]factory.PlmnSupportItem
+	ServedGuamiList 			[]models.Guami
 
 	/* logger */
-	Log 				*logrus.Entry
+	Log 						*logrus.Entry
 
 	/* metrics */
-	MetricsLevel 		int 
-	MetricsGNBs			sync.Map
+	MetricsLevel 				int 
+	MetricsGNBs					sync.Map
 }
 
 // Creates and returns a new *LBContext
-func NewLBContext() (*Lb_Context){
-	var new Lb_Context
+func NewLBContext() (*LB_Context){
+	var new LB_Context
 	return &new
 }
 
-func LB_Self() *Lb_Context {
-	return &lb_Context
+// returns the current instance of the LB_Context
+func LB_Self() *LB_Context {
+	return &lB_Context
 }

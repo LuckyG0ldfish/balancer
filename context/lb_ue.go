@@ -16,7 +16,7 @@ import (
 )
 
 // Type, that stores all relevant information of UEs
-type Lb_Ue struct{
+type LB_UE struct{
 	UeStateIdent 	int			// Identifies the state of the UE 
 
 	GNB_UE_ID 		int64		// ID given to the UE by GNB/RAN
@@ -24,10 +24,10 @@ type Lb_Ue struct{
 	AMF_UE_ID 		int64		// ID given to the UE by AMF
 	
 	GnbID			int64		// LB-internal ID of GNB that issued the UE 
-	GnbPointer 		*Lb_Gnb		// ponter to the connected GNB
+	GnbPointer 		*LB_GNB		// ponter to the connected GNB
 
 	AmfID		 	int64		// LB-internal ID of AMF that processes the UE  
-	AmfPointer		*Lb_Amf		// ponter to the connected AMF
+	AmfPointer		*LB_AMF		// ponter to the connected AMF
 
 	UplinkFlag		bool 		// set true when Uplink-NAS-RegistrationComplete is done
 	ResponseFlag	bool		// set true when InitialContextSetupResponse is done
@@ -57,8 +57,8 @@ type Lb_Ue struct{
 }
 
 // Creates, initializes and returns a new *LbUe
-func NewUE() (*Lb_Ue){
-	var ue Lb_Ue
+func NewUE() (*LB_UE){
+	var ue LB_UE
 	ue.UeStateIdent = TypeIdRegist
 	ue.Log = logger.UELog
 	// set ABBA value as described at TS 33.501 Annex A.7.1
@@ -70,15 +70,14 @@ func NewUE() (*Lb_Ue){
 }
 
 // Removes LbUe from AMF and RAN Context withing LB  
-func (ue *Lb_Ue) RemoveUeEntirely() {
-	// time.Sleep(1 * time.Second)
+func (ue *LB_UE) RemoveUeEntirely() {
 	ue.RemoveUeFromAMF()
 	ue.RemoveUeFromGNB()
 	ue = nil 
 }
 
 // Removes LbUe from AMF Context withing LB 
-func (ue *Lb_Ue) RemoveUeFromAMF() {
+func (ue *LB_UE) RemoveUeFromAMF() {
 	if ue.AmfPointer != nil {
 		ue.AmfPointer.NumberOfConnectedUEs -= 1
 		ue.AmfPointer.Ues.Delete(ue.LB_UE_ID) // sync.Map key here is the LB internal UE-ID 
@@ -87,7 +86,7 @@ func (ue *Lb_Ue) RemoveUeFromAMF() {
 }
 
 // Removes LbUe from RAN Context withing LB 
-func (ue *Lb_Ue) RemoveUeFromGNB() {
+func (ue *LB_UE) RemoveUeFromGNB() {
 	if ue.GnbPointer != nil {
 		ue.GnbPointer.Ues.Delete(ue.GNB_UE_ID) // sync.Map key here is the RAN UE-ID
 		ue.GnbPointer.Log.Debugf("LB_UE_ID %d context removed from GNB", ue.LB_UE_ID)
@@ -95,7 +94,7 @@ func (ue *Lb_Ue) RemoveUeFromGNB() {
 }
 
 // Sets UEs values and adds it to the Amfs UE-Map
-func (ue *Lb_Ue) AddUeToAmf(next *Lb_Amf) {
+func (ue *LB_UE) AddUeToAmf(next *LB_AMF) {
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
 	next.Ues.Store(ue.LB_UE_ID, ue)
@@ -104,7 +103,7 @@ func (ue *Lb_Ue) AddUeToAmf(next *Lb_Amf) {
 }
 
 
-func (ue *Lb_Ue) RegistrationComplete() {
+func (ue *LB_UE) RegistrationComplete() {
 	if ue.UeStateIdent == TypeIdRegist && ue.ResponseFlag && ue.UplinkFlag {
 		self := LB_Self()
 		if self.DifferentAmfTypes == 3 {
@@ -126,7 +125,7 @@ func (ue *Lb_Ue) RegistrationComplete() {
 // TODO
 // Kamf Derivation function defined in TS 33.501 Annex A.7
 // gmm handler HandleAuthenticationResponse L1943 + 1978
-func (ue *Lb_Ue) DerivateKamf() {
+func (ue *LB_UE) DerivateKamf() {
 	supiRegexp, err := regexp.Compile("(?:imsi|supi)-([0-9]{5,15})")
 	if err != nil {
 		logger.ContextLog.Error(err)
@@ -155,7 +154,7 @@ func (ue *Lb_Ue) DerivateKamf() {
 
 // TODO
 // Access Network key Derivation function defined in TS 33.501 Annex A.9
-func (ue *Lb_Ue) DerivateAnKey(anType models.AccessType) {
+func (ue *LB_UE) DerivateAnKey(anType models.AccessType) {
 	accessType := security.AccessType3GPP // Defalut 3gpp
 	P0 := make([]byte, 4)
 	binary.BigEndian.PutUint32(P0, ue.ULCount.Get())
@@ -182,7 +181,7 @@ func (ue *Lb_Ue) DerivateAnKey(anType models.AccessType) {
 
 // TODO
 // Algorithm key Derivation function defined in TS 33.501 Annex A.9
-func (ue *Lb_Ue) DerivateAlgKey() {
+func (ue *LB_UE) DerivateAlgKey() {
 	// Security Key
 	P0 := []byte{security.NNASEncAlg}
 	L0 := UeauCommon.KDFLen(P0)
@@ -208,7 +207,7 @@ func (ue *Lb_Ue) DerivateAlgKey() {
 }
 
 // TODO
-func (ue *Lb_Ue) SelectSecurityAlg(intOrder, encOrder []uint8) {
+func (ue *LB_UE) SelectSecurityAlg(intOrder, encOrder []uint8) {
 	ue.CipheringAlg = security.AlgCiphering128NEA0
 	ue.IntegrityAlg = security.AlgIntegrity128NIA0
 
@@ -250,7 +249,7 @@ func (ue *Lb_Ue) SelectSecurityAlg(intOrder, encOrder []uint8) {
 }
 
 // TODO
-func (ue *Lb_Ue) CopyDataFromUeContextModel(ueContext models.UeContext) {
+func (ue *LB_UE) CopyDataFromUeContextModel(ueContext models.UeContext) {
 	if ueContext.Supi != "" {
 		ue.Supi = ueContext.Supi
 	}

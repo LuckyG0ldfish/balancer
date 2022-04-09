@@ -8,7 +8,7 @@ import (
 	"github.com/LuckyG0ldfish/balancer/logger"
 )
 
-func InitLbContext(self *context.Lb_Context) {
+func InitLbContext(self *context.LB_Context) {
 	config := factory.LbConfig
 	logger.UtilLog.Infof("lbconfig Info: Version[%s] Description[%s]", config.Info.Version, config.Info.Description)
 	configuration := config.Configuration

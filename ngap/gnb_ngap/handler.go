@@ -18,7 +18,7 @@ import (
 
 
 //TODO
-func HandleNGSetupRequest(LbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
+func HandleNGSetupRequest(LbConn *context.LB_Conn, message *ngapType.NGAPPDU) {
 	var globalRANNodeID *ngapType.GlobalRANNodeID
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
@@ -87,10 +87,10 @@ func HandleNGSetupRequest(LbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleUplinkNasTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkNasTransport(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	var ue *context.Lb_Ue
+	var ue *context.LB_UE
 	
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -160,7 +160,7 @@ func HandleUplinkNasTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU
 }
 
 // TODO
-func HandleNGReset(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
+func HandleNGReset(lbConn *context.LB_Conn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var resetType *ngapType.ResetType
 
@@ -222,7 +222,7 @@ func HandleNGReset(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 }
 
 // TODO
-func HandleNGResetAcknowledge(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
+func HandleNGResetAcknowledge(lbConn *context.LB_Conn, message *ngapType.NGAPPDU) {
 	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
@@ -274,10 +274,10 @@ func HandleNGResetAcknowledge(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU
 	}
 }
 
-func HandleUEContextReleaseComplete(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseComplete(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var ue *context.Lb_Ue
+	var ue *context.LB_UE
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -339,7 +339,7 @@ func HandleUEContextReleaseComplete(lbConn *context.Lb_Conn, message *ngapType.N
 	}
 }
 
-func HandlePDUSessionResourceReleaseResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceReleaseResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -392,7 +392,7 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.Lb_Conn, message *n
 	}
 }
 
-func HandleUERadioCapabilityCheckResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUERadioCapabilityCheckResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -446,7 +446,7 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.Lb_Conn, message *ngap
 	}
 }
 
-func HandleLocationReportingFailureIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleLocationReportingFailureIndication(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -500,7 +500,7 @@ func HandleLocationReportingFailureIndication(lbConn *context.Lb_Conn, message *
 	}
 }
 
-func HandleInitialUEMessage(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialUEMessage(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	LB := context.LB_Self()
@@ -588,7 +588,7 @@ func HandleInitialUEMessage(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, 
 	LB.SelectNextRegistAmf()
 }
 
-func HandlePDUSessionResourceSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceSetupResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -641,7 +641,7 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.Lb_Conn, message *nga
 	}
 }
 
-func HandlePDUSessionResourceModifyResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceModifyResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -694,7 +694,7 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.Lb_Conn, message *ng
 	}
 }
 
-func HandlePDUSessionResourceNotify(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceNotify(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -747,7 +747,7 @@ func HandlePDUSessionResourceNotify(lbConn *context.Lb_Conn, message *ngapType.N
 	}
 }
 
-func HandlePDUSessionResourceModifyIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceModifyIndication(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -814,10 +814,10 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.Lb_Conn, message *
 	}
 }
 
-func HandleInitialContextSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
-	var ue *context.Lb_Ue
+	var ue *context.LB_UE
 
 	if lbConn == nil {
 		logger.NgapLog.Errorf("ran is nil")
@@ -872,7 +872,7 @@ func HandleInitialContextSetupResponse(lbConn *context.Lb_Conn, message *ngapTyp
 	ue.RegistrationComplete()
 }
 
-func HandleInitialContextSetupFailure(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupFailure(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -925,7 +925,7 @@ func HandleInitialContextSetupFailure(lbConn *context.Lb_Conn, message *ngapType
 	}
 }
 
-func HandleUEContextReleaseRequest(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseRequest(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -978,7 +978,7 @@ func HandleUEContextReleaseRequest(lbConn *context.Lb_Conn, message *ngapType.NG
 	}
 }
 
-func HandleUEContextModificationResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextModificationResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1031,7 +1031,7 @@ func HandleUEContextModificationResponse(lbConn *context.Lb_Conn, message *ngapT
 	}
 }
 
-func HandleUEContextModificationFailure(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextModificationFailure(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -1085,7 +1085,7 @@ func HandleUEContextModificationFailure(lbConn *context.Lb_Conn, message *ngapTy
 	}
 }
 
-func HandleRRCInactiveTransitionReport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleRRCInactiveTransitionReport(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1141,7 +1141,7 @@ func HandleRRCInactiveTransitionReport(lbConn *context.Lb_Conn, message *ngapTyp
 	}
 }
 
-func HandleHandoverNotify(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverNotify(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1197,12 +1197,12 @@ func HandleHandoverNotify(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, st
 }
 
 // TS 23.502 4.9.1
-func HandlePathSwitchRequest(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePathSwitchRequest(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	//TODO
 	lbConn.Log.Errorln("Handling case not implemented yet: Path Switch Request")
 }
 
-func HandleHandoverRequestAcknowledge(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverRequestAcknowledge(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1256,7 +1256,7 @@ func HandleHandoverRequestAcknowledge(lbConn *context.Lb_Conn, message *ngapType
 }
 
 //TODO
-func HandleHandoverRequired(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverRequired(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1311,7 +1311,7 @@ func HandleHandoverRequired(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, 
 	}
 }
 
-func HandleUplinkRanStatusTransfer(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkRanStatusTransfer(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1364,7 +1364,7 @@ func HandleUplinkRanStatusTransfer(lbConn *context.Lb_Conn, message *ngapType.NG
 	}
 }
 
-func HandleNasNonDeliveryIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleNasNonDeliveryIndication(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1417,7 +1417,7 @@ func HandleNasNonDeliveryIndication(lbConn *context.Lb_Conn, message *ngapType.N
 	}
 }
 
-func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1470,7 +1470,7 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.Lb_Conn, message *ng
 	}
 }
 
-func HandleLocationReport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleLocationReport(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1523,7 +1523,7 @@ func HandleLocationReport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, st
 	}
 }
 
-func HandleUERadioCapabilityInfoIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUERadioCapabilityInfoIndication(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1577,7 +1577,7 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.Lb_Conn, message *nga
 	}
 }
 
-func HandleErrorIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleErrorIndication(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1628,7 +1628,7 @@ func HandleErrorIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, s
 	}
 }
 
-func HandleCellTrafficTrace(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleCellTrafficTrace(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1681,7 +1681,7 @@ func HandleCellTrafficTrace(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, 
 	}
 }
 
-func printAndGetCause(lbConn *context.Lb_Conn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
+func printAndGetCause(lbConn *context.LB_Conn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
 	present = cause.Present
 	switch cause.Present {
 	case ngapType.CausePresentRadioNetwork:
@@ -1705,7 +1705,7 @@ func printAndGetCause(lbConn *context.Lb_Conn, cause *ngapType.Cause) (present i
 	return
 }
 
-func printCriticalityDiagnostics(lbConn *context.Lb_Conn, criticalityDiagnostics *ngapType.CriticalityDiagnostics) {
+func printCriticalityDiagnostics(lbConn *context.LB_Conn, criticalityDiagnostics *ngapType.CriticalityDiagnostics) {
 	lbConn.Log.Trace("Criticality Diagnostics")
 
 	if criticalityDiagnostics.ProcedureCriticality != nil {

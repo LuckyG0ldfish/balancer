@@ -25,7 +25,7 @@ import (
 )
 
 type Load struct{
-	LbContext 	*context.Lb_Context
+	LbContext 	*context.LB_Context
 }
 
 type (

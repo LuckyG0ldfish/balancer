@@ -9,7 +9,7 @@ import (
 	"github.com/free5gc/ngap/ngapType"
 )
 
-func HandleNGSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
+func HandleNGSetupResponse(lbConn *context.LB_Conn, message *ngapType.NGAPPDU) {
 	logger.GNBHandlerLog.Debugln("Handle NG Setup Response")
 
 	var servedGUAMIList *ngapType.ServedGUAMIList
@@ -59,7 +59,7 @@ func HandleNGSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleInitialContextSetupRequest(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupRequest(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("Handle Initial Context Setup Request")
 	
 	var rANUENGAPID *ngapType.RANUENGAPID
@@ -104,7 +104,7 @@ func HandleInitialContextSetupRequest(lbConn *context.Lb_Conn, message *ngapType
 }
 
 // TODO 
-func HandleUEContextReleaseCommand(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseCommand(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("Handle UE Context Release Command TODO")
 
 	var ueNgapIDs *ngapType.UENGAPIDs
@@ -138,12 +138,12 @@ func HandleUEContextReleaseCommand(lbConn *context.Lb_Conn, message *ngapType.NG
 		}
 	}
 
-	var ue *context.Lb_Ue
+	var ue *context.LB_UE
 
 	switch ueNgapIDs.Present {
 	case ngapType.UENGAPIDsPresentUENGAPIDPair:
 		id := ueNgapIDs.UENGAPIDPair.AMFUENGAPID.Value
-		ueTemp, ok := lbConn.AmfPointer.FindUeByUeAmfID(id)
+		ueTemp, ok := lbConn.AmfPointer.FindUeByAMF_UE_ID(id)
 		if !ok {
 			logger.NgapLog.Errorf("UE not found")
 			return 
@@ -163,13 +163,13 @@ func HandleUEContextReleaseCommand(lbConn *context.Lb_Conn, message *ngapType.NG
 	context.ForwardToGnb(message, ue, startTime)
 }
 
-func HandleDownlinkNASTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleDownlinkNASTransport(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("Handle Downlink NAS Transport")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
-	var ue *context.Lb_Ue
+	var ue *context.LB_UE
 	
 	if message == nil {
 		logger.NgapLog.Errorf("NGAP Message is nil")
@@ -238,7 +238,7 @@ func HandleDownlinkNASTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPP
 	}
 }
 
-func HandlePDUSessionResourceSetupRequest(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceSetupRequest(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("Handle PDU Session Resource Setup Request")
 
 	var aMFUENGAPID *ngapType.AMFUENGAPID
@@ -292,7 +292,7 @@ func HandlePDUSessionResourceSetupRequest(lbConn *context.Lb_Conn, message *ngap
 }
 
 // TODO
-func HandlePDUSessionResourceReleaseCommand(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceReleaseCommand(lbConn *context.LB_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	logger.GNBHandlerLog.Debugln("Handle PDU Session Resource Release Command")
 	
 	var aMFUENGAPID *ngapType.AMFUENGAPID

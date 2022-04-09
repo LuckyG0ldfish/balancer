@@ -16,8 +16,8 @@ import (
 )
 
 type NGAPHandler struct {
-	HandleMessage      func(lbConn *context.Lb_Conn, msg []byte, startTime int64)
-	HandleNotification func(conn *context.Lb_Conn, notification sctp.Notification)
+	HandleMessage      func(lbConn *context.LB_Conn, msg []byte, startTime int64)
+	HandleNotification func(conn *context.LB_Conn, notification sctp.Notification)
 }
 
 const readBufSize uint32 = 256 // 8192
@@ -52,7 +52,7 @@ func Run(addr *sctp.SCTPAddr, handler NGAPHandler) {
 }
 
 // Handling all the the LBs open connections (AMFs + GNBs)
-func handleConnection(lbConn *context.Lb_Conn, bufsize uint32, handler NGAPHandler) {
+func handleConnection(lbConn *context.LB_Conn, bufsize uint32, handler NGAPHandler) {
 	logger.NgapLog.Tracef("Waiting for message")
 	for !lbConn.Closed {
 		buf := make([]byte, bufsize)
@@ -107,7 +107,7 @@ func handleConnection(lbConn *context.Lb_Conn, bufsize uint32, handler NGAPHandl
 }
 
 // Removes a LB_Conn from the list of connections and the related AMF/GNB from their pool 
-func RemoveLBConnection(conn *context.Lb_Conn) {
+func RemoveLBConnection(conn *context.LB_Conn) {
 	conn.Closed = true 
 	if conn.TypeID == context.TypeAmf {
 		conn.AmfPointer.RemoveAmfContext()
@@ -131,7 +131,7 @@ func Stop() {
 		if value == nil {
 			return true 
 		}
-		lbConn, ok := value.(context.Lb_Conn)
+		lbConn, ok := value.(context.LB_Conn)
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}

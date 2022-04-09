@@ -7,7 +7,7 @@ import (
 )
 
 // TODO:
-func (context *Lb_Context) SelectNextRegistAmf() bool{
+func (context *LB_Context) SelectNextRegistAmf() bool{
 	if context.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
@@ -22,7 +22,7 @@ func (context *Lb_Context) SelectNextRegistAmf() bool{
 }
 
 // TODO:
-func (context *Lb_Context) SelectNextRegularAmf() bool{
+func (context *LB_Context) SelectNextRegularAmf() bool{
 	if context.Next_Regular_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
@@ -37,7 +37,7 @@ func (context *Lb_Context) SelectNextRegularAmf() bool{
 }
 
 // TODO:
-func (context *Lb_Context) SelectNextDeregistAmf() bool{
+func (context *LB_Context) SelectNextDeregistAmf() bool{
 	if context.Next_Deregist_Amf == nil {
 		logger.ContextLog.Errorf("No Amf found")
 		return false 
@@ -51,27 +51,27 @@ func (context *Lb_Context) SelectNextDeregistAmf() bool{
 	return true 
 }
 
-func (context *Lb_Context) findNextAMF(state int) *Lb_Amf{
+func (context *LB_Context) findNextAMF(state int) *LB_AMF{
 	lb := LB_Self()
-	var amfWithMaxCap *Lb_Amf
+	var amfWithMaxCap *LB_AMF
 	var amfUsage float32
 	var pool *sync.Map
 
 	switch state {
 	case TypeIdRegist:
 		amfWithMaxCap = lb.Next_Regist_Amf
-		pool = &lb.LbRegistAmfPool
+		pool = &lb.RegistAMFPool
 	case TypeIdRegular:
 		amfWithMaxCap = lb.Next_Regular_Amf
-		pool = &lb.LbRegularAmfPool
+		pool = &lb.RegularAMFPool
 	case TypeIdDeregist:
 		amfWithMaxCap = lb.Next_Deregist_Amf
-		pool = &lb.LbDeregistAmfPool
+		pool = &lb.DeregistAMFPool
 	} 
 	amfUsage = amfWithMaxCap.calculateAMFUsage()
 	
 	pool.Range(func(key, value interface{}) bool{
-		amfTemp, ok := value.(*Lb_Amf)
+		amfTemp, ok := value.(*LB_AMF)
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}

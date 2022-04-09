@@ -10,12 +10,12 @@ import (
 var nextAmfID int64 = 1
 
 // Type, that stores all relevant information of connected AMFs 
-type Lb_Amf struct {
+type LB_AMF struct {
 	AmfID  					int64 			// INTERNAL ID for this AMF 
 
 	AmfTypeIdent 			int 			// Identifies the type of AMF 
 
-	Lb_Conn 				*Lb_Conn 		// Stores all the connection related information 
+	LB_Conn 				*LB_Conn 		// Stores all the connection related information 
 
 	RelativeCapacity 		int64 			// AMFs Relative Cap. -> extracted out of NGSetup
 	NumberOfConnectedUEs 	int64 			// Amount of UEs that are connected to this AMF 
@@ -27,13 +27,13 @@ type Lb_Amf struct {
 }
 
 // Use a UELB-ID to find UE context, return *LbUe and true if found
-func (amf *Lb_Amf) FindUeByRAN_UE_ID(id int64) (*Lb_Ue, bool){
+func (amf *LB_AMF) FindUeByRAN_UE_ID(id int64) (*LB_UE, bool){
 	ue, ok := amf.Ues.Load(id)
 	if !ok {
 		amf.Log.Errorf("UE is not registered to this AMF %d", id)
 		return nil, false 
 	}
-	ue2, ok :=  ue.(*Lb_Ue)
+	ue2, ok :=  ue.(*LB_UE)
 	if !ok {
 		amf.Log.Errorf("couldn't be converted")
 		return nil, false 
@@ -42,11 +42,11 @@ func (amf *Lb_Amf) FindUeByRAN_UE_ID(id int64) (*Lb_Ue, bool){
 }
 
 // Use a UEAMF-ID to find UE context, return *LbUe and true if found TODO
-func (amf *Lb_Amf) FindUeByUeAmfID(id int64) (*Lb_Ue, bool){
-	var ue *Lb_Ue
+func (amf *LB_AMF) FindUeByAMF_UE_ID(id int64) (*LB_UE, bool){
+	var ue *LB_UE
 	var ok bool = false 
 	amf.Ues.Range(func(key, value interface{}) bool{
-		ueTemp, okTemp := value.(*Lb_Ue)
+		ueTemp, okTemp := value.(*LB_UE)
 		if !okTemp {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}
@@ -59,26 +59,26 @@ func (amf *Lb_Amf) FindUeByUeAmfID(id int64) (*Lb_Ue, bool){
 	return ue, ok
 }
 
-// 
-func CreateAndAddAmfToLB(amfType int) *Lb_Amf{
+// Creates and adds an Amf to the LB_Context
+func CreateAndAddAmfToLB(amfType int) *LB_AMF{
 	self := LB_Self()
 	amf := newLbAmf(amfType)
 	if amf.AmfTypeIdent == TypeIdRegist {
-		self.LbRegistAmfPool.Store(amf.AmfID, amf)
+		self.RegistAMFPool.Store(amf.AmfID, amf)
 	} else if amf.AmfTypeIdent == TypeIdDeregist {
-		self.LbDeregistAmfPool.Store(amf.AmfID, amf)
+		self.DeregistAMFPool.Store(amf.AmfID, amf)
 	} else {
-		self.LbRegularAmfPool.Store(amf.AmfID, amf)
+		self.RegularAMFPool.Store(amf.AmfID, amf)
 	}
 	return amf
 }
 
 // Creates, initializes and returns a new *LbAmf
-func newLbAmf(amfType int) *Lb_Amf {
-	var amf Lb_Amf
+func newLbAmf(amfType int) *LB_AMF {
+	var amf LB_AMF
 	amf.AmfID = nextAmfID
-	amf.Lb_Conn = newLBConn(nextAmfID, TypeIdAMFConn)
-	amf.Lb_Conn.AmfPointer = &amf
+	amf.LB_Conn = newLBConn(nextAmfID, TypeIdAMFConn)
+	amf.LB_Conn.AmfPointer = &amf
 	amf.Log = logger.AMFLog
 	amf.RelativeCapacity = 0 
 	amf.NumberOfConnectedUEs = 0 
@@ -88,13 +88,13 @@ func newLbAmf(amfType int) *Lb_Amf {
 }
 
 // takes UeID and returns true if UE exists in the AMFs list 
-func (amf *Lb_Amf) ContainsUE(id int64) (cont bool) {
+func (amf *LB_AMF) ContainsUE(id int64) (cont bool) {
 	_, cont = amf.Ues.Load(id)
 	return
 }
 
 // calculates a number reflecting the AMF-Usage that is comparable within the loadbalancer
-func (amf *Lb_Amf) calculateAMFUsage() float32{
+func (amf *LB_AMF) calculateAMFUsage() float32{
 	if amf.RelativeCapacity == 0 {
 		return 1000.0
 	}
@@ -102,17 +102,17 @@ func (amf *Lb_Amf) calculateAMFUsage() float32{
 }
 
 // Removes AMF-Context and closes the Connection  
-func (amf *Lb_Amf) RemoveAmfContext() {
+func (amf *LB_AMF) RemoveAmfContext() {
 	lb := LB_Self()
 
 	if amf.AmfTypeIdent == TypeIdRegist {
-		lb.LbRegistAmfPool.Delete(amf.Lb_Conn.Conn)
+		lb.RegistAMFPool.Delete(amf.LB_Conn.Conn)
 	} else if amf.AmfTypeIdent == TypeIdDeregist {
-		lb.LbDeregistAmfPool.Delete(amf.Lb_Conn.Conn)
+		lb.DeregistAMFPool.Delete(amf.LB_Conn.Conn)
 	} else {
-		lb.LbRegularAmfPool.Delete(amf.Lb_Conn.Conn)
+		lb.RegularAMFPool.Delete(amf.LB_Conn.Conn)
 	}
-	amf.Lb_Conn.Conn.Close()
+	amf.LB_Conn.Conn.Close()
 	amf = nil 
 }
 

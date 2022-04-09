@@ -35,7 +35,7 @@ import (
 // }
 
 // Used to forward registered UE's messages to an AMF
-func ForwardToAmf(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
+func ForwardToAmf(message *ngapType.NGAPPDU, ue *LB_UE, startTime int64) {
 	// finding the correct AMF by the in UE stored AMF-Pointer
 	amf := ue.AmfPointer
 
@@ -48,7 +48,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
 	}
 	
 	// Forwarding
-	SendByteToConn(amf.Lb_Conn.Conn, mes)
+	SendByteToConn(amf.LB_Conn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to AMF")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 	if ue.AMF_UE_ID != 0 {
@@ -67,7 +67,7 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
 }
 
 // Used to forward registered UE's messages to an GNB
-func ForwardToGnb(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
+func ForwardToGnb(message *ngapType.NGAPPDU, ue *LB_UE, startTime int64) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
 	gnb := ue.GnbPointer
 	
@@ -80,7 +80,7 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *Lb_Ue, startTime int64) {
 	}
 	
 	// Forwarding
-	SendByteToConn(gnb.Lb_Conn.Conn, mes)
+	SendByteToConn(gnb.LB_Conn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to GNB")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
 	if ue.AMF_UE_ID != 0 {
