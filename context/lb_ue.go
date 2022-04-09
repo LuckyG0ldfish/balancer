@@ -19,21 +19,21 @@ import (
 type LbUe struct{
 	UeStateIdent 	int			// Identifies the state of the UE 
 
-	UeRanID 		int64		// ID given to the UE by GNB/RAN
-	UeLbID 			int64		// ID given to the UE by LB
-	UeAmfID 		int64		// ID given to the UE by AMF
+	GNB_UE_ID 		int64		// ID given to the UE by GNB/RAN
+	LB_UE_ID 		int64		// ID given to the UE by LB
+	AMF_UE_ID 		int64		// ID given to the UE by AMF
 	
-	RanID			int64		// LB-internal ID of GNB that issued the UE 
-	RanPointer 		*LbGnb
+	GnbID			int64		// LB-internal ID of GNB that issued the UE 
+	GnbPointer 		*Lb_Gnb		// ponter to the connected GNB
 
 	AmfID		 	int64		// LB-internal ID of AMF that processes the UE  
-	AmfPointer		*LbAmf
+	AmfPointer		*Lb_Amf		// ponter to the connected AMF
 
 	UplinkFlag		bool 		// set true when Uplink-NAS-RegistrationComplete is done
 	ResponseFlag	bool		// set true when InitialContextSetupResponse is done
 	DeregFlag		bool		// set true when Uplink-NAS-Deregistration-Accept is done 
 
-	/* nas decrypt */
+	/* nas decrypt */ // TODO
 	RRCECause 		string
 	ULCount			security.Count 	//TODO amf_ue L728 | gmm HandleRegist HandleServiceRequest (only get())
 	DLCount			security.Count	// TODO set in CopyDataFromUeContextModel | .AddOne() in nas Encode()
@@ -81,26 +81,26 @@ func (ue *LbUe) RemoveUeEntirely() {
 func (ue *LbUe) RemoveUeFromAMF() {
 	if ue.AmfPointer != nil {
 		ue.AmfPointer.NumberOfConnectedUEs -= 1
-		ue.AmfPointer.Ues.Delete(ue.UeLbID) // sync.Map key here is the LB internal UE-ID 
-		ue.AmfPointer.Log.Debugf("LB_UE_ID %d context removed from AMF", ue.UeLbID)
+		ue.AmfPointer.Ues.Delete(ue.LB_UE_ID) // sync.Map key here is the LB internal UE-ID 
+		ue.AmfPointer.Log.Debugf("LB_UE_ID %d context removed from AMF", ue.LB_UE_ID)
 	}
 }
 
 // Removes LbUe from RAN Context withing LB 
 func (ue *LbUe) RemoveUeFromGNB() {
-	if ue.RanPointer != nil {
-		ue.RanPointer.Ues.Delete(ue.UeRanID) // sync.Map key here is the RAN UE-ID
-		ue.RanPointer.Log.Debugf("LB_UE_ID %d context removed from GNB", ue.UeLbID)
+	if ue.GnbPointer != nil {
+		ue.GnbPointer.Ues.Delete(ue.GNB_UE_ID) // sync.Map key here is the RAN UE-ID
+		ue.GnbPointer.Log.Debugf("LB_UE_ID %d context removed from GNB", ue.LB_UE_ID)
 	}
 }
 
 // Sets UEs values and adds it to the Amfs UE-Map
-func (ue *LbUe) AddUeToAmf(next *LbAmf) {
+func (ue *LbUe) AddUeToAmf(next *Lb_Amf) {
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
-	next.Ues.Store(ue.UeLbID, ue)
+	next.Ues.Store(ue.LB_UE_ID, ue)
 	next.NumberOfConnectedUEs += 1
-	logger.ContextLog.Tracef("GNB_UE_ID: %d added to AMF %d", ue.UeLbID, next.AmfID)
+	logger.ContextLog.Tracef("GNB_UE_ID: %d added to AMF %d", ue.LB_UE_ID, next.AmfID)
 }
 
 

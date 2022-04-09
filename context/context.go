@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	lbContext = LBContext{}
+	lb_Context = Lb_Context{}
 )
 
-type LBContext struct {
+type Lb_Context struct {
 	Name 				string
 	// NetworkName   		factory.NetworkName
 	NfId               	string
@@ -44,9 +44,9 @@ type LBContext struct {
 	LbRegularAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 	LbDeregistAmfPool 	sync.Map //[]*LbAmf // amfs (each connected to AMF 1:1) connected to LB
 
-	Next_Regist_Amf 			*LbAmf
-	Next_Regular_Amf 			*LbAmf
-	Next_Deregist_Amf 			*LbAmf
+	Next_Regist_Amf 			*Lb_Amf
+	Next_Regular_Amf 			*Lb_Amf
+	Next_Deregist_Amf 			*Lb_Amf
 
 	IDGen 				*UniqueNumberGen
 	
@@ -65,11 +65,11 @@ type LBContext struct {
 }
 
 // Creates and returns a new *LBContext
-func NewLBContext() (*LBContext){
-	var new LBContext
+func NewLBContext() (*Lb_Context){
+	var new Lb_Context
 	return &new
 }
 
-func LB_Self() *LBContext {
-	return &lbContext
+func LB_Self() *Lb_Context {
+	return &lb_Context
 }

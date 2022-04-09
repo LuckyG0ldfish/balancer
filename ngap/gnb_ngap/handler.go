@@ -18,7 +18,7 @@ import (
 
 
 //TODO
-func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGSetupRequest(LbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 	var globalRANNodeID *ngapType.GlobalRANNodeID
 	var rANNodeName *ngapType.RANNodeName
 	var supportedTAList *ngapType.SupportedTAList
@@ -87,7 +87,7 @@ func HandleNGSetupRequest(LbConn *context.LBConn, message *ngapType.NGAPPDU) {
 	}
 }
 
-func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkNasTransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	var ue *context.LbUe
@@ -126,14 +126,14 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
+				gnb := lbConn.GnbPointer
 				var ok bool
-				ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				ue, ok = gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 			}	
 		case ngapType.ProtocolIEIDNASPDU:
 			nASPDU = ie.Value.NASPDU
@@ -160,7 +160,7 @@ func HandleUplinkNasTransport(lbConn *context.LBConn, message *ngapType.NGAPPDU,
 }
 
 // TODO
-func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGReset(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 	var cause *ngapType.Cause
 	var resetType *ngapType.ResetType
 
@@ -222,7 +222,7 @@ func HandleNGReset(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
 }
 
 // TODO
-func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU) {
+func HandleNGResetAcknowledge(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU) {
 	var uEAssociatedLogicalNGConnectionList *ngapType.UEAssociatedLogicalNGConnectionList
 	var criticalityDiagnostics *ngapType.CriticalityDiagnostics
 
@@ -274,7 +274,7 @@ func HandleNGResetAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU)
 	}
 }
 
-func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseComplete(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
@@ -316,13 +316,13 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
 				var ok bool 
-				gnb := lbConn.RanPointer
-				ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok = gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 			}
 		}
 	}
@@ -339,7 +339,7 @@ func HandleUEContextReleaseComplete(lbConn *context.LBConn, message *ngapType.NG
 	}
 }
 
-func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceReleaseResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -379,20 +379,20 @@ func HandlePDUSessionResourceReleaseResponse(lbConn *context.LBConn, message *ng
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUERadioCapabilityCheckResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -433,20 +433,20 @@ func HandleUERadioCapabilityCheckResponse(lbConn *context.LBConn, message *ngapT
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleLocationReportingFailureIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -487,20 +487,20 @@ func HandleLocationReportingFailureIndication(lbConn *context.LBConn, message *n
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialUEMessage(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var nASPDU *ngapType.NASPDU
 	LB := context.LB_Self()
@@ -555,24 +555,24 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	}
 
 	next := LB.Next_Regist_Amf
-	gnb := lbConn.RanPointer
+	gnb := lbConn.GnbPointer
 	ue := context.NewUE()
-	ue.UeRanID = rANUENGAPIDInt
-	ue.UeLbID = UeLbID
-	ue.RanID = gnb.GnbID
+	ue.GNB_UE_ID = rANUENGAPIDInt
+	ue.LB_UE_ID = UeLbID
+	ue.GnbID = gnb.GnbID
 	ue.AmfID = next.AmfID
 	ue.AmfPointer = next
-	ue.RanPointer = gnb
+	ue.GnbPointer = gnb
 	gnb.Ues.Store(rANUENGAPIDInt, ue)
 	
 	// Checks whether an UE with this UeLbID already exists
 	// and otherwise adds it
-	_, ok := next.Ues.Load(ue.UeLbID)
+	_, ok := next.Ues.Load(ue.LB_UE_ID)
 	if ok {
 		logger.NgapLog.Errorf("UE already exists")
 		return
 	}
-	next.Ues.Store(ue.UeLbID, ue)
+	next.Ues.Store(ue.LB_UE_ID, ue)
 	next.NumberOfConnectedUEs += 1
 
 	// if rRCEstablishmentCause != nil {
@@ -582,13 +582,13 @@ func HandleInitialUEMessage(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 	// 	ue.RRCECause = "0" // TODO: RRCEstablishmentCause 0 is for emergency service
 	// }
 	context.ForwardToAmf(message, ue, startTime)
-	lbConn.Log.Traceln("UeRanID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
+	lbConn.Log.Traceln("RAN_UE_ID: " + strconv.FormatInt(rANUENGAPIDInt, 10))
 	
 	// Selecting AMF that will be used for the next new UE
 	LB.SelectNextRegistAmf()
 }
 
-func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -628,20 +628,20 @@ func HandlePDUSessionResourceSetupResponse(lbConn *context.LBConn, message *ngap
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceModifyResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -681,20 +681,20 @@ func HandlePDUSessionResourceModifyResponse(lbConn *context.LBConn, message *nga
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceNotify(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -734,20 +734,20 @@ func HandlePDUSessionResourceNotify(lbConn *context.LBConn, message *ngapType.NG
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePDUSessionResourceModifyIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -801,20 +801,20 @@ func HandlePDUSessionResourceModifyIndication(lbConn *context.LBConn, message *n
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	var ue *context.LbUe
@@ -855,14 +855,14 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
 				rANUENGAPIDInt := ie.Value.RANUENGAPID.Value
-				gnb := lbConn.RanPointer
+				gnb := lbConn.GnbPointer
 				var ok bool 
-				ue, ok = gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				ue, ok = gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 			}
 		}
 	}
@@ -872,7 +872,7 @@ func HandleInitialContextSetupResponse(lbConn *context.LBConn, message *ngapType
 	ue.RegistrationComplete()
 }
 
-func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleInitialContextSetupFailure(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -912,20 +912,20 @@ func HandleInitialContextSetupFailure(lbConn *context.LBConn, message *ngapType.
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextReleaseRequest(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -965,20 +965,20 @@ func HandleUEContextReleaseRequest(lbConn *context.LBConn, message *ngapType.NGA
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextModificationResponse(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1018,20 +1018,20 @@ func HandleUEContextModificationResponse(lbConn *context.LBConn, message *ngapTy
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUEContextModificationFailure(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 	
@@ -1071,13 +1071,13 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 
 				context.ForwardToAmf(message, ue, startTime)
 			}
@@ -1085,7 +1085,7 @@ func HandleUEContextModificationFailure(lbConn *context.LBConn, message *ngapTyp
 	}
 }
 
-func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleRRCInactiveTransitionReport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1128,20 +1128,20 @@ func HandleRRCInactiveTransitionReport(lbConn *context.LBConn, message *ngapType
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverNotify(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1183,13 +1183,13 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
@@ -1197,12 +1197,12 @@ func HandleHandoverNotify(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 }
 
 // TS 23.502 4.9.1
-func HandlePathSwitchRequest(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandlePathSwitchRequest(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	//TODO
 	lbConn.Log.Errorln("Handling case not implemented yet: Path Switch Request")
 }
 
-func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverRequestAcknowledge(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1242,13 +1242,13 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
@@ -1256,7 +1256,7 @@ func HandleHandoverRequestAcknowledge(lbConn *context.LBConn, message *ngapType.
 }
 
 //TODO
-func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleHandoverRequired(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1298,20 +1298,20 @@ func HandleHandoverRequired(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkRanStatusTransfer(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1351,20 +1351,20 @@ func HandleUplinkRanStatusTransfer(lbConn *context.LBConn, message *ngapType.NGA
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleNasNonDeliveryIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1404,20 +1404,20 @@ func HandleNasNonDeliveryIndication(lbConn *context.LBConn, message *ngapType.NG
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1457,20 +1457,20 @@ func HandleUplinkUEAssociatedNRPPATransport(lbConn *context.LBConn, message *nga
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleLocationReport(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1510,20 +1510,20 @@ func HandleLocationReport(lbConn *context.LBConn, message *ngapType.NGAPPDU, sta
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleUERadioCapabilityInfoIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1564,20 +1564,20 @@ func HandleUERadioCapabilityInfoIndication(lbConn *context.LBConn, message *ngap
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleErrorIndication(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1615,20 +1615,20 @@ func HandleErrorIndication(lbConn *context.LBConn, message *ngapType.NGAPPDU, st
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, startTime int64) {
+func HandleCellTrafficTrace(lbConn *context.Lb_Conn, message *ngapType.NGAPPDU, startTime int64) {
 	var aMFUENGAPID *ngapType.AMFUENGAPID
 	var rANUENGAPID *ngapType.RANUENGAPID
 
@@ -1668,20 +1668,20 @@ func HandleCellTrafficTrace(lbConn *context.LBConn, message *ngapType.NGAPPDU, s
 			if rANUENGAPID == nil {
 				lbConn.Log.Errorf("RanUeNgapID is nil")
 			} else {
-				gnb := lbConn.RanPointer
-				ue, ok := gnb.FindUeByUeRanID(rANUENGAPIDInt)
+				gnb := lbConn.GnbPointer
+				ue, ok := gnb.FindUeByRAN_UE_ID(rANUENGAPIDInt)
 				if !ok {
 					lbConn.Log.Errorf("UE not registered")
 					return
 				}
-				ie.Value.RANUENGAPID.Value = ue.UeLbID
+				ie.Value.RANUENGAPID.Value = ue.LB_UE_ID
 				context.ForwardToAmf(message, ue, startTime)
 			}
 		}
 	}
 }
 
-func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
+func printAndGetCause(lbConn *context.Lb_Conn, cause *ngapType.Cause) (present int, value aper.Enumerated) {
 	present = cause.Present
 	switch cause.Present {
 	case ngapType.CausePresentRadioNetwork:
@@ -1705,7 +1705,7 @@ func printAndGetCause(lbConn *context.LBConn, cause *ngapType.Cause) (present in
 	return
 }
 
-func printCriticalityDiagnostics(lbConn *context.LBConn, criticalityDiagnostics *ngapType.CriticalityDiagnostics) {
+func printCriticalityDiagnostics(lbConn *context.Lb_Conn, criticalityDiagnostics *ngapType.CriticalityDiagnostics) {
 	lbConn.Log.Trace("Criticality Diagnostics")
 
 	if criticalityDiagnostics.ProcedureCriticality != nil {

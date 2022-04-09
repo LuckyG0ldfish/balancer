@@ -24,10 +24,12 @@ func NewUniqueNumberGen(StartNumber int64) *UniqueNumberGen{
 
 // Selects the next available LB-internal ID for a UE 
 func (gen *UniqueNumberGen) NextNumber() int64 {
+	// default case at the moment 
 	if gen.ListEmpty {
 		return gen.addOne()
 	} 
 
+	// unused
 	e := gen.Recycled.Remove(gen.Recycled.Front())
 	if e == nil {
 		return gen.addOne()
@@ -41,12 +43,14 @@ func (gen *UniqueNumberGen) NextNumber() int64 {
 	}
 }
 
+// not used at the moment 
 // Takes unused IDs and makes them available for reuse 
 func (gen *UniqueNumberGen) RecycleNumber(id int64) {
 	gen.Recycled.InsertAfter(id, gen.Recycled.Back())
 	logger.ContextLog.Tracef("Number reusable: %d", id)
 }
 
+// checks whether there are integers that can be reused 
 func (gen *UniqueNumberGen) checkEmpty() {
 	if gen.Recycled == nil || gen.Recycled.Len() == 0 {
 		gen.ListEmpty = true 
@@ -55,6 +59,7 @@ func (gen *UniqueNumberGen) checkEmpty() {
 	gen.ListEmpty = false 
 }
 
+// adds a new integer by incrementing the current 
 func (gen *UniqueNumberGen) addOne() int64{
 	id := gen.RegularID
 	gen.RegularID++

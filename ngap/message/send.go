@@ -9,7 +9,7 @@ import (
 )
 
 // Builds and sends NGSetupRequest
-func SendNGSetupRequest(conn *context.LBConn) {
+func SendNGSetupRequest(conn *context.Lb_Conn) {
 	lbID := 1
 
 	hexGNBID := []byte{0x00, 0x02, byte(lbID)}
@@ -24,7 +24,7 @@ func SendNGSetupRequest(conn *context.LBConn) {
 }
 
 // Builds and sends NGSetupResponse
-func SendNGSetupResponse(conn *context.LBConn) {
+func SendNGSetupResponse(conn *context.Lb_Conn) {
 	conn.Log.Info("Send NG-Setup response")
 	pkt, err := BuildNGSetupResponse()
 	if err != nil {
@@ -35,7 +35,7 @@ func SendNGSetupResponse(conn *context.LBConn) {
 }
 
 // Builds and sends NGSetupFailure
-func SendNGSetupFailure(conn *context.LBConn, cause ngapType.Cause) {
+func SendNGSetupFailure(conn *context.Lb_Conn, cause ngapType.Cause) {
 	conn.Log.Infoln("Send NG-Setup failure")
 
 	if cause.Present == ngapType.CausePresentNothing {

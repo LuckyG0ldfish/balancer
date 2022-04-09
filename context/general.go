@@ -10,6 +10,9 @@ import (
 	"github.com/LuckyG0ldfish/balancer/logger"
 )
 
+const TypeAmf int = 0 
+const TypeGnb int = 1 
+
 const TypeIdRegist 			int	= 0
 const TypeIdRegular 		int	= 1
 const TypeIdDeregist		int = 2

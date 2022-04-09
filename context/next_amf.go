@@ -7,7 +7,7 @@ import (
 )
 
 // TODO:
-func (context *LBContext) SelectNextRegistAmf() bool{
+func (context *Lb_Context) SelectNextRegistAmf() bool{
 	if context.Next_Regist_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
@@ -22,7 +22,7 @@ func (context *LBContext) SelectNextRegistAmf() bool{
 }
 
 // TODO:
-func (context *LBContext) SelectNextRegularAmf() bool{
+func (context *Lb_Context) SelectNextRegularAmf() bool{
 	if context.Next_Regular_Amf == nil {
 		logger.NgapLog.Errorf("No Amf found")
 		return false 
@@ -37,7 +37,7 @@ func (context *LBContext) SelectNextRegularAmf() bool{
 }
 
 // TODO:
-func (context *LBContext) SelectNextDeregistAmf() bool{
+func (context *Lb_Context) SelectNextDeregistAmf() bool{
 	if context.Next_Deregist_Amf == nil {
 		logger.ContextLog.Errorf("No Amf found")
 		return false 
@@ -51,9 +51,9 @@ func (context *LBContext) SelectNextDeregistAmf() bool{
 	return true 
 }
 
-func (context *LBContext) findNextAMF(state int) *LbAmf{
+func (context *Lb_Context) findNextAMF(state int) *Lb_Amf{
 	lb := LB_Self()
-	var amfWithMaxCap *LbAmf
+	var amfWithMaxCap *Lb_Amf
 	var amfUsage float32
 	var pool *sync.Map
 
@@ -71,7 +71,7 @@ func (context *LBContext) findNextAMF(state int) *LbAmf{
 	amfUsage = amfWithMaxCap.calculateAMFUsage()
 	
 	pool.Range(func(key, value interface{}) bool{
-		amfTemp, ok := value.(*LbAmf)
+		amfTemp, ok := value.(*Lb_Amf)
 		if !ok {
 			logger.NgapLog.Errorf("couldn't be converted")
 		}

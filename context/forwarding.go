@@ -48,13 +48,13 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	}
 	
 	// Forwarding
-	SendByteToConn(amf.LbConn.Conn, mes)
+	SendByteToConn(amf.Lb_Conn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to AMF")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-	if ue.UeAmfID != 0 {
-		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d | UeAmfID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID), uint64(ue.UeAmfID))
+	if ue.AMF_UE_ID != 0 {
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d | UeAmfID: %d", uint64(ue.GNB_UE_ID), uint64(ue.LB_UE_ID), uint64(ue.AMF_UE_ID))
 	} else {
-		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.GNB_UE_ID), uint64(ue.LB_UE_ID))
 	}
 	
 	/* Metrics */
@@ -62,14 +62,14 @@ func ForwardToAmf(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	now :=  int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Microsecond)
 	lb := LB_Self()
 	if lb.MetricsLevel > 0 {
-		AddRouting_Element(ue.RanID, ue.UeRanID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now)
+		AddRouting_Element(ue.GnbID, ue.GNB_UE_ID, ue.AmfID, TypeAmf, ue.UeStateIdent, startTime, now)
 	}
 }
 
 // Used to forward registered UE's messages to an GNB
 func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	// finding the correct GNB by the in UE stored AMF-Pointer
-	gnb := ue.RanPointer
+	gnb := ue.GnbPointer
 	
 	// Encoding
 	var mes []byte
@@ -80,13 +80,13 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	}
 	
 	// Forwarding
-	SendByteToConn(gnb.LbConn.Conn, mes)
+	SendByteToConn(gnb.Lb_Conn.Conn, mes)
 	logger.NgapLog.Debugf("Message forwarded to GNB")
 	logger.NgapLog.Tracef("Packet content:\n%+v", hex.Dump(mes))
-	if ue.UeAmfID != 0 {
-		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d | UeAmfID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID), uint64(ue.UeAmfID))
+	if ue.AMF_UE_ID != 0 {
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d | UeAmfID: %d", uint64(ue.GNB_UE_ID), uint64(ue.LB_UE_ID), uint64(ue.AMF_UE_ID))
 	} else {
-		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.UeRanID), uint64(ue.UeLbID))
+		logger.NgapLog.Tracef("UeRanID: %d | UeLbID: %d", uint64(ue.GNB_UE_ID), uint64(ue.LB_UE_ID))
 	}
 
 	/* Metrics */
@@ -95,6 +95,6 @@ func ForwardToGnb(message *ngapType.NGAPPDU, ue *LbUe, startTime int64) {
 	lb := LB_Self()
 
 	if lb.MetricsLevel > 0 {
-		AddRouting_Element(ue.AmfID, ue.UeRanID, ue.RanID, TypeGnb, ue.UeStateIdent, startTime, now)
+		AddRouting_Element(ue.AmfID, ue.GNB_UE_ID, ue.GnbID, TypeGnb, ue.UeStateIdent, startTime, now)
 	}
 }

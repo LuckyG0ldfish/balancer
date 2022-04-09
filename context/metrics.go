@@ -7,16 +7,15 @@ import (
 	"sync"
 
 	"github.com/LuckyG0ldfish/balancer/logger"
-) 
+)
 
-const TypeAmf int = 0 
-const TypeGnb int = 1 
-
+// one for each registred GNB
 type MetricsGNB struct {
 	ID 			int64
 	MetricsUEs 	*sync.Map
 }
 
+// one for each RAN_UE_ID per GNB 
 type metricsUE struct {
 	id 			int64 
 	
@@ -27,16 +26,18 @@ type metricsUE struct {
 	routings 	[]*trace
 }
 
+// one for each outgoing message
 type trace struct {
 	origin 		int64
 	ueID 		int64
 	destination int64
-	destType 		int 
+	destType 	int 
 	ue_State	int
-	startTime int64
-	endTime int64
+	startTime 	int64
+	endTime 	int64
 }
 
+// adds if needed a metricsUE to the MetricsGNB and a trace to the metricsUE
 func AddRouting_Element(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) {	
 	self := LB_Self()
 	var id int64
@@ -72,6 +73,7 @@ func AddRouting_Element(origin int64, ueID int64, destination int64, destType in
 	}
 }
 
+// general print function -> splits into GNBs and prints them individually
 func Print(gnbs *sync.Map) {
 	gnbs.Range(func(key, value interface{}) bool {
 		tempGNB, ok := value.(*MetricsGNB)
@@ -83,6 +85,8 @@ func Print(gnbs *sync.Map) {
 	})
 }
 
+// print for one GNB 
+// output depending on metricsLevel in the config file 
 func PrintPerGNB(gnb *MetricsGNB) {
 	self := LB_Self()
 	sortedUEs, routingTable := prepareMapForOutput(gnb.MetricsUEs)
@@ -97,6 +101,7 @@ func PrintPerGNB(gnb *MetricsGNB) {
 	printUETimings(sortedUEs, gnb.ID)
 }
 
+// sorting and preparing the different output types 
 func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*trace) {
 	var unsorted []*metricsUE
 
@@ -135,6 +140,8 @@ func prepareMapForOutput(m *sync.Map) (sorted []*metricsUE, routingTraces []*tra
 	return 
 }
 
+// calculating the linear delay for one UE 
+// needs a by start time sorted slice
 func calcuateDuration(traces []*trace) int64 {
 	var dur int64
 	var start int64 
@@ -160,6 +167,9 @@ func calcuateDuration(traces []*trace) int64 {
 	return dur
 }
 
+// calculating the deregistration delay for one UE 
+// needs a by start time sorted slice
+// cuts out the messages that the GNBsim can not track
 func calcuateGNBComparableDuration(traces []*trace) int64 {
 	var dur int64
 	var end int64
@@ -196,6 +206,7 @@ func calcuateGNBComparableDuration(traces []*trace) int64 {
 	return dur
 }
 
+// prints the delays per UE of one GNB 
 func printUETimings(m []*metricsUE, id int64) {
 	var registOutput [][]string 
 	var deregOutput [][]string
@@ -234,6 +245,7 @@ func printUETimings(m []*metricsUE, id int64) {
 	}
 }
 
+// sorts the metricsUEs by UE_ID (in this case RAN_UE_ID)
 func sortUEsByUEID(ueList []*metricsUE) []*metricsUE {
     for i := 1; i < len(ueList); i++ {
         var j = i
@@ -245,6 +257,7 @@ func sortUEsByUEID(ueList []*metricsUE) []*metricsUE {
 	return ueList
 }
 
+// sorts the traces of one UE by startTime - smallest first 
 func sortTracesByStartTime(traceList []*trace) []*trace {
     for i := 1; i < len(traceList); i++ {
         var j = i
@@ -256,15 +269,7 @@ func sortTracesByStartTime(traceList []*trace) []*trace {
 	return traceList
 }
 
-// func idPresent(id int64, slice []*metricsUE) (bool, int) {
-// 	for i := 0; i < len(slice); i++ {
-// 		if slice[i].id == id {
-// 			return true, i
-// 		}
-// 	}
-// 	return false, 0
-// }
-
+// prints the routing list for one UE 
 func printRouting(traces []*trace, id int64) {
 	var output [][]string 
 	heads := []string{"GNBUeId", "GNB-ID", "AMF-ID", "Delay", "State", "Processing"}
@@ -291,6 +296,7 @@ func printRouting(traces []*trace, id int64) {
 	createAndWriteCSV(output, "./config/routingGNB" + s + ".csv")
 }
 
+// returns a MetricsGNB initialized 
 func NewMetricsGNB(id int64) (*MetricsGNB) {
 	var metricsGNB MetricsGNB
 	var metricsUEs sync.Map
@@ -299,6 +305,7 @@ func NewMetricsGNB(id int64) (*MetricsGNB) {
 	return &metricsGNB
 }
 
+// returns a metricsUE initialized 
 func newMetricsUE(id int64) (*metricsUE){
 	var t metricsUE
 	t.id = id 
@@ -308,6 +315,7 @@ func newMetricsUE(id int64) (*metricsUE){
 	return &t
 }
 
+// returns a Trace and sets its variables 
 func newTrace(origin int64, ueID int64, destination int64, destType int, ue_State int, startTime int64, endTime int64) (*trace){
 	var t trace
 	t.origin = origin 
@@ -320,15 +328,16 @@ func newTrace(origin int64, ueID int64, destination int64, destType int, ue_Stat
 	return &t
 }
 
+// accepts a table as input, and a path with file name 
 func createAndWriteCSV(input [][]string, location string) {
-	file, err := os.Create(location)
+	f, err := os.Create(location)
 	if err != nil {
 		logger.ContextLog.Fatalf("failed creating file: %s", err)
 	}
-	writer := csv.NewWriter(file)
+	w := csv.NewWriter(f)
 	for _, row := range input {
-		_ = writer.Write(row)
+		w.Write(row)
 	}
-	writer.Flush()
-	file.Close()
+	w.Flush()
+	f.Close()
 }

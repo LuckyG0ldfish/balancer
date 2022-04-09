@@ -64,13 +64,13 @@ func CreateAndStartAmf(amfIP string, amfPort int, ngapHandler NGAPHandler, amfTy
 }
 
 // Initializes LB to AMF communication and starts handling the connection 
-func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
+func StartAmf(amf *context.Lb_Amf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort int, handler NGAPHandler) {
 	self := context.LB_Self()
 	logger.NgapLog.Debugf("Connecting to amf")
 	for {
 		conn, err := ConnectToAmf(lbaddr, amfIP, amfPort)
 		if err == nil {
-			amf.LbConn.Conn = conn
+			amf.Lb_Conn.Conn = conn
 			logger.NgapLog.Debugf("Connected to amf")
 			if amf.AmfTypeIdent == context.TypeIdRegist {
 				self.Next_Regist_Amf = amf
@@ -79,9 +79,9 @@ func StartAmf(amf *context.LbAmf, lbaddr *sctp.SCTPAddr, amfIP string, amfPort i
 			} else {
 				self.Next_Regular_Amf = amf
 			}
-			connections.Store(amf.LbConn, *amf.LbConn)
-			ngap_message.SendNGSetupRequest(amf.LbConn)
-			handleConnection(amf.LbConn, readBufSize, handler)
+			connections.Store(amf.Lb_Conn, *amf.Lb_Conn)
+			ngap_message.SendNGSetupRequest(amf.Lb_Conn)
+			handleConnection(amf.Lb_Conn, readBufSize, handler)
 			return 
 		}
 		time.Sleep(2 * time.Second)
