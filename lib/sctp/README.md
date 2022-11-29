@@ -1,7 +1,11 @@
 Stream Control Transmission Protocol (SCTP)
 ----
 
-[![Build Status](https://travis-ci.org/ishidawataru/sctp.svg?branch=master)](https://travis-ci.org/ishidawataru/sctp/builds)
+THIS IS NOT AN OFFICIAL SCTP PACKAGE!
+
+I merged this to fit my needs from github.com/ishidawataru/sctp and others. 
+
+
 
 Examples
 ----
